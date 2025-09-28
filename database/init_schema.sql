@@ -17,10 +17,21 @@ CREATE TABLE IF NOT EXISTS procedures (
 CREATE TABLE IF NOT EXISTS documents (
     doc_id SERIAL PRIMARY KEY,
     service_id INT REFERENCES services(service_id) ON DELETE CASCADE,
+
+    -- Ingestion metadata
+    source VARCHAR(100),
+    file_name TEXT,
+    language VARCHAR(10) DEFAULT 'en',
+    doc_type VARCHAR(50) DEFAULT 'pdf',
+
+    -- Business metadata
     name VARCHAR(150),
     description TEXT,
     mandatory BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+    -- System fields
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS faqs (
