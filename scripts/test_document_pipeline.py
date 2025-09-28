@@ -1,26 +1,3 @@
-from data.processing.store_documents import DocumentPipeline
-
-pipeline = DocumentPipeline()
-
-# Example files (replace with your own dataset paths)
-pipeline.ingest("data/docs/passport_services.pdf", source="passport")
-pipeline.ingest("data/docs/aadhaar_update_form.pdf", source="aadhaar")
-pipeline.ingest("data/docs/sample_pan_procedure.docx", source="pan")
-pipeline.ingest("data/docs/epfo_notice.png", source="epfo")
-
-
-
-"""
-#!/usr/bin/env python3
-
-scripts/test_document_pipeline.py
-
-Walks data/docs/* and calls the DocumentPipeline.ingest for each file.
-
-Usage:
-    export DATABASE_URL="postgresql+psycopg2://user:pass@localhost:5432/gov_chatbot"
-    python -m scripts.test_document_pipeline
-
 import os
 from pathlib import Path
 from data.processing.store_documents import DocumentPipeline
@@ -45,4 +22,3 @@ def main():
 
 if __name__ == "__main__":
     main()   
-"""

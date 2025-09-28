@@ -3,8 +3,10 @@ from sqlalchemy.orm import sessionmaker
 from data.db.models import Base, Document, DocumentChunk
 from data.processing.document_parser import DocumentParser
 from data.processing.classifier import classify_document
+import os
 
-DATABASE_URL = "postgresql+psycopg2://postgres:password@localhost:5432/gov_chatbot"
+# DATABASE_URL = "postgresql+psycopg2://postgres:password@localhost:5432/gov_chatbot"
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://rishigupta:home@localhost:5432/gov_chatbot_db")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)

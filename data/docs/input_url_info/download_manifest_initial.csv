@@ -1,0 +1,68 @@
+url,department,filepath,status,reason,size,sha256
+https://ecr.indianrailways.gov.in/uploads/files/1388401894116-DAR%20SF-1-2-4-5-7%20and%208.pdf,railways,data/docs/railways/railways__1388401894116-dar-sf-1-2-4-5-7-and-8-pdf__1.pdf,ok,,31065,3e35c1adf6c7158cb8ceb19425f10937ec8761bd727e8d0ba371f2cde593212b
+https://ecr.indianrailways.gov.in/uploads/files/1670392128054-1669802888669-Reimbursement_Claim_Form.pdf,railways,data/docs/railways/railways__1670392128054-1669802888669-reimbursement-claim-form-pdf__2.pdf,ok,,424461,03514814c582fbb3bc2c7f7f6153455e1e2a3a6b0881ebd94f6036fedea1b395
+https://epfindia.gov.in/site_docs/PDFs/Downloads_PDFs/Form19_instructions_Eng.pdf,epfo,data/docs/epfo/epfo__form19-instructions-eng-pdf__3.pdf,ok,,271604,a287cee77922a97f30236f89f4249abac5ac5af2bd154c4f3f71d98a3e1240e0
+https://idsp.mohfw.gov.in/WriteReadData/OldSite/PL_Forms.pdf,other,data/docs/other/other__pl-forms-pdf__4.pdf,ok,,69290,da02a8c635f4df500fa744ab4556648899b53cc9c760ec6aae01cf487039abbd
+https://incometax.gov.in/documents/form-for-changes-in-pan.pdf,pan,,failed,"[Errno 8] nodename nor servname provided, or not known",0,
+https://incometaxindia.gov.in/forms/income-tax%20rules/103120000000007917.pdf,other,data/docs/other/other__103120000000007917-pdf__6.pdf,ok,,403859,fbe3a013d4eae664403272dbb80f8cd11dcf0014667ca5d77a7be1e71a7c009f
+https://megtransport.gov.in/pdf/form9.pdf,other,data/docs/other/other__form9-pdf__7.pdf,ok,,38597,84753fc21f10e59061df00cf9c1f1547c492d51c17cd370c2ba636407edaa462
+https://mohfw.gov.in/sites/default/files/Application%20form.pdf,other,data/docs/other/other__application-form-pdf__8.pdf,ok,,267747,bf3b5564e2d5a96b54f4c09534956e4806f6b9b12c3c570d3f847e3697c8e9b6
+https://nfsa.gov.in/doc/FAQ_for_Mera_Ration_2.pdf,other,data/docs/other/other__faq-for-mera-ration-2-pdf__9.pdf,ok,,65967,32b79b2c41525299a182ca4c67206bc88a64740d27fb8ec01b0af526b7bbc7a6
+https://notto.mohfw.gov.in/WriteReadData/Portal/images/FORM11.pdf,other,data/docs/other/other__form11-pdf__10.pdf,ok,,74098,9b933390568993af9cfbc8d46fbbe644f55d7e3d658c0eb9195682bc50170db8
+https://notto.mohfw.gov.in/WriteReadData/Portal/images/FORM15.pdf,other,data/docs/other/other__form15-pdf__11.pdf,ok,,166304,3b6723bd17ad3f2929943feafb957b2fa7e1ab3b9d7ba2fd11fe72fd64df0500
+https://notto.mohfw.gov.in/WriteReadData/Portal/images/FORM7.pdf,other,data/docs/other/other__form7-pdf__12.pdf,ok,,72494,9e44d2577ad40fcf6967f55905b52518b6460b363fd238fa1931a6ec5bdf2d15
+https://parivahan.gov.in/sites/default/files/DownloadForm/cmvr/FORM-1A.pdf,parivahan,data/docs/parivahan/parivahan__form-1a-pdf__13.pdf,ok,,14337,23298a89b46ae8ffb5878e757791d5239fd812d949c3db6085a57c4ca3eba3a3
+https://parivahan.gov.in/sites/default/files/DownloadForm/cmvr/FORM-2.pdf,parivahan,data/docs/parivahan/parivahan__form-2-pdf__14.pdf,ok,,24173,5d61ff92a04429184e5f799e98dd4bda9d53f99198dd7b178c14f8312877a072
+https://parivahan.gov.in/sites/default/files/DownloadForm/cmvr/FORM-3.pdf,parivahan,data/docs/parivahan/parivahan__form-3-pdf__15.pdf,ok,,11276,00a88672ba49ad101a773a379e91e1269acc3f8dd29a9309f5b440684d499198
+https://parivahan.gov.in/sites/default/files/DownloadForm/cmvr/FORM-7.pdf,parivahan,data/docs/parivahan/parivahan__form-7-pdf__16.pdf,ok,,109711,488f0fced13963ebbb4e04c2d31a4580a6f9bb53dfc52a4e9b11e398fd09da62
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureA.pdf,passport,data/docs/passport/passport__annexurea-pdf__17.pdf,ok,,186079,34efbf2cfb89b52cc8765ab95471d798404991ace3b23e33d8b5917b322dcab9
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureB.pdf,passport,data/docs/passport/passport__annexureb-pdf__18.pdf,ok,,219378,d5375ba603fbe932ebaede6d7adc59916620a324db2126afcb0201434ad81fdc
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureC.pdf,passport,data/docs/passport/passport__annexurec-pdf__19.pdf,ok,,119111,2ffa6dee9c9c41c429923c4cad80840511eee2d8ecade237dfa0e9c86cbb40e9
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureD.pdf,passport,data/docs/passport/passport__annexured-pdf__20.pdf,ok,,80207,343bd12551bb1065a37e9de3f616ff3c3769fe5b86e98ba23d8d888070a7b5a5
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureE.pdf,passport,data/docs/passport/passport__annexuree-pdf__21.pdf,ok,,87931,adc35982c5055ee9a60f34fc929f013536f7bcedf6f96b8aecca2bb5b288438e
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureF.pdf,passport,data/docs/passport/passport__annexuref-pdf__22.pdf,ok,,247417,6400a8bac63e2dec58f053e9ffb1c29d533b133770cc006965878876c08e82fd
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureG.pdf,passport,data/docs/passport/passport__annexureg-pdf__23.pdf,ok,,166052,84b24596ae3a3720c5963df1cf606491235b66ac11f60e6e21c87b4c320b7d5c
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureH.pdf,passport,data/docs/passport/passport__annexureh-pdf__24.pdf,ok,,104465,67a305f37cc195fae7f1cc0b394e60b02c75c94a34b91f1856efa832d52ddd94
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureI.pdf,passport,data/docs/passport/passport__annexurei-pdf__25.pdf,ok,,224392,24e8c37ae9b187fcc73a041847d81d0d41af737a74a6048865dfc354d53a58c5
+https://passportindia.gov.in/AppOnlineProject/pdf/AnnexureJ.pdf,passport,data/docs/passport/passport__annexurej-pdf__26.pdf,ok,,146989,de05e45ede8f07c7d23cb0825a2bf6ec059c205f4226216568a0b40bbced0ea4
+https://passportindia.gov.in/AppOnlineProject/pdf/ApplicationformInstructionBooklet-V3.0.pdf,passport,data/docs/passport/passport__applicationforminstructionbooklet-v3-0-pdf__27.pdf,ok,,633987,90b1dfa50e8134092f89f5de6b39f81d06cf7fc82306428098304ac8ad4a16da
+https://passportindia.gov.in/AppOnlineProject/pdf/Filling_Passport_Application_Form_Online.pdf,passport,data/docs/passport/passport__filling-passport-application-form-online-pdf__28.pdf,ok,,1000688,579825ed63ca4376bbfff9b8adcea4b858188332931af08ca5eb0920d6f84082
+https://passportindia.gov.in/AppOnlineProject/pdf/Public_Advisory.pdf,passport,data/docs/passport/passport__public-advisory-pdf__29.pdf,ok,,68032,4cd16dce7bf701da1827bdec75886d16c6334365248d1a52d39bf321b32402d4
+https://saras.cbse.gov.in/saras/attach/CHAPTER_4_AFFILIATION_APPLICATION_FORMS_AND_OTHER_FORMATS.pdf,education,data/docs/education/education__chapter-4-affiliation-application-forms-and-other-formats-pdf__30.pdf,ok,,2782348,772d2633fcaba09fdba17fe56d3e3b65a6942658c33889aca21b12c6e97d22ea
+https://sr.indianrailways.gov.in/uploads/files/1592204046208-Common%20nomination%20form.pdf,railways,data/docs/railways/railways__1592204046208-common-nomination-form-pdf__31.pdf,ok,,208047,99d50c2de5e7661d42850e814f1ae9d77e550368f006b392ec3d71efb7b2ac13
+https://swr.indianrailways.gov.in/uploads/files/1648285255912-NPS%20Allotment_Form.pdf,railways,data/docs/railways/railways__1648285255912-nps-allotment-form-pdf__32.pdf,ok,,412070,0da3777aa4040282bb87bb3b97bf6d57696ab3686770d11f588ef75c5c957b08
+https://swr.indianrailways.gov.in/uploads/files/1666873279207-NPS%20S2%20FORM.pdf,railways,data/docs/railways/railways__1666873279207-nps-s2-form-pdf__33.pdf,ok,,261457,571c9a14c0fbfb84cb5ffb14cc2c13df2cda9aa147ccac37cec646c42cec4f30
+https://uidai.gov.in/images/ENROLMENT-UPDATE_Form_Adult_update_V3.pdf,aadhaar,data/docs/aadhaar/aadhaar__enrolment-update-form-adult-update-v3-pdf__34.pdf,ok,,1304595,1686fd548db58fbde4a3c2078987761c269fe6e39144f1d84650cd165637831d
+https://uidai.gov.in/images/Form-2-English.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-2-english-pdf__35.pdf,ok,,155815,5cc38842c892210d66298b87934f6856a6a6e0d9d7166dacba8556a6da341be6
+https://uidai.gov.in/images/Form-4-English.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-4-english-pdf__36.pdf,ok,,152809,a74131d9c089ed793ec1587dede465cae453120eb4e805a703f33cf315fcc23f
+https://uidai.gov.in/images/Form-6-English.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-6-english-pdf__37.pdf,ok,,158822,82bf061e302c26d54ca4dc309a359f3a34c3426a085f8f1c20a68fb81c8e52c8
+https://uidai.gov.in/images/Form_1_Eng.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-1-eng-pdf__38.pdf,ok,,411402,c78400ce69042c14be6e993606de8c3be64a0a6f3f989c3e61205978e53f8d70
+https://uidai.gov.in/images/Form_3_Eng.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-3-eng-pdf__39.pdf,ok,,409720,c9300522bb4d0967ae24992bbbc081c64413ab5587b71ffc0110d00bfb2f931b
+https://uidai.gov.in/images/Form_5_Eng.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-5-eng-pdf__40.pdf,ok,,500745,f956650ad5a5b5dab2544f50b0fa12114f2c1304a9fa21d31de281e219e40c14
+https://uidai.gov.in/images/Form_7_Eng.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-7-eng-pdf__41.pdf,ok,,510320,61166dc51bcc68c9b0088524197eb56d3983daa24bb40cb3d056144111bc4613
+https://uidai.gov.in/images/Form_8_Eng.pdf,aadhaar,data/docs/aadhaar/aadhaar__form-8-eng-pdf__42.pdf,ok,,506915,6927df7fb651fcee85552af325a3492629901165a56344b902685a10f6c5ac5f
+https://uidai.gov.in/images/aadhaar_enrolment_correction_form_version_2.1.pdf,aadhaar,data/docs/aadhaar/aadhaar__aadhaar-enrolment-correction-form-version-2-1-pdf__43.pdf,ok,,343073,93438ae8e0a3227d14f895c9c57b26ec1b9ae0af1fe939b4a99eb65b33b51150
+https://uidai.gov.in/images/commdoc/List_of_Supporting_Document_for_Aadhaar_Enrolment_and_Update.pdf,aadhaar,data/docs/aadhaar/aadhaar__list-of-supporting-document-for-aadhaar-enrolment-and-update-pdf__44.pdf,ok,,1625026,f2d89861b415129f16614464568f9aeeb3b284538ca6227bbb3a6180b7ffd996
+https://www.cbse.gov.in/cbsenew/documents/20210628_Circular%20Procedure%20of%20Applying%20for%20Duplicate%20Ce,education,,failed,"Client error '403 Forbidden' for url 'https://www.cbse.gov.in/cbsenew/documents/20210628_Circular%20Procedure%20of%20Applying%20for%20Duplicate%20Ce'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,
+https://www.cbse.gov.in/cbsenew/documents/Doing_away_Migration_Certificate_X_XII_DADS_04092024.pdf,education,,failed,"Client error '403 Forbidden' for url 'https://www.cbse.gov.in/cbsenew/documents/Doing_away_Migration_Certificate_X_XII_DADS_04092024.pdf'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,
+https://www.cbse.gov.in/cbsenew/documents/SUBMISSION_EXAMINATION_FORMS_PRIVATE_STUDENTS_CLASS_XII_EXAMINATION_,education,,failed,"Client error '403 Forbidden' for url 'https://www.cbse.gov.in/cbsenew/documents/SUBMISSION_EXAMINATION_FORMS_PRIVATE_STUDENTS_CLASS_XII_EXAMINATION_'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,
+https://www.data.gov.in/national-data-platform,other,,failed,"Client error '403 Forbidden' for url 'https://www.data.gov.in/national-data-platform'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,
+https://www.epfindia.gov.in/site_docs/PDFs/Downloads_PDFs/Form10C.pdf,epfo,data/docs/epfo/epfo__form10c-pdf__49.pdf,ok,,426936,182c803b5357784161650b22007db04317cd1e5e35b9799f159bbbf11b03812a
+https://www.epfindia.gov.in/site_docs/PDFs/Downloads_PDFs/Form10D.pdf,epfo,data/docs/epfo/epfo__form10d-pdf__50.pdf,ok,,206194,8aaa31171bc893aa7b8a06428065f9ca4f0b49f4a0b61184fe391b15c447144d
+https://www.epfindia.gov.in/site_docs/PDFs/Downloads_PDFs/Form19.pdf,epfo,data/docs/epfo/epfo__form19-pdf__51.pdf,ok,,524956,0fca28a44e57e9b89e14404ea94bbd2e665fb39c6ab235a1bf1470bf9d1e3e75
+https://www.epfindia.gov.in/site_docs/PDFs/Downloads_PDFs/Form_CCF_nonaadhar.pdf,epfo,data/docs/epfo/epfo__form-ccf-nonaadhar-pdf__52.pdf,ok,,977870,83356b5ba6dde505ac6105d86fab463c7b5dcb94eb839607556004c7a97d6610
+https://www.incometax.gov.in/iec/foportal/sites/default/files/2023-04/ITR1_Notified%20Form%20AY%202023-24.pdf,pan,data/docs/pan/pan__itr1-notified-form-ay-2023-24-pdf__53.pdf,ok,,419303,b91216c8c8fadf59c2b657aba35a59ce5e171de8a1ef174d5c6138de2a98930d
+https://www.incometax.gov.in/iec/forportal/sites/default/files/2022-04/ITR%204%20Notified%20Form_AY%202022-,pan,,failed,"Server error '503 Service Unavailable' for url 'https://www.incometax.gov.in/iec/forportal/sites/default/files/2022-04/ITR%204%20Notified%20Form_AY%202022-'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",0,
+https://www.incometax.gov.in/iec/forportal/sites/default/files/2023-04/ITR2_Notified%20Form%20AY%202023-24.pdf,pan,,failed,"Server error '503 Service Unavailable' for url 'https://www.incometax.gov.in/iec/forportal/sites/default/files/2023-04/ITR2_Notified%20Form%20AY%202023-24.pdf'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",0,
+https://www.india.gov.in/forms-ministry-home-affairs,other,,failed,"Client error '403 Forbidden' for url 'https://www.india.gov.in/forms-ministry-home-affairs'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,
+https://www.nhm.gov.in/New_Updates_2018/NHM_Components/Health_System_Stregthening/Comprehensive_primary_health,other,data/docs/other/other__comprehensive-primary-health__57.pdf,ok,,30722,146181cf8dad43490cb182b0a6bb21aa3d8e20c18d9053af1ba38f99c962ae35
+https://www.rbi.org.in/hindi1/Upload/content/PDFs/SSFM06052019_APP.pdf,rbi,data/docs/rbi/rbi__ssfm06052019-app-pdf__58.pdf,ok,,353493,80dbff09d8bbd16d3ebc18296ac123f8e0906002551dd4d706822f2bc8948090
+https://www.rbi.org.in/upload/ecm/pdfs/a1-fc1.pdf,rbi,data/docs/rbi/rbi__a1-fc1-pdf__59.pdf,ok,,31076,ae0f7988b24270f8b6d58118f99d7fac053c491b2995efdd32129e147a432863
+https://www.uidai.gov.in/images/commdoc/02_01_2022_Aadhaar_List_of_documents.pdf,aadhaar,data/docs/aadhaar/aadhaar__02-01-2022-aadhaar-list-of-documents-pdf__60.pdf,ok,,3349016,4ab3c3ab19c2abe599999875a421c672a39e5bafd684137ac2ccc11c88bc0f74

@@ -1,0 +1,19 @@
+url,department,filepath,status,reason,size,sha256,pw_status,pw_reason,pw_filepath
+https://incometax.gov.in/documents/form-for-changes-in-pan.pdf,pan,,failed,"[Errno 8] nodename nor servname provided, or not known",0,,failed,"Page.goto: net::ERR_NAME_NOT_RESOLVED at https://incometax.gov.in/documents/form-for-changes-in-pan.pdf
+Call log:
+  - navigating to ""https://incometax.gov.in/documents/form-for-changes-in-pan.pdf"", waiting until ""networkidle""
+",
+https://www.cbse.gov.in/cbsenew/documents/20210628_Circular%20Procedure%20of%20Applying%20for%20Duplicate%20Ce,education,,failed,"Client error '403 Forbidden' for url 'https://www.cbse.gov.in/cbsenew/documents/20210628_Circular%20Procedure%20of%20Applying%20for%20Duplicate%20Ce'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,,ok,,data/docs/education/education__20210628-circular-procedure-of-applying-for-duplicate-ce__2.pdf
+https://www.cbse.gov.in/cbsenew/documents/Doing_away_Migration_Certificate_X_XII_DADS_04092024.pdf,education,,failed,"Client error '403 Forbidden' for url 'https://www.cbse.gov.in/cbsenew/documents/Doing_away_Migration_Certificate_X_XII_DADS_04092024.pdf'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,,ok,,data/docs/education/education__doing-away-migration-certificate-x-xii-dads-04092024-pdf__3.pdf
+https://www.cbse.gov.in/cbsenew/documents/SUBMISSION_EXAMINATION_FORMS_PRIVATE_STUDENTS_CLASS_XII_EXAMINATION_,education,,failed,"Client error '403 Forbidden' for url 'https://www.cbse.gov.in/cbsenew/documents/SUBMISSION_EXAMINATION_FORMS_PRIVATE_STUDENTS_CLASS_XII_EXAMINATION_'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,,ok,,data/docs/education/education__submission-examination-forms-private-students-class-xii-examination__4.pdf
+https://www.data.gov.in/national-data-platform,other,,failed,"Client error '403 Forbidden' for url 'https://www.data.gov.in/national-data-platform'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,,ok,,data/docs/other/other__national-data-platform__5.pdf
+https://www.incometax.gov.in/iec/forportal/sites/default/files/2022-04/ITR%204%20Notified%20Form_AY%202022-,pan,,failed,"Server error '503 Service Unavailable' for url 'https://www.incometax.gov.in/iec/forportal/sites/default/files/2022-04/ITR%204%20Notified%20Form_AY%202022-'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",0,,ok,,data/docs/pan/pan__itr-4-notified-form-ay-2022__6.pdf
+https://www.incometax.gov.in/iec/forportal/sites/default/files/2023-04/ITR2_Notified%20Form%20AY%202023-24.pdf,pan,,failed,"Server error '503 Service Unavailable' for url 'https://www.incometax.gov.in/iec/forportal/sites/default/files/2023-04/ITR2_Notified%20Form%20AY%202023-24.pdf'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/503",0,,ok,,data/docs/pan/pan__itr2-notified-form-ay-2023-24-pdf__7.pdf
+https://www.india.gov.in/forms-ministry-home-affairs,other,,failed,"Client error '403 Forbidden' for url 'https://www.india.gov.in/forms-ministry-home-affairs'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403",0,,ok,,data/docs/other/other__forms-ministry-home-affairs__8.pdf
