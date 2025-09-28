@@ -1,0 +1,22 @@
+# Core Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+pgvector==0.2.4
+
+# AI/ML - Compatible versions
+sentence-transformers==2.2.2
+numpy<2.0.0
+scipy<1.11.0
+
+# Document Processing
+PyPDF2==3.0.1
+pdfplumber==0.10.3
+PyMuPDF==1.23.8
+
+# Utilities
+python-multipart==0.0.6
