@@ -1,0 +1,122 @@
+# Data Warehouse Configuration
+
+# Source database configuration (operational database)
+source:
+  url: "postgresql://user:password@localhost/citizen_services"
+  echo: false
+  pool_size: 10
+  max_overflow: 20
+
+# Target database configuration (data warehouse)
+target:
+  url: "postgresql://user:password@localhost/citizen_services_warehouse"
+  echo: false
+  pool_size: 10
+  max_overflow: 20
+
+# Data quality configuration
+quality:
+  quality_rules:
+    dim_service:
+      not_null_service_name:
+        type: "not_null"
+        column: "service_name"
+      not_null_service_category:
+        type: "not_null"
+        column: "service_category"
+      unique_service_id:
+        type: "unique"
+        column: "service_id"
+    
+    dim_user:
+      not_null_user_type:
+        type: "not_null"
+        column: "user_type"
+      unique_user_id:
+        type: "unique"
+        column: "user_id"
+    
+    dim_content:
+      not_null_title:
+        type: "not_null"
+        column: "title"
+      not_null_content_type:
+        type: "not_null"
+        column: "content_type"
+    
+    fct_service_queries:
+      not_null_date_key:
+        type: "not_null"
+        column: "date_key"
+      not_null_service_key:
+        type: "not_null"
+        column: "service_key"
+      response_time_range:
+        type: "range"
+        column: "response_time_ms"
+        min: 0
+        max: 30000
+
+# ETL process configuration
+etl:
+  batch_size: 1000
+  max_retries: 3
+  retry_delay: 5
+  parallel_processes: 4
+  
+  # Dimension loading configuration
+  dimensions:
+    scd_type: 1  # Slowly Changing Dimension type (1 or 2)
+    load_frequency: "daily"
+    load_time: "02:00"
+  
+  # Fact loading configuration
+  facts:
+    load_frequency: "hourly"
+    load_time: "00:00"
+    incremental: true
+    lookback_days: 7
+
+# Data retention configuration
+retention:
+  fact_tables:
+    fct_service_queries: "2 years"
+    fct_content_usage: "1 year"
+    fct_data_quality: "6 months"
+    fct_system_performance: "3 months"
+  
+  dimension_tables:
+    dim_date: "permanent"
+    dim_time: "permanent"
+    dim_service: "permanent"
+    dim_user: "permanent"
+    dim_content: "permanent"
+
+# Monitoring and alerting
+monitoring:
+  enabled: true
+  metrics_retention: "30 days"
+  
+  alerts:
+    etl_failure:
+      enabled: true
+      threshold: 1
+      notification: ["email", "slack"]
+    
+    data_quality:
+      enabled: true
+      threshold: 0.95
+      notification: ["email"]
+    
+    performance:
+      enabled: true
+      response_time_threshold: 5000  # milliseconds
+      notification: ["slack"]
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "/var/log/warehouse_etl.log"
+  max_size: "100MB"
+  backup_count: 5
