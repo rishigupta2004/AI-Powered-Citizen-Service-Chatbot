@@ -1,0 +1,162 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Citizen Services Data Warehouse Dashboard",
+    "tags": ["citizen-services", "data-warehouse", "analytics"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Service Performance Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "SELECT COUNT(*) FROM daily_service_summary",
+            "refId": "A",
+            "legendFormat": "Total Services"
+          },
+          {
+            "expr": "SELECT SUM(total_requests) FROM daily_service_summary WHERE date_key = EXTRACT(EPOCH FROM CURRENT_DATE)::INTEGER",
+            "refId": "B",
+            "legendFormat": "Today's Requests"
+          },
+          {
+            "expr": "SELECT AVG(success_rate) FROM daily_service_summary WHERE date_key = EXTRACT(EPOCH FROM CURRENT_DATE)::INTEGER",
+            "refId": "C",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Daily Service Usage Trends",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "SELECT dd.full_date, SUM(dss.total_requests) as total_requests FROM daily_service_summary dss JOIN date_dim dd ON dss.date_key = dd.date_key WHERE dd.full_date >= CURRENT_DATE - INTERVAL '30 days' GROUP BY dd.full_date ORDER BY dd.full_date",
+            "refId": "A",
+            "legendFormat": "Total Requests"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Top Performing Services",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "SELECT s.service_name, SUM(dss.total_requests) as total_requests, AVG(dss.success_rate) as avg_success_rate, AVG(dss.avg_response_time_ms) as avg_response_time FROM daily_service_summary dss JOIN service_dim s ON dss.service_key = s.service_key WHERE dss.date_key >= EXTRACT(EPOCH FROM CURRENT_DATE - INTERVAL '7 days')::INTEGER GROUP BY s.service_key, s.service_name ORDER BY total_requests DESC LIMIT 10",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Content Quality Metrics",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "SELECT dd.full_date, AVG(cqf.quality_score) as avg_quality_score FROM content_quality_fact cqf JOIN date_dim dd ON cqf.date_key = dd.date_key WHERE dd.full_date >= CURRENT_DATE - INTERVAL '30 days' GROUP BY dd.full_date ORDER BY dd.full_date",
+            "refId": "A",
+            "legendFormat": "Quality Score"
+          },
+          {
+            "expr": "SELECT dd.full_date, AVG(cqf.completeness_score) as avg_completeness_score FROM content_quality_fact cqf JOIN date_dim dd ON cqf.date_key = dd.date_key WHERE dd.full_date >= CURRENT_DATE - INTERVAL '30 days' GROUP BY dd.full_date ORDER BY dd.full_date",
+            "refId": "B",
+            "legendFormat": "Completeness Score"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 5,
+        "title": "API Performance Metrics",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "SELECT dd.full_date, AVG(apf.avg_response_time_ms) as avg_response_time FROM api_performance_fact apf JOIN date_dim dd ON apf.date_key = dd.date_key WHERE dd.full_date >= CURRENT_DATE - INTERVAL '7 days' GROUP BY dd.full_date ORDER BY dd.full_date",
+            "refId": "A",
+            "legendFormat": "Avg Response Time (ms)"
+          },
+          {
+            "expr": "SELECT dd.full_date, AVG(apf.p95_response_time_ms) as p95_response_time FROM api_performance_fact apf JOIN date_dim dd ON apf.date_key = dd.date_key WHERE dd.full_date >= CURRENT_DATE - INTERVAL '7 days' GROUP BY dd.full_date ORDER BY dd.full_date",
+            "refId": "B",
+            "legendFormat": "P95 Response Time (ms)"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 16
+        }
+      },
+      {
+        "id": 6,
+        "title": "Multilingual Coverage",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "SELECT ld.language_name, COUNT(*) as content_items FROM content_quality_fact cqf JOIN language_dim ld ON cqf.language_key = ld.language_key WHERE cqf.date_key >= EXTRACT(EPOCH FROM CURRENT_DATE - INTERVAL '30 days')::INTEGER GROUP BY ld.language_key, ld.language_name ORDER BY content_items DESC",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 24
+        }
+      },
+      {
+        "id": 7,
+        "title": "User Engagement by Region",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "SELECT rd.state_name, rd.region_type, SUM(uef.session_count) as total_sessions, AVG(uef.bounce_rate) as avg_bounce_rate FROM user_engagement_fact uef JOIN region_dim rd ON uef.region_key = rd.region_key WHERE uef.date_key >= EXTRACT(EPOCH FROM CURRENT_DATE - INTERVAL '30 days')::INTEGER GROUP BY rd.region_key, rd.state_name, rd.region_type ORDER BY total_sessions DESC LIMIT 10",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 24
+        }
+      }
+    ],
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "refresh": "5m",
+    "schemaVersion": 27,
+    "version": 1,
+    "links": []
+  }
+}
