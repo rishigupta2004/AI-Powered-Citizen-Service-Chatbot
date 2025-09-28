@@ -196,3 +196,4 @@ local_settings.py
 *.orig
 
 # End of file
+.venv/
