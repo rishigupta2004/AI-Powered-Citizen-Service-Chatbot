@@ -1,0 +1,197 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff (not used here but harmless)
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# FastAPI / Uvicorn/Gunicorn logs and PID files
+*.log
+gunicorn.pid
+*.pid
+*.prof
+
+# dotenv
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Virtualenv
+venv/
+.venv/
+env/
+build/
+
+# Visual Studio Code
+.vscode/
+
+# PyCharm
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Icon must end with two \r
+Icon
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python bytecode
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Sphinx build
+docs/_build/
+
+# pyenv
+/.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# dotenv environment variables
+.env.local
+.env.*.local
+
+# local secrets
+*/secrets.json
+*/.credentials
+secrets.json
+
+# IDE specific
+.idea
+.project
+.classpath
+.settings/
+/.history
+
+# Docker
+docker-compose.override.yml
+docker-compose.local.yml
+**/Dockerfile
+
+# Migrations artifact (keep migration scripts, but ignore compiled caches etc.)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+
+# Node / frontend (if any)
+node_modules/
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Generated files
+*.sqlite
+*.db
+
+# Local test output
+.pytest_cache/
+
+# System files
+.*.swp
+*.swo
+
+# Coverage and reports
+.coverage
+coverage.xml
+
+# Python package metadata
+*.egg-info/
+
+# allow local overrides of settings
+local_settings.py
+
+# Keep .env.example tracked but ignore real .env files
+/.env
+
+# Exclude runtime config that may contain secrets
+/alembic.ini
+/migrations/env.py
+
+# Ignore SQLite DBs created during local testing
+*.sqlite3
+
+# Ignore compiled assets
+*.orig
+
+# End of file
