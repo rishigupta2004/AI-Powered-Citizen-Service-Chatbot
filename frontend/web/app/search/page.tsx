@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiFetch } from '../../lib/api';
 
@@ -8,12 +8,33 @@ export default function SearchPage() {
   const [q, setQ] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [services, setServices] = useState<any[]>([]);
+  const [serviceId, setServiceId] = useState<number | ''>('');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // Use /services for richer data; fallback to endpoint csv if needed
+        const list = await apiFetch<any[]>('/services');
+        setServices(list || []);
+      } catch {
+        try {
+          const slugs = await apiFetch<string[]>('/api/service-endpoints');
+          setServices(slugs.map((s) => ({ name: s, service_id: undefined })));
+        } catch {}
+      }
+    })();
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const data = await apiFetch('/search', { method: 'POST', body: { query: q, limit: 10 } });
+      const body: any = { query: q, limit: pageSize };
+      if (serviceId) body.service_id = serviceId;
+      const data = await apiFetch('/search', { method: 'POST', body });
       setResults(data.results || []);
     } finally {
       setLoading(false);
@@ -34,6 +55,12 @@ export default function SearchPage() {
       </div>
       <form onSubmit={onSubmit} className="mt-4 flex gap-2" role="search" aria-label="Search form">
         <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder={t('search_placeholder') as string} className="flex-1 rounded-md border px-3 py-2" aria-label="Query" />
+        <select value={serviceId} onChange={(e)=>setServiceId(e.target.value ? Number(e.target.value) : '')} className="rounded-md border px-2 py-2" aria-label="Service filter">
+          <option value="">All services</option>
+          {services.map((s:any)=> (
+            <option key={(s.service_id ?? s.name) as any} value={s.service_id || ''}>{s.name || s}</option>
+          ))}
+        </select>
         <button className="rounded-md bg-black text-white px-4 py-2" aria-label="Search Button">{t('search')}</button>
       </form>
       <section className="mt-6" aria-live="polite">
@@ -48,6 +75,11 @@ export default function SearchPage() {
             ))}
           </ul>
         )}
+        <nav className="mt-4 flex gap-2" aria-label="Pagination">
+          <button className="rounded border px-3 py-1" onClick={()=> setPage((p)=> Math.max(1, p-1))} aria-label="Previous page">Prev</button>
+          <span aria-live="polite" className="px-2">Page {page}</span>
+          <button className="rounded border px-3 py-1" onClick={()=> setPage((p)=> p+1)} aria-label="Next page">Next</button>
+        </nav>
       </section>
     </main>
   );

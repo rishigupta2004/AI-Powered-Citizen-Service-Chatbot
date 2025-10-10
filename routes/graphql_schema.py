@@ -33,6 +33,44 @@ try:
                     db.close()
             return {sid: self._cache.get(sid, []) for sid in service_ids}
 
+    class DocumentLoader:
+        def __init__(self):
+            self._cache = {}
+
+        def load_many(self, service_ids: List[int]) -> dict:
+            missing = [sid for sid in service_ids if sid not in self._cache]
+            if missing:
+                db = get_session()
+                try:
+                    rows = db.query(Document).filter(Document.service_id.in_(missing)).all()
+                    by_service = {}
+                    for r in rows:
+                        by_service.setdefault(r.service_id, []).append(r)
+                    for sid in missing:
+                        self._cache[sid] = by_service.get(sid, [])
+                finally:
+                    db.close()
+            return {sid: self._cache.get(sid, []) for sid in service_ids}
+
+    class FAQFetcher:
+        def __init__(self):
+            self._cache = {}
+
+        def load_many(self, service_ids: List[int]) -> dict:
+            missing = [sid for sid in service_ids if sid not in self._cache]
+            if missing:
+                db = get_session()
+                try:
+                    rows = db.query(FAQ).filter(FAQ.service_id.in_(missing)).all() if 'FAQ' in globals() else []
+                    by_service = {}
+                    for r in rows:
+                        by_service.setdefault(r.service_id, []).append(r)
+                    for sid in missing:
+                        self._cache[sid] = by_service.get(sid, [])
+                finally:
+                    db.close()
+            return {sid: self._cache.get(sid, []) for sid in service_ids}
+
     @strawberry.type
     class ServiceType:
         service_id: int
@@ -47,6 +85,22 @@ try:
             data = loader.load_many([self.service_id]).get(self.service_id, [])
             sliced = data[offset: offset + limit]
             return [ProcedureType(procedure_id=r.procedure_id, service_id=r.service_id, title=r.title, description=r.description) for r in sliced]
+
+        @strawberry.field
+        def documents(self, info, limit: int = 50, offset: int = 0) -> List["DocumentType"]:
+            loader: DocumentLoader = info.context.get("document_loader") or DocumentLoader()
+            info.context["document_loader"] = loader
+            data = loader.load_many([self.service_id]).get(self.service_id, [])
+            sliced = data[offset: offset + limit]
+            return [DocumentType(doc_id=r.doc_id, service_id=r.service_id, name=r.name, document_type=r.document_type) for r in sliced]
+
+        @strawberry.field
+        def faqs(self, info, limit: int = 50, offset: int = 0) -> List["FAQType"]:
+            loader: FAQFetcher = info.context.get("faq_loader") or FAQFetcher()
+            info.context["faq_loader"] = loader
+            data = loader.load_many([self.service_id]).get(self.service_id, [])
+            sliced = data[offset: offset + limit]
+            return [FAQType(faq_id=r.faq_id, service_id=r.service_id, question=r.question, answer=r.answer) for r in sliced]
 
     @strawberry.type
     class ProcedureType:
