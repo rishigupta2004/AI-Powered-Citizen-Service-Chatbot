@@ -157,6 +157,15 @@ node_modules/
 dist/
 build/
 
+# Frontend build artefacts
+frontend/web/node_modules/
+frontend/web/.next/
+frontend/web/.vercel/
+
+# Exported datasets (optional to track)
+data/exports/*.json
+data/exports/*.jsonl
+
 # Logs
 logs/
 *.log
