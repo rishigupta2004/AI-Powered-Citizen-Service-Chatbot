@@ -8,3 +8,7 @@ class AadhaarClient(APIClient):
     async def ekyc(self, aadhaar_no: str, otp: str) -> AadhaarEKYC:
         data = await self._get("ekyc_services", params={"aadhaar": aadhaar_no, "otp": otp})
         return AadhaarEKYC(**data)
+
+# Alias to satisfy tests expecting this class name
+class AadhaarAPIClient(AadhaarClient):
+    pass

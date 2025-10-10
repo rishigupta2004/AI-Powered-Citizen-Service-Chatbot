@@ -8,8 +8,9 @@ sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 pgvector==0.2.4
 
-# AI/ML - Compatible versions
-sentence-transformers==2.2.2
+# AI/ML (optional)
+# To enable embeddings, install sentence-transformers. Default codepaths work without it.
+# sentence-transformers==2.2.2
 numpy<2.0.0
 scipy<1.11.0
 
@@ -18,5 +19,15 @@ PyPDF2==3.0.1
 pdfplumber==0.10.3
 PyMuPDF==1.23.8
 
+# Week 6: OCR & Language Detection
+python-docx==1.1.0
+pytesseract==0.3.10
+opencv-python-headless==4.10.0.84
+Pillow==10.3.0
+langdetect==1.0.9
+
 # Utilities
 python-multipart==0.0.6
+
+# GraphQL (optional)
+strawberry-graphql

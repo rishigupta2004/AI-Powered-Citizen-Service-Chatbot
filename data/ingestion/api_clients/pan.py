@@ -8,3 +8,7 @@ class PANClient(APIClient):
     async def verify(self, pan: str) -> PANVerification:
         data = await self._get("verify", params={"pan": pan})
         return PANVerification(**data)
+
+# Alias to satisfy tests expecting this class name
+class PANAPIClient(PANClient):
+    pass

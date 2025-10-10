@@ -23,9 +23,22 @@ python init_db.py
 python app.py
 ```
 
-### 4. Test System
+### 4. Test Suite
 ```bash
+# Environment & DB smoke test
+python test_env_dependencies_and_db.py
+
+# Core models and repositories validation (no ML deps)
+python test_core_models_and_repositories.py
+
+# Streamlined system test (imports, DB, API)
 python test_system.py
+
+# Week 6: Document processing pipeline
+python scripts/test_document_processing.py
+
+# Week 7: Data quality & validation
+python test.py
 ```
 
 ## 📁 Project Structure
@@ -41,7 +54,19 @@ gov-chatbot/
 ├── data/docs/              # Sample government documents
 ├── app.py                  # FastAPI application
 ├── init_db.py             # Database initialization
-├── test_system.py         # System tests
+├── test_env_dependencies_and_db.py  # Environment & DB smoke tests
+├── test_core_models_and_repositories.py  # Core models/repositories tests
+├── test_system.py         # Streamlined system tests
+```
+
+## 🤖 AI Models
+
+- Embeddings: `sentence-transformers` with default model `all-MiniLM-L6-v2`
+  - Override with env var: `EMBEDDING_MODEL="all-MiniLM-L12-v2"` (example)
+- LLM (optional for RAG answer generation): pluggable provider via env
+  - `LLM_PROVIDER=OPENAI` (GPT-5) or `LLM_PROVIDER=GOOGLE` (Gemini 2.5 Flash/Pro)
+  - Set `OPENAI_API_KEY` or `GOOGLE_API_KEY` accordingly
+- Tests focus on retrieval/processing; LLM generation is not required to pass tests.
 └── requirements.txt       # Dependencies
 ```
 
@@ -62,6 +87,29 @@ gov-chatbot/
 - `GET /documents` - List document requirements
 - `GET /faqs` - List frequently asked questions
 - `POST /process-document` - Process PDF documents
+
+### Phase 4: v1 Service Endpoints (links left empty)
+- `GET /api/v1/passport/procedures`
+- `GET /api/v1/passport/documents`
+- `GET /api/v1/passport/fees`
+- `GET /api/v1/passport/offices`
+- `GET /api/v1/aadhaar/enrollment`
+- `GET /api/v1/aadhaar/updates`
+- `GET /api/v1/aadhaar/documents`
+- `GET /api/v1/pan/application`
+- `GET /api/v1/pan/correction`
+- `GET /api/v1/pan/linking`
+- `GET /api/v1/search` (universal search)
+- `GET /api/v1/discovery/services` (CSV-derived)
+- `GET /api/v1/recommendations`
+- `GET /api/v1/suggestions`
+- `POST /api/v1/analytics/events`
+- `GET /api/v1/admin/quality`
+- `GET /api/v1/admin/analytics`
+- `GET /api/v1/admin/system-health`
+- `POST /api/v1/admin/backup`
+- `POST /api/v1/admin/restore`
+- `POST /api/v1/graphql` (placeholder)
 
 ## 🎯 Supported Services
 
@@ -110,5 +158,11 @@ The system is now clean, efficient, and ready to process government documents. A
 **Memory Usage**: < 100MB
 
 ---
+
+## 🧹 Pre-Week-6 Cleanup Status
+
+- No legacy or auto-generated clustering code present; search pipeline is already optimized and concise.
+- No messy image assets found in repository; data/docs contains well-organized PDFs and a few HTML files only.
+- Proceeding to Week 6-7 with document processing and embeddings.
 
 **Built with ❤️ for efficiency and simplicity**

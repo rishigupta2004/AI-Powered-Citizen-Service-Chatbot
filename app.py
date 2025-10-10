@@ -1,16 +1,21 @@
 """
 Streamlined FastAPI Application - Essential endpoints only
 """
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import time
+import os
+import asyncio
 
 from core.database import get_db
 from core.models import Service, Procedure, Document, FAQ
 from core.repositories import ServiceRepository, DocumentRepository, FAQRepository
 from core.search import SearchEngine
+from routes.api_endpoints import router as api_router
+from routes.v1_endpoints import router as v1_router
 
 app = FastAPI(
     title="Government Services API",
@@ -26,10 +31,110 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include Phase 4 CSV-derived service API endpoints (links left empty)
+app.include_router(api_router)
+app.include_router(v1_router)
+
+# --- Week 3: Security & Middleware ---
+
+# API key auth dependency (simple header-based)
+API_KEY = os.getenv("API_KEY")
+
+def require_api_key(request: Request):
+    if API_KEY:
+        key = request.headers.get("x-api-key")
+        if key != API_KEY:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+    # If no API_KEY set, run open mode
+    return True
+
+# Simple rate limiting (token bucket per IP)
+RATE_LIMIT_RPS = int(os.getenv("RATE_LIMIT_RPS", "10"))
+RATE_LIMIT_BURST = int(os.getenv("RATE_LIMIT_BURST", "20"))
+_buckets = {}
+
+class Bucket:
+    def __init__(self, capacity: int, refill_per_sec: int):
+        self.capacity = capacity
+        self.tokens = capacity
+        self.refill_per_sec = refill_per_sec
+        self.last = time.time()
+
+    def allow(self) -> bool:
+        now = time.time()
+        elapsed = now - self.last
+        # Refill tokens
+        self.tokens = min(self.capacity, self.tokens + elapsed * self.refill_per_sec)
+        self.last = now
+        if self.tokens >= 1:
+            self.tokens -= 1
+            return True
+        return False
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    # Skip for health and docs
+    if request.url.path in ("/health", "/docs", "/openapi.json"):
+        return await call_next(request)
+    ip = request.client.host if request.client else "unknown"
+    b = _buckets.get(ip)
+    if b is None:
+        b = Bucket(RATE_LIMIT_BURST, RATE_LIMIT_RPS)
+        _buckets[ip] = b
+    if not b.allow():
+        return PlainTextResponse(status_code=429, content="Rate limit exceeded")
+    return await call_next(request)
+
+# Request logging (minimal)
+@app.middleware("http")
+async def request_logging(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration_ms = int((time.time() - start) * 1000)
+    print(f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms}ms)")
+    return response
+
+# Structured error handling
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(status_code=exc.status_code, content={
+        "error": {
+            "type": "HTTPException",
+            "detail": exc.detail,
+            "path": request.url.path
+        }
+    })
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    # Minimal logging; avoids leaking internals
+    print(f"ERROR {request.method} {request.url.path}: {exc}")
+    return JSONResponse(status_code=500, content={
+        "error": {
+            "type": "ServerError",
+            "detail": "An unexpected error occurred",
+            "path": request.url.path
+        }
+    })
+
 # Health Check
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": time.time()}
+
+@app.get("/metrics")
+async def metrics(db: Session = Depends(get_db), _auth: bool = Depends(require_api_key)):
+    # Basic metrics: counts of core tables
+    from core.repositories import ServiceRepository, DocumentRepository, FAQRepository, ContentChunkRepository
+    s = ServiceRepository(db).count()
+    d = DocumentRepository(db).count()
+    f = FAQRepository(db).count()
+    try:
+        from core.repositories import ContentChunkRepository
+        c = ContentChunkRepository(db).count()
+    except Exception:
+        c = 0
+    return {"services": s, "documents": d, "faqs": f, "content_chunks": c}
 
 # Search Endpoint
 @app.post("/search")
@@ -37,7 +142,8 @@ async def search(
     query: str,
     service_id: Optional[int] = None,
     limit: int = Query(10, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _auth: bool = Depends(require_api_key)
 ):
     """Search across all content types"""
     search_engine = SearchEngine(db)
@@ -51,7 +157,8 @@ async def get_services(
     active_only: bool = True,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _auth: bool = Depends(require_api_key)
 ):
     """Get services with optional filtering"""
     service_repo = ServiceRepository(db)
@@ -152,7 +259,8 @@ async def get_faqs(
 async def process_document(
     file_path: str,
     service_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _auth: bool = Depends(require_api_key)
 ):
     """Process a document and extract content"""
     from core.processor import DocumentProcessor
