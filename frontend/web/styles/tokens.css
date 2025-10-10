@@ -5,17 +5,32 @@
   --color-primary-foreground: 210 40% 98%;
   --color-bg: 0 0% 100%;
   --color-fg: 222.2 84% 4.9%;
-  --color-muted: 215 20% 65%;
+  --color-muted: 215 16% 65%;
+  --color-muted-fg: 215 16% 35%;
+  --color-card: 0 0% 100%;
+  --color-border: 215 16% 90%;
   --radius: 0.5rem;
 
   /* Typography */
   --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   --text-base: 16px;
   --line-height: 1.5;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
 }
 
 .dark {
   --color-bg: 222.2 84% 4.9%;
   --color-fg: 210 40% 98%;
+  --color-card: 222.2 84% 6.9%;
+  --color-border: 215 16% 18%;
+  --color-muted: 215 16% 25%;
+  --color-muted-fg: 215 16% 75%;
 }
 
