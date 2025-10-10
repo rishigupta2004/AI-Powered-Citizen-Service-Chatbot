@@ -1,7 +1,7 @@
 """
 Streamlined Database Models - Essential entities only
 """
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, TIMESTAMP, func, DECIMAL, ARRAY
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, TIMESTAMP, func, DECIMAL, ARRAY, Index
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID, ARRAY as PG_ARRAY
 from sqlalchemy.orm import relationship
@@ -89,5 +89,58 @@ class ContentChunk(Base):
     uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True)
     content_text = Column(Text, nullable=False)
     service_id = Column(Integer, ForeignKey("services.service_id", ondelete="CASCADE"))
+    category = Column(String(100))
     embedding = Column(Vector(384))
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+# Helpful indexes for common queries and filters
+Index('idx_services_name', Service.name)
+Index('idx_procedures_title', Procedure.title)
+Index('idx_documents_name', Document.name)
+Index('idx_documents_language', Document.language)
+Index('idx_faq_language', FAQ.language)
+Index('idx_chunks_category', ContentChunk.category)
+
+# Full-text search index for documents (GIN over tsvector)
+try:
+    from sqlalchemy import text
+    Index(
+        'idx_documents_tsv',
+        text("to_tsvector('english', coalesce(name,'') || ' ' || coalesce(description,'') || ' ' || coalesce(raw_content,''))"),
+        postgresql_using='gin'
+    )
+except Exception:
+    # Skip if dialect does not support this at model import time
+    pass
+
+# --- Phase 4: Raw scraped content storage (Data Warehouse alignment) ---
+class RawContent(Base):
+    __tablename__ = "raw_content"
+
+    content_id = Column(Integer, primary_key=True)
+    uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True)
+
+    # Source information
+    source_type = Column(String(50), nullable=False)  # api, scraping, pdf, ocr
+    source_url = Column(String(500))
+    source_name = Column(String(200))
+
+    # Content
+    title = Column(String(500))
+    content = Column(Text, nullable=False)
+    content_type = Column(String(50))  # html, pdf, text, json
+    language = Column(String(10), default='en')
+
+    # Processing & metadata
+    is_processed = Column(Boolean, default=False)
+    processing_status = Column(String(50), default='pending')
+    processing_errors = Column(Text)
+    metadata_json = Column('metadata', JSONB)
+    file_path = Column(String(500))
+    file_size_bytes = Column(Integer)
+
+    # System
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), onupdate=func.now())
+
+Index('idx_raw_content_source_type', RawContent.source_type)

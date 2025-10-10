@@ -12,3 +12,7 @@ class PassportClient(APIClient):
     async def track_status(self, file_no: str, dob: str) -> PassportStatus:
         data = await self._get("track_application_status", params={"fileNo": file_no, "dob": dob})
         return PassportStatus(**data)
+
+# Alias to satisfy tests expecting this class name
+class PassportAPIClient(PassportClient):
+    pass

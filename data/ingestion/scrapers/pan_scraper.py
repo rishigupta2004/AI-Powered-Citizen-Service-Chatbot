@@ -46,3 +46,7 @@ class PanScraper(Scraper):
             seen.add(f["question"])
             out.append(f)
         return out
+
+# Alias to satisfy tests expecting this class name
+class PANScraper(PanScraper):
+    pass

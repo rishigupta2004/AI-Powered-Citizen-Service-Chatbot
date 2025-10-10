@@ -1,4 +1,10 @@
-import pdfplumber, docx, pytesseract, cv2
+import pdfplumber, pytesseract, cv2
+try:
+    import docx  # Optional dependency for Word parsing
+    _HAS_DOCX = True
+except Exception:
+    docx = None
+    _HAS_DOCX = False
 from PIL import Image
 from langdetect import detect
 import os
@@ -23,6 +29,8 @@ class DocumentParser:
 
     def parse_word(self, path: str) -> list[str]:
         """Extract text from Word document."""
+        if not _HAS_DOCX:
+            raise ImportError("python-docx is not installed; Word parsing unavailable.")
         doc = docx.Document(path)
         return [p.text.strip() for p in doc.paragraphs if p.text.strip()]
 
@@ -32,6 +40,18 @@ class DocumentParser:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         text = pytesseract.image_to_string(Image.fromarray(gray))
         return [text.strip()]
+
+    def parse_content(self, text: str) -> list[str]:
+        """Normalize raw text input into logical chunks.
+        Splits by double newlines or periods to produce manageable pieces.
+        """
+        if not text:
+            return []
+        # Prefer paragraph splits; fallback to sentences
+        parts = [p.strip() for p in text.split("\n\n") if p.strip()]
+        if len(parts) <= 1:
+            parts = [p.strip() for p in text.split(".") if p.strip()]
+        return parts
 
     def detect_language(self, text: str) -> str:
         try:

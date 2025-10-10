@@ -3,9 +3,9 @@ Streamlined Repository Pattern - Essential operations only
 """
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func, desc
+from sqlalchemy import and_, or_, func, desc, text
 from pgvector.sqlalchemy import Vector
-from .models import Service, Procedure, Document, FAQ, ContentChunk
+from .models import Service, Procedure, Document, FAQ, ContentChunk, RawContent
 
 class BaseRepository:
     def __init__(self, db: Session, model_class):
@@ -72,6 +72,29 @@ class DocumentRepository(BaseRepository):
             Document.embedding.cosine_distance(query_embedding)
         ).limit(limit).all()
 
+    def search_text(self, query: str, limit: int = 10) -> List[Document]:
+        """Prefer Postgres full-text search; fallback to ILIKE."""
+        try:
+            # Use tsvector search for better performance where available
+            ts_query = func.plainto_tsquery('english', query)
+            vector = func.to_tsvector('english', func.coalesce(Document.name, '') + ' ' + func.coalesce(Document.description, '') + ' ' + func.coalesce(Document.raw_content, ''))
+            return (
+                self.db.query(Document)
+                .filter(vector.op('@@')(ts_query))
+                .order_by(desc(func.ts_rank_cd(vector, ts_query)))
+                .limit(limit)
+                .all()
+            )
+        except Exception:
+            term = f"%{query}%"
+            return self.db.query(Document).filter(
+                or_(
+                    Document.name.ilike(term),
+                    Document.description.ilike(term),
+                    Document.raw_content.ilike(term)
+                )
+            ).limit(limit).all()
+
 class FAQRepository(BaseRepository):
     def __init__(self, db: Session):
         super().__init__(db, FAQ)
@@ -96,3 +119,15 @@ class ContentChunkRepository(BaseRepository):
         ).order_by(
             ContentChunk.embedding.cosine_distance(query_embedding)
         ).limit(limit).all()
+
+class RawContentRepository(BaseRepository):
+    def __init__(self, db: Session):
+        super().__init__(db, RawContent)
+
+    def get_by_source(self, source_type: str, limit: int = 50):
+        return (
+            self.db.query(RawContent)
+            .filter(RawContent.source_type == source_type)
+            .limit(limit)
+            .all()
+        )

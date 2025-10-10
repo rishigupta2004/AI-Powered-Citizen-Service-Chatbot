@@ -1,7 +1,10 @@
 import httpx
 import logging
+import os
 from tenacity import retry, stop_after_attempt, wait_exponential
-from backend.app.config import APISETU_KEY
+
+# Read API key from environment; avoid hard dependency on external backend module
+APISETU_KEY = os.getenv("APISETU_KEY")
 
 logger = logging.getLogger(__name__)
 
@@ -9,9 +12,10 @@ class APIError(Exception):
     """Custom API error wrapper."""
 
 class APIClient:
-    def __init__(self, base_url: str, api_key: str | None = APISETU_KEY, timeout: int = 10):
+    def __init__(self, base_url: str, api_key: str | None = None, timeout: int = 10):
         self.base_url = base_url.rstrip("/")
-        self.api_key = api_key
+        # Prefer explicit api_key, fallback to environment variable
+        self.api_key = api_key if api_key is not None else APISETU_KEY
         self.timeout = timeout
         self.client = httpx.AsyncClient(timeout=timeout)
 

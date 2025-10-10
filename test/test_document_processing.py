@@ -30,8 +30,9 @@ def test_pdf_processing():
                 ministry="Ministry of External Affairs"
             )
         
-        # Test with a sample PDF
-        sample_pdf = "data/docs/passport/passport-form-1.pdf"
+        # Test with a real sample PDF from repo if available
+        # Use repository PDF path directly
+        sample_pdf = "data/docs/passport/passport-applicationforminstructionbooklet-v3-0-pdf-27.pdf"
         if os.path.exists(sample_pdf):
             result = processor.process_document(sample_pdf, service[0].service_id)
             print(f"✅ PDF processing successful: {result}")

@@ -9,6 +9,7 @@ from .database import Base
 
 class Service(Base):
     __tablename__ = "services"
+    __table_args__ = {"extend_existing": True}
     
     service_id = Column(Integer, primary_key=True)
     name = Column(String(200), nullable=False)
@@ -25,6 +26,7 @@ class Service(Base):
 
 class Procedure(Base):
     __tablename__ = "procedures"
+    __table_args__ = {"extend_existing": True}
     
     procedure_id = Column(Integer, primary_key=True)
     service_id = Column(Integer, ForeignKey("services.service_id", ondelete="CASCADE"), nullable=False)
@@ -42,6 +44,7 @@ class Procedure(Base):
 
 class Document(Base):
     __tablename__ = "documents"
+    __table_args__ = {"extend_existing": True}
     
     doc_id = Column(Integer, primary_key=True)
     service_id = Column(Integer, ForeignKey("services.service_id", ondelete="CASCADE"), nullable=False)
@@ -61,6 +64,7 @@ class Document(Base):
 
 class FAQ(Base):
     __tablename__ = "faqs"
+    __table_args__ = {"extend_existing": True}
     
     faq_id = Column(Integer, primary_key=True)
     service_id = Column(Integer, ForeignKey("services.service_id", ondelete="CASCADE"), nullable=False)
@@ -75,6 +79,7 @@ class FAQ(Base):
 
 class ContentChunk(Base):
     __tablename__ = "content_chunks"
+    __table_args__ = {"extend_existing": True}
     
     chunk_id = Column(Integer, primary_key=True)
     content_text = Column(Text, nullable=False)

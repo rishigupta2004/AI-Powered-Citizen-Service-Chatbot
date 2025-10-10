@@ -1,16 +1,18 @@
 """
-Streamlined Vector Search Engine - Essential functionality only
+Streamlined Search Engine - Embeddings optional and lazily loaded
 """
 import numpy as np
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-from sentence_transformers import SentenceTransformer
+import os
 from .repositories import ServiceRepository, DocumentRepository, FAQRepository, ContentChunkRepository
 
 class SearchEngine:
     def __init__(self, db: Session):
         self.db = db
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model_name = os.getenv('EMBEDDING_MODEL', 'all-MiniLM-L6-v2')
+        self.embeddings_enabled = os.getenv('EMBEDDING_ENABLED', 'true').lower() in ('1', 'true', 'yes')
+        self.embedding_model = None
         self.service_repo = ServiceRepository(db)
         self.document_repo = DocumentRepository(db)
         self.faq_repo = FAQRepository(db)
@@ -19,14 +21,14 @@ class SearchEngine:
     def search(self, query: str, service_id: Optional[int] = None, limit: int = 10) -> Dict[str, Any]:
         """Perform hybrid search across all content types"""
         try:
-            # Generate query embedding
-            query_embedding = self._generate_embedding(query)
+            # Generate query embedding if enabled
+            query_embedding = self._generate_embedding(query) if self.embeddings_enabled else []
             
             # Search different content types
             results = []
             
             # Search documents
-            docs = self.document_repo.search_semantic(query_embedding, limit)
+            docs = self.document_repo.search_semantic(query_embedding, limit) if self.embeddings_enabled else []
             for doc in docs:
                 if not service_id or doc.service_id == service_id:
                     results.append({
@@ -38,7 +40,7 @@ class SearchEngine:
                     })
             
             # Search FAQs
-            faqs = self.faq_repo.search_semantic(query_embedding, limit)
+            faqs = self.faq_repo.search_semantic(query_embedding, limit) if self.embeddings_enabled else []
             for faq in faqs:
                 if not service_id or faq.service_id == service_id:
                     results.append({
@@ -50,7 +52,7 @@ class SearchEngine:
                     })
             
             # Search content chunks
-            chunks = self.chunk_repo.search_semantic(query_embedding, limit)
+            chunks = self.chunk_repo.search_semantic(query_embedding, limit) if self.embeddings_enabled else []
             for chunk in chunks:
                 if not service_id or chunk.service_id == service_id:
                     results.append({
@@ -77,14 +79,29 @@ class SearchEngine:
                 'results': [],
                 'error': str(e)
             }
+
+    def get_model_name(self) -> str:
+        """Return the currently configured embedding model name."""
+        return self.model_name
     
+    def _ensure_model(self):
+        if self.embedding_model is None and self.embeddings_enabled:
+            try:
+                from sentence_transformers import SentenceTransformer
+                self.embedding_model = SentenceTransformer(self.model_name)
+            except Exception:
+                self.embedding_model = None
+
     def _generate_embedding(self, text: str) -> List[float]:
-        """Generate embedding for text"""
+        """Generate embedding for text if enabled; otherwise return empty list."""
         try:
+            self._ensure_model()
+            if self.embedding_model is None:
+                return []
             embedding = self.embedding_model.encode(text)
             return embedding.tolist()
         except Exception:
-            return [0.0] * 384
+            return []
     
     def _calculate_similarity(self, embedding1: List[float], embedding2: List[float]) -> float:
         """Calculate cosine similarity between embeddings"""
