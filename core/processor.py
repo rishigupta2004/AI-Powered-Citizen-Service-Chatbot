@@ -86,58 +86,50 @@ class DocumentProcessor:
                     text += (page.extract_text() or "") + "\n"
                 if text.strip():
                     return text
-                # Week 6: OCR fallback if no extractable text
-                # Check if OCR is enabled via environment variable
-                use_ocr = os.environ.get("USE_OCR", "true").lower() in ("true", "1", "yes")
-                if use_ocr:
+                # OCR fallback if configured and needed
+                if self._ocr_enabled():
                     try:
-                        import pytesseract
-                        import cv2
-                        import numpy as np
-                        
-                        ocr_text = ""
-                        for page in pdf.pages:
-                            try:
-                                # Convert page to image
-                                img = page.to_image(resolution=300).original
-                                
-                                # Convert PIL image to OpenCV format
-                                img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-                                
-                                # Image preprocessing for better OCR results
-                                # Convert to grayscale
-                                gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-                                
-                                # Apply thresholding to handle different lighting conditions
-                                _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                                
-                                # Apply noise reduction
-                                denoised = cv2.fastNlMeansDenoising(thresh, None, 10, 7, 21)
-                                
-                                # OCR with improved image
-                                ocr_text += pytesseract.image_to_string(denoised) + "\n"
-                                
-                                # If OCR text is too short, try original image
-                                if len(ocr_text.strip()) < 50:
-                                    ocr_text += pytesseract.image_to_string(img) + "\n"
-                            except Exception as e:
-                                print(f"OCR processing error on page: {e}")
-                                continue
-                        
+                        ocr_text = self._ocr_from_plumber_pages(pdf.pages)
                         if ocr_text.strip():
                             print(f"Successfully extracted {len(ocr_text)} characters using OCR")
                             return ocr_text
-                    except ImportError as e:
-                        print(f"OCR dependencies not available: {e}")
                     except Exception as e:
                         print(f"OCR processing failed: {e}")
-                
-                # OCR not available, disabled, or failed
                 return text
                 
         except Exception as e:
             print(f"Text extraction failed: {e}")
             return ""
+
+    def _ocr_enabled(self) -> bool:
+        return os.environ.get("USE_OCR", "true").lower() in ("true", "1", "yes")
+
+    def _ocr_from_plumber_pages(self, pages) -> str:
+        """Perform OCR on pdfplumber pages with simple preprocessing."""
+        try:
+            import pytesseract
+            import cv2
+            import numpy as np
+        except ImportError as e:
+            print(f"OCR dependencies not available: {e}")
+            return ""
+
+        buf = []
+        for page in pages:
+            try:
+                img = page.to_image(resolution=300).original
+                img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+                _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                denoised = cv2.fastNlMeansDenoising(thresh, None, 10, 7, 21)
+                text = pytesseract.image_to_string(denoised)
+                if len(text.strip()) < 50:
+                    text += "\n" + pytesseract.image_to_string(img)
+                buf.append(text)
+            except Exception as e:
+                print(f"OCR processing error on page: {e}")
+                continue
+        return "\n".join(buf)
     
     def _generate_embedding(self, text: str) -> List[float]:
         """Generate embedding for text"""

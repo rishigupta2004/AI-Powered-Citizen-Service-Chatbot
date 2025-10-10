@@ -1,21 +1,20 @@
 """
 Streamlined FastAPI Application - Essential endpoints only
 """
-from fastapi import FastAPI, Depends, HTTPException, Query, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Optional
 import time
-import os
-import asyncio
 
 from core.database import get_db
-from core.models import Service, Procedure, Document, FAQ
+# Models imported lazily by repositories/endpoints; keep app surface minimal
 from core.repositories import ServiceRepository, DocumentRepository, FAQRepository
 from core.search import SearchEngine
 from routes.api_endpoints import router as api_router
 from routes.v1_endpoints import router as v1_router
+from routes.graphql_schema import get_graphql_router
+from routes.middleware import register_middlewares, register_exception_handlers, require_api_key
 
 app = FastAPI(
     title="Government Services API",
@@ -35,87 +34,19 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(v1_router)
 
-# --- Week 3: Security & Middleware ---
+# Mount GraphQL router if available (optional dependency)
+try:
+    _graphql_router = get_graphql_router()
+    if _graphql_router is not None:
+        app.include_router(_graphql_router, prefix="/api/v1/graphql")
+        print("✅ GraphQL router mounted at /api/v1/graphql")
+    else:
+        print("ℹ️ GraphQL not configured; install 'strawberry-graphql' to enable.")
+except Exception:
+    print("ℹ️ GraphQL not configured; install 'strawberry-graphql' to enable.")
 
-# API key auth dependency (simple header-based)
-API_KEY = os.getenv("API_KEY")
-
-def require_api_key(request: Request):
-    if API_KEY:
-        key = request.headers.get("x-api-key")
-        if key != API_KEY:
-            raise HTTPException(status_code=401, detail="Unauthorized")
-    # If no API_KEY set, run open mode
-    return True
-
-# Simple rate limiting (token bucket per IP)
-RATE_LIMIT_RPS = int(os.getenv("RATE_LIMIT_RPS", "10"))
-RATE_LIMIT_BURST = int(os.getenv("RATE_LIMIT_BURST", "20"))
-_buckets = {}
-
-class Bucket:
-    def __init__(self, capacity: int, refill_per_sec: int):
-        self.capacity = capacity
-        self.tokens = capacity
-        self.refill_per_sec = refill_per_sec
-        self.last = time.time()
-
-    def allow(self) -> bool:
-        now = time.time()
-        elapsed = now - self.last
-        # Refill tokens
-        self.tokens = min(self.capacity, self.tokens + elapsed * self.refill_per_sec)
-        self.last = now
-        if self.tokens >= 1:
-            self.tokens -= 1
-            return True
-        return False
-
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    # Skip for health and docs
-    if request.url.path in ("/health", "/docs", "/openapi.json"):
-        return await call_next(request)
-    ip = request.client.host if request.client else "unknown"
-    b = _buckets.get(ip)
-    if b is None:
-        b = Bucket(RATE_LIMIT_BURST, RATE_LIMIT_RPS)
-        _buckets[ip] = b
-    if not b.allow():
-        return PlainTextResponse(status_code=429, content="Rate limit exceeded")
-    return await call_next(request)
-
-# Request logging (minimal)
-@app.middleware("http")
-async def request_logging(request: Request, call_next):
-    start = time.time()
-    response = await call_next(request)
-    duration_ms = int((time.time() - start) * 1000)
-    print(f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms}ms)")
-    return response
-
-# Structured error handling
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(status_code=exc.status_code, content={
-        "error": {
-            "type": "HTTPException",
-            "detail": exc.detail,
-            "path": request.url.path
-        }
-    })
-
-@app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception):
-    # Minimal logging; avoids leaking internals
-    print(f"ERROR {request.method} {request.url.path}: {exc}")
-    return JSONResponse(status_code=500, content={
-        "error": {
-            "type": "ServerError",
-            "detail": "An unexpected error occurred",
-            "path": request.url.path
-        }
-    })
+register_middlewares(app)
+register_exception_handlers(app)
 
 # Health Check
 @app.get("/health")
@@ -129,11 +60,7 @@ async def metrics(db: Session = Depends(get_db), _auth: bool = Depends(require_a
     s = ServiceRepository(db).count()
     d = DocumentRepository(db).count()
     f = FAQRepository(db).count()
-    try:
-        from core.repositories import ContentChunkRepository
-        c = ContentChunkRepository(db).count()
-    except Exception:
-        c = 0
+    c = ContentChunkRepository(db).count()
     return {"services": s, "documents": d, "faqs": f, "content_chunks": c}
 
 # Search Endpoint
