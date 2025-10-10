@@ -6,18 +6,18 @@ from datetime import datetime
 import csv
 import json
 
-from ..core.database import get_db, SessionLocal
-from ..core.search import SearchEngine
-from ..core.quality import run_all_quality_checks, QualityMonitor
-from ..core.repositories import (
+from core.database import get_db, SessionLocal
+from core.search import SearchEngine
+from core.quality import run_all_quality_checks, QualityMonitor
+from core.repositories import (
     RawContentRepository,
     ServiceRepository,
     DocumentRepository,
     FAQRepository,
 )
-from ..core.cache import ttl_cache
-from ..core.ops.backup_restore import backup_database, restore_database
-from ..core.recommendations import RecommendationEngine
+from core.cache import ttl_cache
+from core.ops.backup_restore import backup_database, restore_database
+from core.recommendations import RecommendationEngine
 from .graphql_schema import get_graphql_router
 from .schemas import (
     EndpointResponse,
@@ -225,10 +225,12 @@ def restore(req: RestoreRequest = Body(...), db: Session = Depends(get_db)) -> D
         return {"status": "error", "error": str(e)}
 
 
-# Week 15: GraphQL Integration (placeholders)
-@router.post("/graphql")
-def graphql_placeholder() -> Dict[str, Any]:
+# Week 15: GraphQL Integration (placeholder status endpoint)
+# Avoid path collision with the mounted GraphQL router at `/api/v1/graphql`
+# by exposing a separate status route under `/api/v1/graphql-status`.
+@router.get("/graphql-status")
+def graphql_status() -> Dict[str, Any]:
     router = get_graphql_router()
     if router is None:
         return {"status": "not_configured", "message": "Install 'strawberry-graphql' to enable GraphQL."}
-    return {"status": "available", "message": "GraphQL schema ready to mount via app.include_router(router, prefix='/graphql')"}
+    return {"status": "available", "message": "GraphQL router is mounted at /api/v1/graphql"}

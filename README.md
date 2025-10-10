@@ -1,6 +1,6 @@
 # 🏛️ Government Services Data Warehouse
 
-**Streamlined & Efficient** - A clean, production-ready data warehouse for Indian Government Services.
+**Production-Ready** - A comprehensive data warehouse for Indian Government Services with AI-powered search.
 
 ## 🚀 Quick Start
 
@@ -9,54 +9,87 @@
 # Install dependencies
 pip install -r requirements.txt
 
-# Set database URL
-export DATABASE_URL="postgresql://username:password@localhost/citizen_services_dev"
+# Set database URL (or use default)
+export DATABASE_URL="postgresql://username:password@localhost/gov_chatbot_db"
 ```
 
 ### 2. Initialize Database
 ```bash
+# Create tables and seed base data
 python init_db.py
 ```
 
-### 3. Start API Server
+### 3. Ingest Data
 ```bash
-python app.py
+# Load all scraped data and PDFs into warehouse
+python scripts/comprehensive_data_ingestion.py
 ```
 
-### 4. Test Suite
+### 4. Validate Data
 ```bash
-# Environment & DB smoke test
-python test_env_dependencies_and_db.py
+# View warehouse contents
+python scripts/view_warehouse_data.py
 
-# Core models and repositories validation (no ML deps)
-python test_core_models_and_repositories.py
+# Detailed view with samples
+python scripts/view_warehouse_data.py --detailed
 
-# Streamlined system test (imports, DB, API)
-python test_system.py
+# Export data to JSON
+python scripts/view_warehouse_data.py --export
+```
 
-# Week 6: Document processing pipeline
-python scripts/test_document_processing.py
+### 5. Run Tests
+```bash
+# Master test runner (all phases)
+python scripts/master_test_runner.py
 
-# Week 7: Data quality & validation
-python test.py
+# Individual test suites
+python test/test_system.py
+python test/test_document_processing.py
+python test/system_pipeline_tests.py
+```
+
+### 6. Start API Server
+```bash
+# Development mode
+uvicorn app:app --reload
+
+# Production mode
+uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
 ## 📁 Project Structure
 
 ```
 gov-chatbot/
-├── core/                    # Core functionality (streamlined)
-│   ├── database.py         # Database configuration
-│   ├── models.py           # SQLAlchemy models
-│   ├── repositories.py     # Data access layer
-│   ├── search.py           # Vector search engine
-│   └── processor.py        # Document processor
-├── data/docs/              # Sample government documents
-├── app.py                  # FastAPI application
-├── init_db.py             # Database initialization
-├── test_env_dependencies_and_db.py  # Environment & DB smoke tests
-├── test_core_models_and_repositories.py  # Core models/repositories tests
-├── test_system.py         # Streamlined system tests
+├── core/                      # Core functionality
+│   ├── database.py           # Database configuration
+│   ├── models.py             # SQLAlchemy models (6 tables)
+│   ├── repositories.py       # Data access layer
+│   ├── search.py             # Vector search engine
+│   ├── embeddings.py         # Embedding generation
+│   ├── rag.py                # RAG pipeline
+│   ├── nlp.py                # NLP processing
+│   ├── quality.py            # Data quality checks
+│   └── ops/                  # Operational tools
+│       └── backup_restore.py # Backup/restore functions
+├── data/
+│   ├── docs/                 # 60+ government PDFs
+│   ├── cache/scrapers/       # 19 scraped JSON files
+│   ├── ingestion/            # API clients & scrapers
+│   └── processing/           # Document parsers
+├── routes/                   # API endpoints
+│   ├── v1_endpoints.py      # v1 API routes
+│   ├── api_endpoints.py     # General routes
+│   └── graphql_schema.py    # GraphQL (optional)
+├── scripts/                  # Utility scripts
+│   ├── comprehensive_data_ingestion.py
+│   ├── view_warehouse_data.py
+│   ├── master_test_runner.py
+│   └── validate_warehouse.sql
+├── test/                     # Test suites
+├── app.py                    # FastAPI application
+├── init_db.py               # Database initialization
+└── requirements.txt         # Dependencies
 ```
 
 ## 🤖 AI Models

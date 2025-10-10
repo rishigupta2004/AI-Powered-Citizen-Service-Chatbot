@@ -96,6 +96,33 @@ def get_response_metadata(url: str) -> Dict[str, Any]:
     """Get cached response metadata if available"""
     if not USE_INCREMENTAL:
         return {}
+
+def apply_conditional_headers(headers: Dict[str, str], metadata: Dict[str, Any]) -> Dict[str, str]:
+    """Apply ETag/Last-Modified headers if present in metadata."""
+    if not metadata:
+        return headers
+    etag = metadata.get("etag")
+    last_modified = metadata.get("last_modified")
+    if etag:
+        headers["If-None-Match"] = etag
+    if last_modified:
+        headers["If-Modified-Since"] = last_modified
+    return headers
+
+def build_playwright_proxy_config(proxy: Optional[str]) -> Optional[Dict[str, str]]:
+    """Return Playwright proxy config from a proxy URL string."""
+    if not proxy:
+        return None
+    p = proxy
+    if p.startswith("http://"):
+        p = p[7:]
+    elif p.startswith("https://"):
+        p = p[8:]
+    if "@" in p:
+        auth, address = p.split("@", 1)
+        user, password = auth.split(":", 1)
+        return {"server": f"http://{address}", "username": user, "password": password}
+    return {"server": f"http://{p}"}
     
     cache_key = get_cache_key(url)
     cache_file = CACHE_DIR / f"{cache_key}.json"
@@ -214,17 +241,11 @@ class Scraper:
             return None
             
         session = requests_session_with_retries(timeout=timeout)
-        headers = dict(self.default_headers)
-        headers["User-Agent"] = random_user_agent()
-        headers["Accept-Language"] = "en-US,en;q=0.9"
-        
-        # Add conditional headers if we have cached metadata
-        metadata = get_response_metadata(url)
-        if metadata and self.use_incremental:
-            if "etag" in metadata and metadata["etag"]:
-                headers["If-None-Match"] = metadata["etag"]
-            if "last_modified" in metadata and metadata["last_modified"]:
-                headers["If-Modified-Since"] = metadata["last_modified"]
+        headers = apply_conditional_headers({
+            **self.default_headers,
+            "User-Agent": random_user_agent(),
+            "Accept-Language": "en-US,en;q=0.9",
+        }, get_response_metadata(url) if self.use_incremental else {})
         
         # Set up proxies if enabled
         proxies = None
@@ -291,31 +312,9 @@ class Scraper:
             raise
 
         # Set up proxy if enabled
-        proxy_config = None
-        if self.use_proxies:
-            proxy = random_proxy()
-            if proxy:
-                # Extract proxy details
-                if proxy.startswith("http://"):
-                    proxy = proxy[7:]
-                elif proxy.startswith("https://"):
-                    proxy = proxy[8:]
-                
-                # Check if proxy has authentication
-                if "@" in proxy:
-                    auth, address = proxy.split("@", 1)
-                    user, password = auth.split(":", 1)
-                    server = f"http://{address}"
-                    proxy_config = {
-                        "server": server,
-                        "username": user,
-                        "password": password
-                    }
-                else:
-                    proxy_config = {
-                        "server": f"http://{proxy}"
-                    }
-                self.logger.info(f"Using proxy for Playwright: {proxy_config['server']}")
+        proxy_config = build_playwright_proxy_config(random_proxy() if self.use_proxies else None)
+        if proxy_config:
+            self.logger.info(f"Using proxy for Playwright: {proxy_config['server']}")
 
         self.logger.info("Playwright navigating to %s (headless=%s, ua=%s)", url, headless, ua)
         try:
@@ -345,12 +344,15 @@ class Scraper:
                 page = context.new_page()
                 
                 # Add conditional headers if we have cached metadata
-                metadata = get_response_metadata(url)
-                if metadata and self.use_incremental:
-                    if "etag" in metadata and metadata["etag"]:
-                        page.set_extra_http_headers({"If-None-Match": metadata["etag"]})
-                    if "last_modified" in metadata and metadata["last_modified"]:
-                        page.set_extra_http_headers({"If-Modified-Since": metadata["last_modified"]})
+                metadata = get_response_metadata(url) if self.use_incremental else {}
+                if metadata:
+                    extra = {}
+                    if metadata.get("etag"):
+                        extra["If-None-Match"] = metadata["etag"]
+                    if metadata.get("last_modified"):
+                        extra["If-Modified-Since"] = metadata["last_modified"]
+                    if extra:
+                        page.set_extra_http_headers(extra)
                 
                 response = page.goto(url, wait_until=wait_until, timeout=timeout)
                 

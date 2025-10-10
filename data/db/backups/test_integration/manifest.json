@@ -1,0 +1,10 @@
+{
+  "snapshot_time": "2025-10-10T16:15:04.176129",
+  "counts": {
+    "services": 24,
+    "documents": 34,
+    "faqs": 9,
+    "content_chunks": 616,
+    "raw_contents": 49
+  }
+}

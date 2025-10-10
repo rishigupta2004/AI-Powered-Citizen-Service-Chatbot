@@ -1,0 +1,21 @@
+/* Design tokens: replace values with exports from Figma when available */
+:root {
+  /* Palette */
+  --color-primary: 221.2 83.2% 53.3%;
+  --color-primary-foreground: 210 40% 98%;
+  --color-bg: 0 0% 100%;
+  --color-fg: 222.2 84% 4.9%;
+  --color-muted: 215 20% 65%;
+  --radius: 0.5rem;
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  --text-base: 16px;
+  --line-height: 1.5;
+}
+
+.dark {
+  --color-bg: 222.2 84% 4.9%;
+  --color-fg: 210 40% 98%;
+}
+

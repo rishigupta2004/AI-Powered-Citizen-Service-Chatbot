@@ -1,0 +1,394 @@
+[
+  {
+    "service_id": "1",
+    "uuid": "c944a682-ad38-4889-b6a2-be6b2e9a5284",
+    "name": "Passport Services",
+    "category": "passport",
+    "description": "Passport application, renewal, and correction services",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.490838+05:30"
+  },
+  {
+    "service_id": "2",
+    "uuid": "d608b00b-b177-4f19-a618-912b44f8d2c5",
+    "name": "Aadhaar Services",
+    "category": "aadhaar",
+    "description": "Aadhaar enrollment, updates, and verification",
+    "ministry": "Ministry of Electronics and IT",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.499563+05:30"
+  },
+  {
+    "service_id": "3",
+    "uuid": "360c5b94-9fcb-4963-aa5b-4ded7a7c0cda",
+    "name": "PAN Card Services",
+    "category": "pan",
+    "description": "PAN card application and correction services",
+    "ministry": "Ministry of Finance",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.501316+05:30"
+  },
+  {
+    "service_id": "4",
+    "uuid": "5d4a0581-2a1f-4719-a343-235e57a5c2f2",
+    "name": "EPFO Services",
+    "category": "epfo",
+    "description": "EPF passbook and balance inquiry services",
+    "ministry": "Ministry of Labour",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.502362+05:30"
+  },
+  {
+    "service_id": "5",
+    "uuid": "4d5879dc-f24d-4ed1-ad6c-f48fa38c935e",
+    "name": "Driving License Services",
+    "category": "driving",
+    "description": "Driving license application and renewal services",
+    "ministry": "Ministry of Road Transport",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.503407+05:30"
+  },
+  {
+    "service_id": "6",
+    "uuid": "44aa6007-90c4-4817-9333-e10f75949d4f",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:20:03.664945+05:30"
+  },
+  {
+    "service_id": "7",
+    "uuid": "ba6aa91f-bbf9-48ce-99cc-2008cfbdf63d",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T00:37:39.697889+05:30"
+  },
+  {
+    "service_id": "8",
+    "uuid": "72af36b5-a822-416f-8152-ea9b2a81bdd2",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T00:38:49.175237+05:30"
+  },
+  {
+    "service_id": "9",
+    "uuid": "2e7b0dd2-9e1b-435d-81f2-4fbfb3c0d6c9",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T00:41:18.537109+05:30"
+  },
+  {
+    "service_id": "10",
+    "uuid": "34b383cd-1dd7-4bd1-89c0-6f877654e370",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T01:17:02.872553+05:30"
+  },
+  {
+    "service_id": "11",
+    "uuid": "9e106713-65f1-4603-a0b4-8432f6781170",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T01:25:04.155657+05:30"
+  },
+  {
+    "service_id": "12",
+    "uuid": "f71f92d6-3cf8-4cae-a999-85aca137daf5",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T01:25:36.357828+05:30"
+  },
+  {
+    "service_id": "13",
+    "uuid": "1272c049-59b6-40ef-b8fc-3b130ecaa10e",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T01:31:04.163105+05:30"
+  },
+  {
+    "service_id": "14",
+    "uuid": "cd236491-897c-47c7-9058-d3d20a629de4",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T02:22:45.293288+05:30"
+  },
+  {
+    "service_id": "15",
+    "uuid": "4696fa37-5cbd-440d-b9c4-1d9adea42679",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-07T02:22:59.118096+05:30"
+  },
+  {
+    "service_id": "16",
+    "uuid": "249199a3-a8fa-4cb1-8391-d1dda8f9e831",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-08T14:49:37.702511+05:30"
+  },
+  {
+    "service_id": "17",
+    "uuid": "56fcaa3e-28c8-4c00-8446-d4c7a068571f",
+    "name": "Test Service",
+    "category": "test",
+    "description": "Test description",
+    "ministry": "Test Ministry",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-08T14:49:47.336883+05:30"
+  },
+  {
+    "service_id": "18",
+    "uuid": "1c895b97-8c3f-4fe0-9add-92309b247b7e",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-09T17:29:59.034895+05:30"
+  },
+  {
+    "service_id": "19",
+    "uuid": "d162fb3e-c2b1-46e7-aa36-d25246968aa6",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-09T23:53:21.245235+05:30"
+  },
+  {
+    "service_id": "20",
+    "uuid": "cb108038-512b-4ade-9f14-b70bce89b829",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T00:26:59.445441+05:30"
+  },
+  {
+    "service_id": "21",
+    "uuid": "46fa4a3b-a90b-488c-b671-9bdb0f3949e2",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T01:08:20.182163+05:30"
+  },
+  {
+    "service_id": "22",
+    "uuid": "8e76a493-3099-4adc-bea9-f386f1fc7a40",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T14:04:02.160285+05:30"
+  },
+  {
+    "service_id": "23",
+    "uuid": "e7efbbcd-e49c-4fc1-88b3-40f309d9c091",
+    "name": "Test Passport Service",
+    "category": "passport",
+    "description": "Test passport service for ingestion",
+    "ministry": "Ministry of External Affairs",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T17:31:32.370028+05:30"
+  },
+  {
+    "service_id": "24",
+    "uuid": "b1e3b8df-ed64-4b4a-be73-68151152a0e3",
+    "name": "Passport Application/Renewal (MEA)",
+    "category": "passport",
+    "description": "Auto-created for Passport Application/Renewal (MEA)",
+    "ministry": null,
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T19:04:10.789599+05:30"
+  },
+  {
+    "service_id": "25",
+    "uuid": "54d85e37-2c33-4266-9d34-273457b26805",
+    "name": "Driving License Services",
+    "category": "parivahan",
+    "description": "Driving license application, renewal, and verification",
+    "ministry": "Ministry of Road Transport and Highways",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  },
+  {
+    "service_id": "26",
+    "uuid": "3906b2c4-2c78-41c1-9b91-ddfcb311b999",
+    "name": "Education Services",
+    "category": "education",
+    "description": "Scholarships, educational certificates, and related services",
+    "ministry": "Ministry of Education",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  },
+  {
+    "service_id": "27",
+    "uuid": "d96034c8-fe7d-4735-bfca-10d37d5ffb9f",
+    "name": "Railway Services",
+    "category": "railways",
+    "description": "Railway tickets, reservations, and travel information",
+    "ministry": "Ministry of Railways",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  },
+  {
+    "service_id": "28",
+    "uuid": "89035131-bb32-44fa-ba83-4aadcd3bac13",
+    "name": "RBI Services",
+    "category": "rbi",
+    "description": "Banking, forex, and financial services",
+    "ministry": "Reserve Bank of India",
+    "is_active": "True",
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  }
+]
