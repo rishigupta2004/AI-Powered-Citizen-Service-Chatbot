@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useMemo, useRef } from 'react';
+import { LazyMotion, domAnimation, m as motion, useScroll, useTransform } from 'framer-motion';
 import {
   ArrowRight,
   Shield,
@@ -41,9 +41,11 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
     offset: ['start start', 'end start'],
   });
 
-  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3]);
-  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 0.95]);
+  // Clamp animation intensity for perf
+  const motionRange = useMemo(() => ({ y: ['0%', '18%'], opacity: [1, 0.5], scale: [1, 0.97] }), []);
+  const heroY = useTransform(scrollYProgress, [0, 1], motionRange.y);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.75], motionRange.opacity);
+  const heroScale = useTransform(scrollYProgress, [0, 1], motionRange.scale);
 
   const allServices = getAllServices();
   const featuredServices = allServices.slice(0, 6);
@@ -150,7 +152,8 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
   ];
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[var(--background)]">
+    <LazyMotion features={domAnimation} strict>
+    <div className="min-h-screen overflow-hidden bg-[var(--background)] will-change-transform">
       {/* Hero Section with Parallax */}
       <section
         ref={heroRef}
@@ -158,24 +161,25 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
       >
         {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#000080] via-[#000066] to-[#000050]">
-          <ParticleBackground particleCount={60} />
-          <FloatingElements count={10} />
+          {/* Reduce background particle count for smoother perf */}
+          <ParticleBackground particleCount={36} />
+          <FloatingElements count={6} />
           
           {/* Gradient Blobs */}
           <GradientBlob
             colors={['#FF9933', '#000080']}
-            size={600}
-            blur={100}
-            opacity={0.3}
-            speed={25}
+            size={520}
+            blur={80}
+            opacity={0.25}
+            speed={18}
             className="top-0 left-0"
           />
           <GradientBlob
             colors={['#138808', '#000080']}
-            size={500}
-            blur={90}
-            opacity={0.25}
-            speed={20}
+            size={440}
+            blur={72}
+            opacity={0.22}
+            speed={16}
             className="bottom-0 right-0"
           />
         </div>
@@ -188,7 +192,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
             className="mb-8"
           >
             <Logo size="xl" variant="white" showText={true} />
@@ -197,7 +201,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+            transition={{ duration: 0.6, delay: 0.15, ease: 'easeOut' }}
           >
             <Badge className="mb-6 bg-white/10 text-white backdrop-blur-sm border-white/20 px-6 py-2 text-base">
               <span className="mr-2">🇮🇳</span>
@@ -208,7 +212,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 0.6, delay: 0.3, ease: 'easeOut' }}
             className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
           >
             Your Gateway to
@@ -221,7 +225,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6, ease: 'easeOut' }}
+            transition={{ duration: 0.6, delay: 0.45, ease: 'easeOut' }}
             className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
           >
             Access 50+ government services instantly. Fast, secure, and available 24/7.
@@ -231,7 +235,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8, ease: 'easeOut' }}
+            transition={{ duration: 0.6, delay: 0.55, ease: 'easeOut' }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Button
@@ -256,7 +260,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1, ease: 'easeOut' }}
+            transition={{ duration: 0.6, delay: 0.7, ease: 'easeOut' }}
             className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-20"
           >
             {stats.map((stat, index) => (

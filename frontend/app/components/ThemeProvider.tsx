@@ -1,9 +1,5 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { detectPerformanceMode } from "../lib/perf";
 
 type Theme = "light" | "dark" | "high-contrast";
 
@@ -13,6 +9,7 @@ interface ThemeContextType {
   toggleTheme: () => void;
   isHighContrast: boolean;
   toggleHighContrast: () => void;
+  performanceMode: "high" | "medium" | "low";
 }
 
 const ThemeContext = createContext<
@@ -26,6 +23,7 @@ export function ThemeProvider({
 }) {
   const [theme, setTheme] = useState<Theme>("light");
   const [isHighContrast, setIsHighContrast] = useState(false);
+  const [performanceMode, setPerformanceMode] = useState<"high" | "medium" | "low">("medium");
 
   useEffect(() => {
     // Check for saved theme preference or default to light
@@ -79,13 +77,19 @@ export function ThemeProvider({
     setIsHighContrast((prev) => !prev);
   };
 
-  const value = {
+  useEffect(() => {
+    // detect once after hydration
+    setPerformanceMode(detectPerformanceMode());
+  }, []);
+
+  const value = useMemo(() => ({
     theme,
     setTheme,
     toggleTheme,
     isHighContrast,
     toggleHighContrast,
-  };
+    performanceMode,
+  }), [theme, isHighContrast, performanceMode]);
 
   return (
     <ThemeContext.Provider value={value}>

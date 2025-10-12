@@ -10,7 +10,10 @@ import { FAQPage } from "./components/pages/FAQPage";
 import { AboutPage } from "./components/pages/AboutPage";
 import { AdminPortalPage } from "./components/pages/AdminPortalPage";
 import { UserDashboard } from "./components/pages/UserDashboard";
-import { ApplicationTracker } from "./components/pages/ApplicationTracker";
+import { ApplicationTracker as ApplicationTrackerPage } from "./components/pages/ApplicationTracker";
+import { ApplicationTracker } from "./components/ApplicationTracker";
+import { ServiceSearch } from "./components/ServiceSearch";
+import { DocumentDownloader } from "./components/DocumentDownloader";
 import { Toaster } from "./components/ui/sonner";
 import { ArrowUp } from "lucide-react";
 import { Button } from "./components/ui/button";
@@ -58,7 +61,7 @@ function AppContent() {
       case "home":
         return <EnhancedHome onNavigate={handleNavigate} />;
       case "services":
-        return <ServicesPage onNavigate={handleNavigate} />;
+        return <ServiceSearch />;
       case "service-detail":
         return (
           <ServiceDetail
@@ -69,9 +72,9 @@ function AppContent() {
       case "dashboard":
         return <UserDashboard onNavigate={handleNavigate} />;
       case "tracker":
-        return (
-          <ApplicationTracker onNavigate={handleNavigate} />
-        );
+        return <ApplicationTracker />;
+      case "documents":
+        return <DocumentDownloader />;
       case "faq":
         return <FAQPage onNavigate={handleNavigate} />;
       case "about":
