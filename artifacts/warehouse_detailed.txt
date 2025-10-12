@@ -1,0 +1,187 @@
+
+================================================================================
+📊 DATA WAREHOUSE CONTENTS
+================================================================================
+
+--------------------------------------------------------------------------------
+🏛️  SERVICES
+--------------------------------------------------------------------------------
+Total services: 11
+
+ID    Name                           Category        Ministry                      
+--------------------------------------------------------------------------------
+1     Passport Services              passport        Ministry of External Affairs  
+2     Aadhaar Services               aadhaar         Ministry of Electronics and I 
+3     PAN Card Services              pan             Ministry of Finance           
+4     EPFO Services                  epfo            Ministry of Labour            
+5     Driving License Services       driving         Ministry of Road Transport    
+24    Passport Application/Renewal   passport        N/A                           
+25    Driving License Services       parivahan       Ministry of Road Transport an 
+26    Education Services             education       Ministry of Education         
+27    Railway Services               railways        Ministry of Railways          
+28    RBI Services                   rbi             Reserve Bank of India         
+44    General                        general         N/A                           
+
+📋 Sample Service Details:
+  UUID: c944a682-ad38-4889-b6a2-be6b2e9a5284
+  Name: Passport Services
+  Category: passport
+  Description: Passport application, renewal, and correction services
+  Ministry: Ministry of External Affairs
+  Active: True
+  Languages: ['en', 'hi']
+  Created: 2025-09-28 18:19:54.490838+05:30
+
+--------------------------------------------------------------------------------
+📝 PROCEDURES
+--------------------------------------------------------------------------------
+Total procedures: 9
+
+ID    Title                                    Type            Service        
+--------------------------------------------------------------------------------
+1     Passport Application                     standard        Passport Servi 
+2     Passport Renewal                         standard        Passport Servi 
+3     Passport Update                          standard        Passport Servi 
+4     Aadhaar Application                      standard        Aadhaar Servic 
+5     Aadhaar Renewal                          standard        Aadhaar Servic 
+6     Aadhaar Update                           standard        Aadhaar Servic 
+7     Pan Application                          standard        PAN Card Servi 
+8     Pan Renewal                              standard        PAN Card Servi 
+9     Pan Update                               standard        PAN Card Servi 
+
+--------------------------------------------------------------------------------
+📄 DOCUMENTS
+--------------------------------------------------------------------------------
+Total documents: 254
+
+📊 Documents by Service:
+Service                             Count
+------------------------------------------
+Passport Services                      63
+General                                32
+Aadhaar Services                       57
+EPFO Services                          20
+PAN Card Services                      29
+Education Services                     11
+Driving License Services                5
+Railway Services                       12
+Passport Application/Renewal           13
+Driving License Services                8
+RBI Services                            4
+
+📋 Sample Document:
+  ID: 280
+  Name: calculate_fees
+  Type: json
+  Mandatory: False
+  Processed: True
+  Raw Content (first 200 chars): calculate_fees:https://apisetu.gov.in/passport/fees/calculate
+
+--------------------------------------------------------------------------------
+❓ FAQs
+--------------------------------------------------------------------------------
+Total FAQs: 6
+
+📋 Sample FAQs:
+
+  Q: How to apply for passport?
+  A: Use the passport portal and submit required documents....
+
+  Q: Can I update my passport?
+  A: Yes, use the passport update service....
+
+  Q: How to apply for aadhaar?
+  A: Use the aadhaar portal and submit required documents....
+
+--------------------------------------------------------------------------------
+🔍 CONTENT CHUNKS
+--------------------------------------------------------------------------------
+Total content chunks: 1899
+
+📊 Chunks by Category:
+Category                  Count
+--------------------------------
+parivahan                    14
+None                         66
+railways                     38
+ministry                    126
+epfo                         33
+driving_license              10
+procedure                     1
+rbi                           8
+passport                    422
+aadhaar                     686
+pan                         140
+education                     8
+general                     304
+service                      43
+
+📋 Sample Chunk:
+  ID: 1
+  Category: None
+  Content (first 200 chars): Passport overview and requirements.
+  Has Embedding: True
+
+--------------------------------------------------------------------------------
+📦 RAW CONTENT
+--------------------------------------------------------------------------------
+Total raw content entries: 310
+
+📊 Content by Source Type:
+Source Type          Count
+---------------------------
+scraping                80
+api                     49
+pdf                    181
+
+📊 Content by Processing Status:
+Status               Count
+---------------------------
+completed              310
+
+📋 Sample Raw Content:
+  ID: 10
+  Source Type: api
+  Source URL: 
+  Title: get_application_availability
+  Content Type: json
+  Processed: True
+  Status: completed
+  Content (first 200 chars): get_application_availability:https://apisetu.gov.in/passport/appointment/availability
+
+--------------------------------------------------------------------------------
+💾 DATABASE STATISTICS
+--------------------------------------------------------------------------------
+
+📊 Table Sizes:
+Table                                Size
+------------------------------------------
+content_chunks                    6104 kB
+documents                         2624 kB
+raw_content                       2072 kB
+faqs                               184 kB
+services                           160 kB
+procedures                         128 kB
+system_health                       16 kB
+offices                             16 kB
+fees                                16 kB
+user_queries                        16 kB
+search_analytics                    16 kB
+data_quality_metrics           8192 bytes
+
+📊 Record Counts:
+Table                             Records
+------------------------------------------
+services                               11
+procedures                              9
+documents                             254
+faqs                                    6
+content_chunks                      1,899
+raw_content                           310
+------------------------------------------
+TOTAL                               2,489
+
+================================================================================
+✅ Warehouse inspection complete!
+================================================================================
+

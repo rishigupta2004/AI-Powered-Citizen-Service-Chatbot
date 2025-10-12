@@ -1,10 +1,10 @@
 {
-  "snapshot_time": "2025-10-10T16:15:04.176129",
+  "snapshot_time": "2025-10-12T22:01:45.137455",
   "counts": {
-    "services": 24,
-    "documents": 34,
-    "faqs": 9,
-    "content_chunks": 616,
-    "raw_contents": 49
+    "services": 11,
+    "documents": 254,
+    "faqs": 6,
+    "content_chunks": 1899,
+    "raw_contents": 310
   }
 }
