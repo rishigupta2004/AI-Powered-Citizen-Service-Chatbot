@@ -12,11 +12,11 @@ export function FloatingElements({ count = 8, className = '' }: FloatingElements
   const getRandomValues = () => ({
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: Math.random() * 100 + 50,
-    duration: Math.random() * 20 + 15,
-    delay: Math.random() * 5,
-    opacity: Math.random() * 0.1 + 0.05,
-    blur: Math.random() * 3 + 1,
+    size: Math.random() * 72 + 36,
+    duration: Math.random() * 16 + 12,
+    delay: Math.random() * 3,
+    opacity: Math.random() * 0.08 + 0.04,
+    blur: Math.random() * 2 + 0.6,
   });
 
   return (
@@ -36,9 +36,9 @@ export function FloatingElements({ count = 8, className = '' }: FloatingElements
               filter: `blur(${values.blur}px)`,
             }}
             animate={{
-              y: [0, -30, 0],
-              x: [0, 15, -15, 0],
-              scale: [1, 1.1, 0.9, 1],
+              y: [0, -22, 0],
+              x: [0, 10, -10, 0],
+              scale: [1, 1.06, 0.94, 1],
             }}
             transition={{
               duration: values.duration,

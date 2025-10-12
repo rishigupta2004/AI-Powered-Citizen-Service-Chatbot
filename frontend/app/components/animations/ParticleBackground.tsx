@@ -42,13 +42,13 @@ export function ParticleBackground({
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize particles
+    // Initialize particles (smaller, slower for smoother perf)
     particlesRef.current = Array.from({ length: particleCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * speed,
-      vy: (Math.random() - 0.5) * speed,
-      radius: Math.random() * 2 + 1,
+      vx: (Math.random() - 0.5) * (speed * 0.7),
+      vy: (Math.random() - 0.5) * (speed * 0.7),
+      radius: Math.random() * 1.6 + 0.6,
       color: colors[Math.floor(Math.random() * colors.length)],
       opacity: Math.random() * 0.5 + 0.2,
     }));
@@ -79,13 +79,13 @@ export function ParticleBackground({
           const dy = particle.y - otherParticle.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 150) {
+        if (distance < 120) {
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
             ctx.strokeStyle = particle.color;
-            ctx.globalAlpha = (1 - distance / 150) * 0.2;
-            ctx.lineWidth = 0.5;
+          ctx.globalAlpha = (1 - distance / 120) * 0.15;
+          ctx.lineWidth = 0.4;
             ctx.stroke();
           }
         });
