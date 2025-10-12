@@ -1,0 +1,7 @@
+faq_id,service_id,question,answer
+1,1,How to apply for passport?,Use the passport portal and submit required documents.
+3,1,Can I update my passport?,"Yes, use the passport update service."
+4,2,How to apply for aadhaar?,Use the aadhaar portal and submit required documents.
+6,2,Can I update my aadhaar?,"Yes, use the aadhaar update service."
+7,3,How to apply for pan?,Use the pan portal and submit required documents.
+9,3,Can I update my pan?,"Yes, use the pan update service."

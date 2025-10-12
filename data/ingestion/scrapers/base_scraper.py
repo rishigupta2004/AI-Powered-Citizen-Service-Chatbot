@@ -7,9 +7,10 @@ import os
 import json
 import hashlib
 from typing import Optional, List, Dict, Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, urlunparse, urlencode, parse_qsl
 from datetime import datetime, timedelta
 from pathlib import Path
+import urllib.robotparser as robotparser
 
 from bs4 import BeautifulSoup
 
@@ -56,6 +57,12 @@ USE_INCREMENTAL = os.environ.get("USE_INCREMENTAL_SCRAPING", "true").lower() in 
 CACHE_DIR = Path(os.environ.get("SCRAPER_CACHE_DIR", "data/cache/scrapers"))
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
+# SAFE_MODE: respect robots.txt and skip disallowed URLs
+SAFE_MODE = os.environ.get("SAFE_MODE", "1") in ("1", "true", "TRUE", "yes")
+# RESUME: maintain visited set on disk to resume crawl without duplication
+RESUME = os.environ.get("RESUME", "1") in ("1", "true", "TRUE", "yes")
+VISITED_FILE = CACHE_DIR / "visited.txt"
+
 def random_user_agent():
     return random.choice(USER_AGENTS)
 
@@ -71,6 +78,19 @@ def random_proxy():
 def get_cache_key(url: str) -> str:
     """Generate a safe filename from URL for caching"""
     return hashlib.md5(url.encode()).hexdigest()
+
+def canonicalize_url(url: str) -> str:
+    """Normalize URL for de-duplication: strip fragments, sort query params."""
+    u = urlparse(url)
+    # remove fragment
+    fragless = u._replace(fragment="")
+    # sort query params
+    if fragless.query:
+        qs = urlencode(sorted(parse_qsl(fragless.query)))
+    else:
+        qs = ""
+    canon = fragless._replace(query=qs)
+    return urlunparse(canon)
 
 def save_response_metadata(url: str, etag: str = None, last_modified: str = None, 
                           content_hash: str = None) -> None:
@@ -192,6 +212,25 @@ class Scraper:
         # Allow instance-level override of global settings
         self.use_proxies = USE_PROXIES if use_proxies is None else use_proxies
         self.use_incremental = USE_INCREMENTAL if use_incremental is None else use_incremental
+        # robots.txt parser
+        self._rp = None
+        if SAFE_MODE:
+            try:
+                robots_url = urljoin(self.base_url + "/", "robots.txt")
+                rp = robotparser.RobotFileParser()
+                rp.set_url(robots_url)
+                rp.read()
+                self._rp = rp
+            except Exception as e:
+                self.logger.warning("robots.txt read failed for %s: %s", self.base_url, e)
+                self._rp = None
+        # visited set
+        self._visited = set()
+        if RESUME and VISITED_FILE.exists():
+            try:
+                self._visited = set(x.strip() for x in VISITED_FILE.read_text().splitlines() if x.strip())
+            except Exception:
+                self._visited = set()
 
     def _build_url(self, path: str = "") -> str:
         if not path:
@@ -206,6 +245,21 @@ class Scraper:
         Determine if we should fetch the URL based on cached metadata
         Returns True if we should fetch, False if content hasn't changed
         """
+        # robots.txt allowlist check in SAFE_MODE
+        canon = canonicalize_url(url)
+        if SAFE_MODE and self._rp is not None:
+            try:
+                if not self._rp.can_fetch("*", canon):
+                    self.logger.info("robots.txt disallows %s; skipping", canon)
+                    return False
+            except Exception:
+                pass
+
+        # de-dupe by visited set
+        if RESUME and canon in self._visited:
+            self.logger.info("Already visited %s; skipping (RESUME)", canon)
+            return False
+
         if not self.use_incremental:
             return True
             
@@ -233,6 +287,7 @@ class Scraper:
     def scrape_requests(self, path: str = "", params: dict = None, timeout: int = 30,
                         force_fetch: bool = False) -> BeautifulSoup:
         url = self._build_url(path)
+        canon = canonicalize_url(url)
         
         # Check if we should fetch based on cached metadata
         if not force_fetch and not self._should_fetch(url):
@@ -273,6 +328,14 @@ class Scraper:
                 last_modified = resp.headers.get("Last-Modified")
                 content_hash = self._calculate_content_hash(resp.text)
                 save_response_metadata(url, etag, last_modified, content_hash)
+            # mark visited
+            if RESUME:
+                self._visited.add(canon)
+                try:
+                    with open(VISITED_FILE, "a") as vf:
+                        vf.write(canon + "\n")
+                except Exception:
+                    pass
                 
             return BeautifulSoup(resp.text, "lxml")
             
@@ -297,6 +360,7 @@ class Scraper:
         - force_fetch: bypass incremental change detection
         """
         url = self._build_url(path)
+        canon = canonicalize_url(url)
         
         # Check if we should fetch based on cached metadata
         if not force_fetch and not self._should_fetch(url):
@@ -377,6 +441,14 @@ class Scraper:
                     last_modified = response.headers.get("last-modified") if response else None
                     content_hash = self._calculate_content_hash(html)
                     save_response_metadata(url, etag, last_modified, content_hash)
+                # mark visited
+                if RESUME:
+                    self._visited.add(canon)
+                    try:
+                        with open(VISITED_FILE, "a") as vf:
+                            vf.write(canon + "\n")
+                    except Exception:
+                        pass
                 
                 try:
                     browser.close()

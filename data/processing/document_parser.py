@@ -1,4 +1,5 @@
 import pdfplumber, pytesseract, cv2
+from bs4 import BeautifulSoup
 try:
     import docx  # Optional dependency for Word parsing
     _HAS_DOCX = True
@@ -12,6 +13,21 @@ import os
 class DocumentParser:
     def __init__(self):
         pass
+
+    def normalize(self, text_or_html: str) -> str:
+        """Best-effort normalization: if looks like HTML, strip tags to text; else return as-is."""
+        if not text_or_html:
+            return ""
+        # Heuristic: if contains angle brackets and html/body tags, treat as HTML
+        t = text_or_html.strip()
+        if "<html" in t.lower() or "<body" in t.lower() or "</" in t:
+            try:
+                soup = BeautifulSoup(t, "lxml")
+                return soup.get_text(" ", strip=True)
+            except Exception:
+                # Fallback: plain
+                return t
+        return t
 
     def parse_pdf(self, path: str) -> list[str]:
         """Extract text from a PDF (with fallback OCR)."""

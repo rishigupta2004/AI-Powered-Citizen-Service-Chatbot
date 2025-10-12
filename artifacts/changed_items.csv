@@ -1,0 +1,52 @@
+type,id,name_or_question,action
+service,6,Test Service,removed
+service,7,Test Service,removed
+service,8,Test Service,removed
+service,9,Test Service,removed
+service,10,Test Service,removed
+service,11,Test Service,removed
+service,12,Test Passport Service,removed
+service,13,Test Passport Service,removed
+service,14,Test Passport Service,removed
+service,15,Test Service,removed
+service,16,Test Passport Service,removed
+service,17,Test Service,removed
+service,18,Test Passport Service,removed
+service,19,Test Passport Service,removed
+service,20,Test Passport Service,removed
+service,21,Test Passport Service,removed
+service,22,Test Passport Service,removed
+service,23,Test Passport Service,removed
+service,29,Test Passport Service,removed
+service,30,Test Passport Service,removed
+service,31,Test Passport Service,removed
+service,32,Test Passport Service,removed
+service,33,Test Passport Service,removed
+service,34,Test Passport Service,removed
+service,35,Test Passport Service,removed
+service,36,Test Passport Service,removed
+service,37,Test Passport Service,removed
+service,38,Test Passport Service,removed
+service,39,Test Passport Service,removed
+service,40,Test Passport Service,removed
+service,41,Test Passport Service,removed
+service,42,Test Passport Service,removed
+service,43,Test Passport Service,removed
+faq,18,How to apply for passport?,removed
+faq,19,How to apply for passport?,removed
+faq,20,How to apply for passport?,removed
+faq,21,How to apply for passport?,removed
+faq,22,How to apply for passport?,removed
+faq,23,How to apply for passport?,removed
+faq,2,How long does passport take?,removed
+faq,5,How long does aadhaar take?,removed
+faq,8,How long does pan take?,removed
+faq,10,How to apply for passport?,removed
+faq,11,How to apply for passport?,removed
+faq,12,How to apply for passport?,removed
+faq,13,How to apply for passport?,removed
+faq,14,How to apply for passport?,removed
+faq,15,How to apply for passport?,removed
+faq,16,How to apply for passport?,removed
+faq,17,How to apply for passport?,removed
+faq,24,How to apply for passport?,removed
