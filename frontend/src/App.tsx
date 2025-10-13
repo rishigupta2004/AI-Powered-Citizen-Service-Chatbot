@@ -41,6 +41,13 @@ function AppContent() {
     return () =>
       window.removeEventListener("scroll", handleScroll);
   }, []);
+  // Auto-open login modal on first load if not authenticated
+useEffect(() => {
+  if (!authLoading && !isAuthenticated) {
+    setShowAuthModal(true);
+  }
+}, [authLoading, isAuthenticated]);
+
 
   const handleNavigate = (page: string, serviceId?: string) => {
     // Check if authentication is required for this page

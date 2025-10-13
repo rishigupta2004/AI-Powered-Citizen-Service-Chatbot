@@ -139,7 +139,7 @@ export function Navigation({
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-[var(--space-2)]">
-              {navItems.slice(0, 3).map((item) => (
+              {navItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleNavItemClick(item.id)}
