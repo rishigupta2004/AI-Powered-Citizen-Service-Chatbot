@@ -1,0 +1,51 @@
+faq_id,service_id,question,answer
+25,1,Issue of Fresh Passport:,What are the various Passport services and which form should be filled in?
+26,1,link,What is Global Entry Program (GEP)?
+27,1,(GOES),How do I apply for a Background Verification for GEP?
+28,1,Steps to Apply for Background Verification of GEP,Do I need to visit PSK to submit my Background Verification for GEP application?
+29,1,click here,Is it mandatory to submit Birth Certificate for applicants who are born on or after 26.01.1989?
+30,1,"request may also be refused, if not found in order.",What are the requirements /documents needed for getting the date of birth/place of birth changed in my Passport?
+31,1,Click here,Can I use Passbook/statement of banks as a proof of address?
+58,1,What is the last date for filing ITR?,"The deadline is usually July 31st for individuals and September 30th for businesses, subject to extensions."
+32,1,How long does it take to get a passport?,Normal processing takes 30-45 days from the date of application. Tatkal service is available for urgent cases and takes 
+33,1,What documents are required for passport application?,"You need proof of identity (Aadhaar, PAN), proof of address (utility bills, rent agreement), and date of birth proof (bi"
+34,1,Can I track my passport application status?,"Yes, you can track your application status online using your file number on the Passport Seva portal."
+35,1,What is the passport application fee?,"For adults, the fee is Rs. 1,500 for normal processing and Rs. 3,500 for Tatkal. For minors, it's Rs. 1,000 and Rs. 2,00"
+36,1,How do I renew my expired passport?,You can renew your passport online through the Passport Seva portal. The process is similar to new application but simpl
+37,2,How can I update my Aadhaar details?,You can update your Aadhaar details online through the UIDAI portal or by visiting an Aadhaar enrollment center.
+38,2,Is Aadhaar mandatory for all citizens?,"While not legally mandatory, Aadhaar is required for many government services, subsidies, and benefits."
+39,2,How do I download my e-Aadhaar?,"Visit the UIDAI website, enter your Aadhaar number and OTP, and download your e-Aadhaar PDF."
+40,2,What is Aadhaar masking?,Aadhaar masking hides the first 8 digits of your Aadhaar number for privacy. Only the last 4 digits are visible.
+41,2,Can I link my mobile number to Aadhaar?,"Yes, you can link your mobile number by visiting an Aadhaar center or using the OTP-based online service."
+42,3,How do I apply for a new PAN card?,You can apply online through the NSDL or UTIITSL websites by filling Form 49A and submitting required documents.
+4,2,How to apply for aadhaar?,Use the aadhaar portal and submit required documents.
+43,3,What is the PAN card application fee?,"The fee is Rs. 107 for Indian addresses and Rs. 1,020 for foreign addresses."
+44,3,How long does it take to receive a PAN card?,It typically takes 15-20 days to receive your PAN card at your registered address.
+45,3,Can I have multiple PAN cards?,"No, having multiple PAN cards is illegal. Each person can have only one PAN."
+7,3,How to apply for pan?,Use the pan portal and submit required documents.
+46,3,How do I link PAN with Aadhaar?,You can link PAN with Aadhaar online through the Income Tax e-filing portal or by SMS.
+47,4,How can I check my EPF balance?,"You can check your EPF balance through the EPFO portal, UMANG app, or by giving a missed call to 9966044425."
+48,4,When can I withdraw my EPF?,"You can withdraw EPF after retirement, resignation (after 2 months of unemployment), or for specific purposes like medic"
+49,4,How do I transfer my EPF from previous employer?,Submit a transfer claim through the EPFO portal using your UAN. The process is online and paperless.
+50,4,What is UAN in EPF?,Universal Account Number (UAN) is a unique 12-digit number assigned to each EPF member for life.
+51,4,How do I activate my UAN?,"Visit the EPFO portal, enter your UAN, verify with OTP, and set your password to activate."
+52,1,What documents are required for driving license?,"You need age proof, address proof, passport-size photos, and learner's license for permanent DL application."
+53,1,How do I renew my driving license?,You can renew your DL online through the Parivahan portal or by visiting your local RTO.
+54,1,What is the validity of a driving license?,"A driving license is valid for 20 years from the date of issue or until the holder turns 50, whichever is earlier."
+1,1,How to apply for passport?,Use the passport portal and submit required documents.
+3,1,Can I update my passport?,"Yes, use the passport update service."
+6,2,Can I update my aadhaar?,"Yes, use the aadhaar update service."
+9,3,Can I update my pan?,"Yes, use the pan update service."
+55,1,Can I apply for an international driving permit?,"Yes, you can apply for an IDP at your local RTO if you have a valid Indian driving license."
+56,1,How do I check my driving license status?,You can check your DL status online on the Parivahan portal using your application number.
+57,1,Who needs to file income tax returns?,Individuals with annual income above Rs. 2.5 lakh (Rs. 3 lakh for senior citizens) must file ITR.
+59,1,How do I file ITR online?,"Register on the Income Tax e-filing portal, select appropriate ITR form, fill details, and submit with verification."
+60,1,What is Form 16?,Form 16 is a TDS certificate issued by employers showing salary paid and tax deducted.
+61,1,Can I revise my ITR?,"Yes, you can revise your ITR before the end of the assessment year or before completion of assessment."
+62,1,What is GST registration threshold?,Businesses with annual turnover above Rs. 40 lakh (Rs. 20 lakh for special category states) must register for GST.
+63,1,How do I file GST returns?,File GST returns online through the GST portal by the due date based on your registration type.
+64,1,What is the GST rate structure?,"GST has multiple slabs: 0%, 5%, 12%, 18%, and 28%, depending on the goods or services."
+65,1,Can I claim input tax credit?,"Yes, registered taxpayers can claim ITC on purchases used for business purposes."
+66,1,What is GSTIN?,GSTIN is a unique 15-digit identification number assigned to every GST registered business.
+67,1,How do I apply for a voter ID card?,You can apply online through the National Voter Service Portal or submit Form 6 at your local electoral office.
+68,1,What is the minimum age for voter ID?,You must be 18 years or older on the qualifying date to be eligible for voter registration.
