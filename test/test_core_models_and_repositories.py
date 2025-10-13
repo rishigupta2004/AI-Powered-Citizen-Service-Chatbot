@@ -13,7 +13,7 @@ def test_core_imports():
     """Test core database and model imports"""
     try:
         from core.database import get_db, Base, engine, SessionLocal
-        from core.models_simple import Service, Procedure, Document, FAQ, ContentChunk
+        from core.models import Service, Procedure, Document, FAQ, ContentChunk
         from core.repositories import ServiceRepository, DocumentRepository, FAQRepository
         print("✅ Core imports successful")
         return True
@@ -37,7 +37,7 @@ def test_database_connection():
 def test_models_creation():
     """Test that models can be created"""
     try:
-        from core.models_simple import Service
+        from core.models import Service
         from core.database import SessionLocal
         from core.repositories import ServiceRepository
         

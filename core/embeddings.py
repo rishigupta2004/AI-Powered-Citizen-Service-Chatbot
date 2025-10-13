@@ -4,6 +4,7 @@ from sqlalchemy import text
 from .database import SessionLocal
 from .search import SearchEngine
 
+
 def get_model_name() -> str:
     return os.getenv('EMBEDDING_MODEL', 'all-MiniLM-L6-v2')
 
