@@ -14,6 +14,7 @@ from core.search import SearchEngine
 from routes.api_endpoints import router as api_router
 from routes.v1_endpoints import router as v1_router
 from routes.graphql_schema import get_graphql_router
+from routes.auth_endpoints import router as auth_router
 from routes.middleware import register_middlewares, register_exception_handlers, require_api_key
 
 app = FastAPI(
@@ -33,6 +34,7 @@ app.add_middleware(
 # Include Phase 4 CSV-derived service API endpoints (links left empty)
 app.include_router(api_router)
 app.include_router(v1_router)
+app.include_router(auth_router)
 
 # Mount GraphQL router if available (optional dependency)
 try:
