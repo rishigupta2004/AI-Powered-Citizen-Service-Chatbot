@@ -279,7 +279,7 @@ python scripts/verify_warehouse.py --export-dir artifacts
 python scripts/view_warehouse_data.py --detailed --export
 
 # 4. View specific table (example: services)
-python scripts/view_warehouse_data.py --table services --limit 10
+python scripts/view_warehouse_data.py --table services 
 ```
 
 ---

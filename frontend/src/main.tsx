@@ -1,12 +1,13 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-import App from '../App'
-import '../globals.css'
 
-const container = document.getElementById('root')!
-const root = createRoot(container)
-root.render(
-  <React.StrictMode>
+
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+// import MyStatsigProvider from "./MyStatsigProvider";
+
+createRoot(document.getElementById("root")!).render(
+  // <MyStatsigProvider>
     <App />
-  </React.StrictMode>
-)
+  // </MyStatsigProvider>
+);
+  
