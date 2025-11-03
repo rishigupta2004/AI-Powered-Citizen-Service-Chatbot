@@ -44,6 +44,8 @@
             "lucide-react": "^0.487.0",
             "motion": "*",
             "next-themes": "^0.4.6",
+            "playwright": "^1.56.1",
+            "playwright-cluster": "^1.0.7",
             "react": "^18.3.1",
             "react-day-picker": "^8.10.1",
             "react-dom": "^18.3.1",
