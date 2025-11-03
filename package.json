@@ -3,7 +3,10 @@
     "@statsig/react-bindings": "^3.29.1",
     "@statsig/session-replay": "^3.29.1",
     "@statsig/web-analytics": "^3.29.1",
-    "@vercel/analytics": "^1.5.0"
+    "@vercel/analytics": "^1.5.0",
+    "playwright": "^1.56.1",
+    "playwright-cluster": "^1.0.7",
+    "puppeteer": "^24.28.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.2",
