@@ -16,8 +16,8 @@ import { ApplicationTracker } from "./components/pages/ApplicationTracker";
 import { Toaster } from "./components/ui/sonner";
 import { ArrowUp } from "lucide-react";
 import { Button } from "./components/ui/button";
-import AnalyticsLoader from "./components/AnalyticsLoader";
-import SpeedInsightsLoader from "./components/SpeedInsightsLoader";
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 function AppContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -202,10 +202,9 @@ useEffect(() => {
           },
         }}
       />
-      {/* Analytics loader: runtime-injects Vercel/Web-Analytics script when configured */}
-      <AnalyticsLoader />
-  {/* Optional Vercel Speed Insights loader. Enable by setting VITE_ENABLE_SPEED_INSIGHTS=true in production env. */}
-  <SpeedInsightsLoader />
+      {/* Official Vercel Analytics and Speed Insights components */}
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
