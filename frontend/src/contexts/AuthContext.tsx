@@ -154,12 +154,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const loginWithPhoneOTP = async (phone: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/auth/login/phone/request`, {
+    const response = await fetch(`${API_URL}/auth/otp/send`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ contact: phone, contact_type: 'otp_sms' }),
     });
 
     if (!response.ok) {
@@ -169,12 +169,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const verifyPhoneOTP = async (phone: string, otp: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/auth/login/phone/verify`, {
+    const response = await fetch(`${API_URL}/auth/otp/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ phone, otp }),
+      body: JSON.stringify({ contact: phone, otp_code: otp, contact_type: 'otp_sms' }),
     });
 
     if (!response.ok) {
