@@ -18,7 +18,31 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend" / "src" / "i18n" / "locales"
 SOURCE_FILE = FRONTEND_DIR / "en" / "translation.json"
 
 SARVAM_API_URL = "https://api.sarvam.ai/translate"
-SARVAM_MODEL = "saaras:mmt"
+SARVAM_MODEL = "sarvam-translate:v1"
+
+LANG_CODE_MAP = {
+    "hi": "hi-IN",
+    "bn": "bn-IN",
+    "ta": "ta-IN",
+    "te": "te-IN",
+    "mr": "mr-IN",
+    "gu": "gu-IN",
+    "pa": "pa-IN",
+    "kn": "kn-IN",
+    "ml": "ml-IN",
+    "or": "od-IN",
+    "as": "as-IN",
+    "ur": "ur-IN",
+    "ks": "ks-IN",
+    "sd": "sd-IN",
+    "sa": "sa-IN",
+    "ne": "ne-IN",
+    "kok": "kok-IN",
+    "mai": "mai-IN",
+    "doi": "doi-IN",
+    "mni": "mni-IN",
+    "sat": "sat-IN",
+}
 
 TARGET_LANGUAGES = {
     "hi": "Hindi",
@@ -93,6 +117,7 @@ def unflatten_dict(d: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
 
 
 def translate_text(text: str, target_lang: str) -> Tuple[str, bool]:
+    bcp47_code = LANG_CODE_MAP.get(target_lang, f"{target_lang}-IN")
     try:
         response = requests.post(
             SARVAM_API_URL,
@@ -102,8 +127,8 @@ def translate_text(text: str, target_lang: str) -> Tuple[str, bool]:
             },
             json={
                 "input": text,
-                "source_language": "en",
-                "target_language": target_lang,
+                "source_language_code": "en-IN",
+                "target_language_code": bcp47_code,
                 "model": SARVAM_MODEL,
             },
             timeout=30,
