@@ -33,31 +33,56 @@ async def _embed_via_hf_api(text_input: str, is_query: bool = False) -> List[flo
         prefix = "query: " if is_query else "passage: "
         text_input = prefix + text_input.strip()
 
-    hf_token = os.getenv("HF_TOKEN", "")
-    url = f"https://router.huggingface.co/hf-inference/models/{model}"
+    # Try feature-extraction URL first, fall back to original if 404
+    urls_to_try = [
+        f"https://router.huggingface.co/hf-inference/models/{model}/feature-extraction",
+        f"https://router.huggingface.co/hf-inference/models/{model}",
+    ]
 
+    hf_token = os.getenv("HF_TOKEN", "")
     headers = {"Content-Type": "application/json"}
     if hf_token:
         headers["Authorization"] = f"Bearer {hf_token}"
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(
-            url,
-            headers=headers,
-            json={"inputs": text_input, "options": {"wait_for_model": True}},
-        )
+        for url in urls_to_try:
+            try:
+                response = await client.post(
+                    url,
+                    headers=headers,
+                    json={"inputs": text_input, "options": {"wait_for_model": True}},
+                )
 
-        if response.status_code != 200:
-            print(f"⚠️  HF API error {response.status_code}: {response.text[:200]}")
+                if response.status_code == 200:
+                    result = response.json()
+                    break
+                elif response.status_code == 404:
+                    # Try next URL
+                    continue
+                else:
+                    print(
+                        f"⚠️  HF API error {response.status_code}: {response.text[:200]}"
+                    )
+                    return []
+            except Exception as e:
+                print(f"⚠️  HF API error: {e}")
+                continue
+        else:
+            # All URLs failed
+            print("⚠️  All HF router URLs failed - falling back to text search")
             return []
 
-        result = response.json()
-
         # Unwrap nested lists: [[[ ]]] → [[]] → [] → [float, ...]
-        while isinstance(result, list) and len(result) > 0 and isinstance(result[0], list):
+        while (
+            isinstance(result, list) and len(result) > 0 and isinstance(result[0], list)
+        ):
             result = result[0]
 
-        if isinstance(result, list) and len(result) > 0 and isinstance(result[0], float):
+        if (
+            isinstance(result, list)
+            and len(result) > 0
+            and isinstance(result[0], float)
+        ):
             return result
 
         print(f"⚠️  HF API unexpected shape: {str(result)[:100]}")
@@ -102,9 +127,7 @@ class EmbeddingEngine:
                 loop = asyncio.get_running_loop()
                 # Inside FastAPI event loop — offload to thread pool
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    future = pool.submit(
-                        asyncio.run, _embed_via_hf_api(text, is_query)
-                    )
+                    future = pool.submit(asyncio.run, _embed_via_hf_api(text, is_query))
                     return future.result(timeout=35)
             except RuntimeError:
                 # No running loop — call directly
@@ -114,7 +137,9 @@ class EmbeddingEngine:
             print(f"⚠️  embed_text error: {e}")
             return []
 
-    def embed_batch(self, texts: List[str], is_query: bool = False) -> List[List[float]]:
+    def embed_batch(
+        self, texts: List[str], is_query: bool = False
+    ) -> List[List[float]]:
         """Generate embeddings for multiple texts sequentially."""
         if not self._hf_available or not texts:
             return [[] for _ in texts]
@@ -141,6 +166,7 @@ def get_transformer():
 
 # ── Utility functions ─────────────────────────────────────────────────────────
 
+
 def configure_pgvector() -> bool:
     db = SessionLocal()
     try:
@@ -164,6 +190,7 @@ def embedding_generation_pipeline(
 
 def vector_similarity_search(db, query: str, limit: int = 5) -> Dict[str, Any]:
     from .search import SearchEngine
+
     return SearchEngine(db).search(query, limit=limit)
 
 
@@ -175,14 +202,18 @@ def optimize_vector_indexing() -> bool:
             text("SELECT extname FROM pg_extension WHERE extname='vector'")
         )
         if res.fetchone():
-            conn.execute(text(
-                "CREATE INDEX IF NOT EXISTS idx_documents_embedding "
-                "ON documents USING ivfflat (embedding vector_cosine_ops);"
-            ))
-            conn.execute(text(
-                "CREATE INDEX IF NOT EXISTS idx_chunks_embedding "
-                "ON content_chunks USING ivfflat (embedding vector_cosine_ops);"
-            ))
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS idx_documents_embedding "
+                    "ON documents USING ivfflat (embedding vector_cosine_ops);"
+                )
+            )
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS idx_chunks_embedding "
+                    "ON content_chunks USING ivfflat (embedding vector_cosine_ops);"
+                )
+            )
             db.commit()
         db.close()
         return True
