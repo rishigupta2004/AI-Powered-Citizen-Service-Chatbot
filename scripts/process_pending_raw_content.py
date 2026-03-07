@@ -120,7 +120,7 @@ def process_pending(db: Session, resume: bool = True, failures_csv: str = "artif
             for ch in chunk_text(normalized):
                 db.add(ContentChunk(
                     service_id=None,
-                    content_text=ch,
+                    chunk_text=ch,
                     category=category,
                 ))
 

@@ -64,7 +64,7 @@ def backup_database(session: Session, output_dir: str) -> Dict[str, Any]:
             # Fallback to raw SQL when model mapping doesn't match actual columns
             if model is ContentChunk:
                 stmt = sa.text(
-                    "SELECT chunk_id, uuid, content_text, service_id, embedding, created_at FROM content_chunks"
+                    "SELECT chunk_id, uuid, chunk_text, service_id, embedding, created_at FROM content_chunks"
                 )
                 raw_rows = session.execute(stmt).mappings().all()
                 entities[name] = [{k: _to_json_safe(v) for k, v in dict(r).items()} for r in raw_rows]

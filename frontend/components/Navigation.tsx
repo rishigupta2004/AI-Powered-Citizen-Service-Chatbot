@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Search,
   Globe,
@@ -22,6 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./ui/popover";
+import { LanguageSwitcher } from "../src/components/LanguageSwitcher";
 
 interface NavigationProps {
   onNavigate: (page: string) => void;
@@ -36,8 +38,7 @@ export function Navigation({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAccessibilitySettings, setShowAccessibilitySettings] = useState(false);
   const { theme, toggleTheme, isHighContrast } = useTheme();
-  const [language, setLanguage] = useState("en");
-  const [languageOpen, setLanguageOpen] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,7 +49,6 @@ export function Navigation({
       if (e.key === "Escape") {
         if (isMobileMenuOpen) setIsMobileMenuOpen(false);
         if (showAccessibilitySettings) setShowAccessibilitySettings(false);
-        if (languageOpen) setLanguageOpen(false);
       }
     };
 
@@ -59,30 +59,20 @@ export function Navigation({
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("keydown", handleEscape);
     };
-  }, [isMobileMenuOpen, showAccessibilitySettings, languageOpen]);
+  }, [isMobileMenuOpen, showAccessibilitySettings]);
 
   const navItems = [
-    { id: "home", label: "Home" },
-    { id: "services", label: "Services" },
-    { id: "dashboard", label: "My Dashboard" },
-    { id: "about", label: "About Us" },
-    { id: "faq", label: "FAQ" },
+    { id: "home", label: t("navigation.home") },
+    { id: "services", label: t("navigation.services") },
+    { id: "dashboard", label: t("navigation.dashboard") },
+    { id: "about", label: t("navigation.about") },
+    { id: "faq", label: t("navigation.faq") },
   ];
 
   const handleNavItemClick = (id: string) => {
     onNavigate(id);
     setIsMobileMenuOpen(false);
   };
-
-  const languages = [
-    { code: "en", name: "English", native: "English" },
-    { code: "hi", name: "Hindi", native: "हिन्दी" },
-    { code: "ta", name: "Tamil", native: "தமிழ்" },
-    { code: "te", name: "Telugu", native: "తెలుగు" },
-    { code: "bn", name: "Bengali", native: "বাংলা" },
-  ];
-
-  const currentLanguage = languages.find(l => l.code === language) || languages[0];
 
   return (
     <>
@@ -184,47 +174,9 @@ export function Navigation({
               </div>
 
               {/* Language Selector */}
-              <Popover open={languageOpen} onOpenChange={setLanguageOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={`h-10 px-3 gap-2 ${
-                      isScrolled ? "text-[var(--foreground)]" : "text-white"
-                    }`}
-                    aria-label="Select language"
-                  >
-                    <Globe className="w-4 h-4" />
-                    <span className="hidden sm:inline">{currentLanguage.native}</span>
-                    <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-56 p-2 bg-[var(--card)] border-[var(--border)]" align="end">
-                  <div className="space-y-1">
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setLanguageOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-[var(--radius-md)] transition-colors ${
-                          language === lang.code
-                            ? "bg-[#000080] text-white"
-                            : "text-[var(--foreground)] hover:bg-[var(--muted)]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{lang.native}</span>
-                          {language === lang.code && (
-                            <span className="text-xs">✓</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-current opacity-70">{lang.name}</div>
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <div className="flex items-center">
+                <LanguageSwitcher />
+              </div>
 
               {/* Theme Toggle */}
               <Button

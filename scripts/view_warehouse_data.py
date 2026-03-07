@@ -226,7 +226,7 @@ class WarehouseViewer:
             sample = chunks[0]
             print(f"  ID: {sample.chunk_id}")
             print(f"  Category: {sample.category}")
-            print(f"  Content (first 200 chars): {sample.content_text[:200]}")
+            print(f"  Content (first 200 chars): {sample.chunk_text[:200]}")
             print(f"  Has Embedding: {sample.embedding is not None}")
         
         if self.export:

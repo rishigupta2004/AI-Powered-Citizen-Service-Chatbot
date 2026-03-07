@@ -44,9 +44,9 @@ def main():
                     "chunk_id": c.chunk_id,
                     "service": services.get(c.service_id).name if c.service_id in services else None,
                     "category": c.category,
-                    "text": normalize(c.content_text)[:1200],
+                    "text": normalize(c.chunk_text)[:1200],
                 }
-                for c in chunks if (c.content_text and len(c.content_text) > 60)
+                for c in chunks if (c.chunk_text and len(c.chunk_text) > 60)
             ],
         }
         with out_path.open('w', encoding='utf-8') as f:

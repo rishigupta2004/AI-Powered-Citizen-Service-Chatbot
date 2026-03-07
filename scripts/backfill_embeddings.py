@@ -2,6 +2,7 @@
 Backfill embeddings for Documents, FAQs, and Content Chunks.
 Skips items that already have embeddings. Safe to re-run.
 """
+
 import sys
 from pathlib import Path
 
@@ -14,81 +15,120 @@ from sqlalchemy import inspect
 from sqlalchemy.orm import load_only
 from core.database import SessionLocal
 from core.models import Document, FAQ, ContentChunk
+from core.embeddings import get_embedding_engine
+
 
 def load_model():
-    enabled = os.getenv('EMBEDDING_ENABLED', 'true').lower() in ('1', 'true', 'yes')
-    if not enabled:
-        return None
-    try:
-        from sentence_transformers import SentenceTransformer
-        model_name = os.getenv('EMBEDDING_MODEL', 'all-MiniLM-L6-v2')
-        return SentenceTransformer(model_name)
-    except Exception:
-        return None
+    engine = get_embedding_engine()
+    if engine.is_loaded():
+        return engine
+    return None
 
-def encode(model, text: str) -> List[float]:
+
+def encode(engine, text: str, is_query: bool = False) -> List[float]:
     try:
-        if not model:
+        if not engine:
             return []
-        vec = model.encode(text or "")
-        return vec.tolist()
+        return engine.embed_text(text, is_query=is_query)
     except Exception:
         return []
 
+
 def column_exists(inspector, table_name: str, column: str) -> bool:
     try:
-        cols = [c['name'] for c in inspector.get_columns(table_name)]
+        cols = [c["name"] for c in inspector.get_columns(table_name)]
         return column in cols
     except Exception:
         return False
 
+
 def main():
     db = SessionLocal()
     insp = inspect(db.bind)
-    model = load_model()
+    engine = load_model()
     updated = {"documents": 0, "faqs": 0, "chunks": 0}
     try:
-        if model is None:
+        if engine is None:
             print("ℹ️ Embeddings disabled or model unavailable; skipping backfill.")
             print(f"✅ No changes made. Current counts: {updated}")
             db.close()
             return
-        # Documents
-        if column_exists(insp, 'documents', 'embedding'):
-            docs = db.query(Document).filter(Document.embedding.is_(None)).limit(200).all()
-            for d in docs:
-                d.embedding = encode(model, d.raw_content or d.name)
-                updated["documents"] += 1
 
-        # FAQs
-        faq_q_col = column_exists(insp, 'faqs', 'question_embedding')
-        if faq_q_col:
-            faqs = db.query(FAQ).filter(FAQ.question_embedding.is_(None)).limit(200).all()
-            for f in faqs:
-                f.question_embedding = encode(model, f.question)
-                updated["faqs"] += 1
-        # Content Chunks
-        chunk_col = column_exists(insp, 'content_chunks', 'embedding')
-        if chunk_col:
-            chunks = (
-                db.query(ContentChunk)
-                .options(load_only(ContentChunk.chunk_id, ContentChunk.content_text, ContentChunk.embedding))
-                .filter(ContentChunk.embedding.is_(None))
-                .limit(200)
+        print(
+            f"Using model: {os.getenv('EMBEDDING_MODEL', 'intfloat/multilingual-e5-small')}"
+        )
+
+        # Documents (Passages)
+        if column_exists(insp, "documents", "embedding"):
+            print("Backfilling documents...")
+            docs = (
+                db.query(Document)
+                .filter(Document.embedding.is_(None))
+                .limit(1000)
                 .all()
             )
-            for c in chunks:
-                c.embedding = encode(model, c.content_text)
-                updated["chunks"] += 1
+            for d in docs:
+                d.embedding = encode(engine, d.raw_content or d.name, is_query=False)
+                updated["documents"] += 1
+            db.commit()
 
-        db.commit()
+        # FAQs (Passages)
+        faq_q_col = column_exists(insp, "faqs", "question_embedding")
+        if faq_q_col:
+            print("Backfilling FAQs...")
+            # We want to re-embed all FAQs to use the new multilingual model
+            # So we don't filter by is_(None)
+            faqs = db.query(FAQ).limit(1000).all()
+            for f in faqs:
+                f.question_embedding = encode(engine, f.question, is_query=False)
+                f.answer_embedding = encode(engine, f.answer, is_query=False)
+                updated["faqs"] += 1
+            db.commit()
+
+        # Content Chunks (Passages)
+        chunk_col = column_exists(insp, "content_chunks", "embedding")
+        if chunk_col:
+            print("Backfilling content chunks...")
+            # Re-embed all chunks
+            chunks = (
+                db.query(ContentChunk)
+                .options(
+                    load_only(
+                        ContentChunk.chunk_id,
+                        ContentChunk.chunk_text,
+                        ContentChunk.embedding,
+                    )
+                )
+                .limit(5000)
+                .all()
+            )
+
+            # Process in batches
+            batch_size = 50
+            for i in range(0, len(chunks), batch_size):
+                batch = chunks[i : i + batch_size]
+                texts = [c.chunk_text for c in batch]
+                embeddings = engine.embed_batch(texts, is_query=False)
+
+                for j, chunk in enumerate(batch):
+                    if j < len(embeddings) and len(embeddings[j]) > 0:
+                        chunk.embedding = embeddings[j]
+                        updated["chunks"] += 1
+
+                db.commit()
+                print(f"Processed chunks {i} to {i + len(batch)} of {len(chunks)}")
+
         print(f"✅ Backfill complete: {updated}")
     except Exception as e:
         db.rollback()
         print(f"❌ Backfill failed: {e}")
+        import traceback
+
+        traceback.print_exc()
         sys.exit(1)
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     main()

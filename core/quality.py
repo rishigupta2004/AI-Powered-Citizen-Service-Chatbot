@@ -82,7 +82,7 @@ class DataValidator:
     def validate_chunks(self, limit: int = 5000) -> List[Dict[str, Any]]:
         issues: List[Dict[str, Any]] = []
         for chunk in self.chunks.get_all(skip=0, limit=limit):
-            text = chunk.content_text or ""
+            text = chunk.chunk_text or ""
             if len(_normalize_text(text)) < 20:
                 issues.append({"type": "chunk", "chunk_id": chunk.chunk_id, "issue": "short_chunk"})
 
@@ -119,7 +119,7 @@ class Deduplicator:
     def find_duplicate_chunks(self, limit: int = 10000) -> List[Tuple[int, List[int]]]:
         groups: Dict[str, List[int]] = {}
         for ch in self.chunks.get_all(skip=0, limit=limit):
-            h = _content_hash(ch.content_text or "")
+            h = _content_hash(ch.chunk_text or "")
             groups.setdefault(h, []).append(ch.chunk_id)
         return [(chunk_ids[0], chunk_ids[1:]) for chunk_ids in groups.values() if len(chunk_ids) > 1]
 

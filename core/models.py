@@ -84,14 +84,16 @@ class FAQ(Base):
 
 class ContentChunk(Base):
     __tablename__ = "content_chunks"
-    
-    chunk_id = Column(Integer, primary_key=True)
-    uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True)
-    content_text = Column(Text, nullable=False)
-    service_id = Column(Integer, ForeignKey("services.service_id", ondelete="CASCADE"))
-    category = Column(String(100))
-    embedding = Column(Vector(384))
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    chunk_id    = Column(Integer, primary_key=True)
+    uuid        = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True)
+    content_id  = Column(Integer, nullable=True)
+    service_id  = Column(Integer, ForeignKey("services.service_id", ondelete="CASCADE"), nullable=True)
+    chunk_text  = Column(Text, nullable=False)
+    chunk_index = Column(Integer, nullable=True)
+    chunk_type  = Column(String(100), nullable=True)
+    embedding   = Column(Vector(384), nullable=True)
+    chunk_metadata = Column("metadata", JSONB, nullable=True)
+    created_at  = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
 # Helpful indexes for common queries and filters
 Index('idx_services_name', Service.name)
@@ -99,7 +101,7 @@ Index('idx_procedures_title', Procedure.title)
 Index('idx_documents_name', Document.name)
 Index('idx_documents_language', Document.language)
 Index('idx_faq_language', FAQ.language)
-Index('idx_chunks_category', ContentChunk.category)
+
 
 # Full-text search index for documents (GIN over tsvector)
 try:

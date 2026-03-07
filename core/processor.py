@@ -156,7 +156,7 @@ class DocumentProcessor:
             chunk_category = self.classifier.classify(chunk_text)
             
             chunk = self.chunk_repo.create(
-                content_text=chunk_text,
+                chunk_text=chunk_text,
                 service_id=service_id,
                 category=chunk_category,
                 embedding=embedding

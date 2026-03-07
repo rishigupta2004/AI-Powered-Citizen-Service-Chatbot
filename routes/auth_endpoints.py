@@ -12,13 +12,26 @@ import hashlib
 import secrets
 import json
 import re
+import os
+import httpx
+from urllib.parse import urlencode
 from pydantic import BaseModel, EmailStr, validator
 
 from core.database import SessionLocal, get_db
 from core.auth_models import (
-    User, UserAuthMethod, UserSession, OTPAttempt, PasswordReset, LoginAttempt,
-    AuthMethod, UserRole, generate_session_token, generate_refresh_token,
-    generate_otp_code, get_token_expiry, get_otp_expiry
+    User,
+    UserAuthMethod,
+    UserSession,
+    OTPAttempt,
+    PasswordReset,
+    LoginAttempt,
+    AuthMethod,
+    UserRole,
+    generate_session_token,
+    generate_refresh_token,
+    generate_otp_code,
+    get_token_expiry,
+    get_otp_expiry,
 )
 
 # Security scheme
@@ -35,10 +48,10 @@ class LoginRequest(BaseModel):
     password: str
     method: AuthMethod = AuthMethod.EMAIL_PASSWORD
 
-    @validator('phone')
+    @validator("phone")
     def validate_phone(cls, v):
-        if v and not re.match(r'^\+?[1-9]\d{1,14}$', v):
-            raise ValueError('Invalid phone number format')
+        if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
+            raise ValueError("Invalid phone number format")
         return v
 
 
@@ -50,16 +63,16 @@ class SignupRequest(BaseModel):
     last_name: str
     method: AuthMethod = AuthMethod.EMAIL_PASSWORD
 
-    @validator('phone')
+    @validator("phone")
     def validate_phone(cls, v):
-        if v and not re.match(r'^\+?[1-9]\d{1,14}$', v):
-            raise ValueError('Invalid phone number format')
+        if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
+            raise ValueError("Invalid phone number format")
         return v
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, v):
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         return v
 
 
@@ -139,24 +152,30 @@ def create_user_session(db: Session, user_id: int, request: Request) -> UserSess
     """Create a new user session"""
     session_token = generate_session_token()
     refresh_token = generate_refresh_token()
-    
+
     session = UserSession(
         user_id=user_id,
         session_token=session_token,
         refresh_token=refresh_token,
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("User-Agent"),
-        expires_at=get_token_expiry(24)  # 24 hours
+        expires_at=get_token_expiry(24),  # 24 hours
     )
-    
+
     db.add(session)
     db.commit()
     db.refresh(session)
     return session
 
 
-def log_login_attempt(db: Session, email: Optional[str], phone: Optional[str], 
-                     request: Request, success: bool, failure_reason: Optional[str] = None):
+def log_login_attempt(
+    db: Session,
+    email: Optional[str],
+    phone: Optional[str],
+    request: Request,
+    success: bool,
+    failure_reason: Optional[str] = None,
+):
     """Log login attempt for security"""
     attempt = LoginAttempt(
         email=email,
@@ -164,7 +183,7 @@ def log_login_attempt(db: Session, email: Optional[str], phone: Optional[str],
         ip_address=get_client_ip(request),
         user_agent=request.headers.get("User-Agent"),
         success=success,
-        failure_reason=failure_reason
+        failure_reason=failure_reason,
     )
     db.add(attempt)
     db.commit()
@@ -175,23 +194,27 @@ def log_login_attempt(db: Session, email: Optional[str], phone: Optional[str],
 async def register(request: SignupRequest, req: Request, db: Session = Depends(get_db)):
     """Register a new user"""
     # Check if user already exists
-    existing_user = db.query(User).filter(
-        or_(
-            and_(User.email == request.email, User.email.isnot(None)),
-            and_(User.phone == request.phone, User.phone.isnot(None))
+    existing_user = (
+        db.query(User)
+        .filter(
+            or_(
+                and_(User.email == request.email, User.email.isnot(None)),
+                and_(User.phone == request.phone, User.phone.isnot(None)),
+            )
         )
-    ).first()
-    
+        .first()
+    )
+
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email or phone already exists"
+            detail="User with this email or phone already exists",
         )
-    
+
     # Create new user
     password_hash = hash_password(request.password)
     full_name = f"{request.first_name} {request.last_name}"
-    
+
     user = User(
         email=request.email,
         phone=request.phone,
@@ -199,27 +222,24 @@ async def register(request: SignupRequest, req: Request, db: Session = Depends(g
         last_name=request.last_name,
         full_name=full_name,
         password_hash=password_hash,
-        is_verified=False
+        is_verified=False,
     )
-    
+
     db.add(user)
     db.commit()
     db.refresh(user)
-    
+
     # Add auth method
-    auth_method = UserAuthMethod(
-        user_id=user.id,
-        method=request.method
-    )
+    auth_method = UserAuthMethod(user_id=user.id, method=request.method)
     db.add(auth_method)
     db.commit()
-    
+
     # Create session
     session = create_user_session(db, user.id, req)
-    
+
     # Log successful registration
     log_login_attempt(db, request.email, request.phone, req, True)
-    
+
     return AuthResponse(
         access_token=session.session_token,
         refresh_token=session.refresh_token,
@@ -233,8 +253,8 @@ async def register(request: SignupRequest, req: Request, db: Session = Depends(g
             "last_name": user.last_name,
             "full_name": user.full_name,
             "is_verified": user.is_verified,
-            "role": user.role.value
-        }
+            "role": user.role.value,
+        },
     )
 
 
@@ -242,37 +262,44 @@ async def register(request: SignupRequest, req: Request, db: Session = Depends(g
 async def login(request: LoginRequest, req: Request, db: Session = Depends(get_db)):
     """Login with email/phone and password"""
     # Find user
-    user = db.query(User).filter(
-        or_(
-            and_(User.email == request.email, User.email.isnot(None)),
-            and_(User.phone == request.phone, User.phone.isnot(None))
+    user = (
+        db.query(User)
+        .filter(
+            or_(
+                and_(User.email == request.email, User.email.isnot(None)),
+                and_(User.phone == request.phone, User.phone.isnot(None)),
+            )
         )
-    ).first()
-    
+        .first()
+    )
+
     if not user or not verify_password(request.password, user.password_hash):
-        log_login_attempt(db, request.email, request.phone, req, False, "Invalid credentials")
+        log_login_attempt(
+            db, request.email, request.phone, req, False, "Invalid credentials"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email/phone or password"
+            detail="Invalid email/phone or password",
         )
-    
+
     if not user.is_active:
-        log_login_attempt(db, request.email, request.phone, req, False, "Account disabled")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account is disabled"
+        log_login_attempt(
+            db, request.email, request.phone, req, False, "Account disabled"
         )
-    
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Account is disabled"
+        )
+
     # Update last login
     user.last_login = datetime.utcnow()
     db.commit()
-    
+
     # Create session
     session = create_user_session(db, user.id, req)
-    
+
     # Log successful login
     log_login_attempt(db, request.email, request.phone, req, True)
-    
+
     return AuthResponse(
         access_token=session.session_token,
         refresh_token=session.refresh_token,
@@ -286,8 +313,8 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
             "last_name": user.last_name,
             "full_name": user.full_name,
             "is_verified": user.is_verified,
-            "role": user.role.value
-        }
+            "role": user.role.value,
+        },
     )
 
 
@@ -297,98 +324,107 @@ async def send_otp(request: OTPRequest, db: Session = Depends(get_db)):
     # Generate OTP
     otp_code = generate_otp_code()
     otp_hash = hash_password(otp_code)
-    
+
     # Create OTP attempt record
     otp_attempt = OTPAttempt(
         contact=request.contact,
         contact_type=request.contact_type,
         otp_code=otp_code,
         otp_hash=otp_hash,
-        expires_at=get_otp_expiry(10)  # 10 minutes
+        expires_at=get_otp_expiry(10),  # 10 minutes
     )
-    
+
     db.add(otp_attempt)
     db.commit()
-    
+
     # In a real implementation, send OTP via SMS/Email
     # For now, return the OTP for testing
     return {
         "message": "OTP sent successfully",
         "otp": otp_code,  # Remove this in production
-        "expires_in": 600  # 10 minutes
+        "expires_in": 600,  # 10 minutes
     }
 
 
 @router.post("/otp/verify", response_model=AuthResponse)
-async def verify_otp(request: OTPVerifyRequest, req: Request, db: Session = Depends(get_db)):
+async def verify_otp(
+    request: OTPVerifyRequest, req: Request, db: Session = Depends(get_db)
+):
     """Verify OTP and login/register"""
     # Find valid OTP attempt
-    otp_attempt = db.query(OTPAttempt).filter(
-        and_(
-            OTPAttempt.contact == request.contact,
-            OTPAttempt.contact_type == request.contact_type,
-            OTPAttempt.expires_at > datetime.utcnow(),
-            OTPAttempt.attempts < OTPAttempt.max_attempts,
-            OTPAttempt.is_verified == False
+    otp_attempt = (
+        db.query(OTPAttempt)
+        .filter(
+            and_(
+                OTPAttempt.contact == request.contact,
+                OTPAttempt.contact_type == request.contact_type,
+                OTPAttempt.expires_at > datetime.utcnow(),
+                OTPAttempt.attempts < OTPAttempt.max_attempts,
+                OTPAttempt.is_verified == False,
+            )
         )
-    ).first()
-    
+        .first()
+    )
+
     if not otp_attempt:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired OTP"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired OTP"
         )
-    
+
     # Verify OTP
     if not verify_password(request.otp_code, otp_attempt.otp_hash):
         otp_attempt.attempts += 1
         db.commit()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid OTP code"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP code"
         )
-    
+
     # Mark OTP as verified
     otp_attempt.is_verified = True
     otp_attempt.verified_at = datetime.utcnow()
     db.commit()
-    
+
     # Find or create user
-    user = db.query(User).filter(
-        or_(
-            and_(User.email == request.contact, User.email.isnot(None)),
-            and_(User.phone == request.contact, User.phone.isnot(None))
+    user = (
+        db.query(User)
+        .filter(
+            or_(
+                and_(User.email == request.contact, User.email.isnot(None)),
+                and_(User.phone == request.contact, User.phone.isnot(None)),
+            )
         )
-    ).first()
-    
+        .first()
+    )
+
     if not user:
         # Create new user for OTP registration
         full_name = "User"  # Default name, can be updated later
-        
+
         user = User(
-            email=request.contact if request.contact_type == AuthMethod.OTP_EMAIL else None,
-            phone=request.contact if request.contact_type == AuthMethod.OTP_SMS else None,
+            email=request.contact
+            if request.contact_type == AuthMethod.OTP_EMAIL
+            else None,
+            phone=request.contact
+            if request.contact_type == AuthMethod.OTP_SMS
+            else None,
             first_name="User",
             last_name="",
             full_name=full_name,
-            is_verified=True
+            is_verified=True,
         )
-        
+
         db.add(user)
         db.commit()
         db.refresh(user)
-        
+
         # Add OTP auth method
-        auth_method = UserAuthMethod(
-            user_id=user.id,
-            method=request.contact_type
-        )
+        auth_method = UserAuthMethod(user_id=user.id, method=request.contact_type)
         db.add(auth_method)
         db.commit()
-    
+
     # Create session
     session = create_user_session(db, user.id, req)
-    
+
     return AuthResponse(
         access_token=session.session_token,
         refresh_token=session.refresh_token,
@@ -402,13 +438,15 @@ async def verify_otp(request: OTPVerifyRequest, req: Request, db: Session = Depe
             "last_name": user.last_name,
             "full_name": user.full_name,
             "is_verified": user.is_verified,
-            "role": user.role.value
-        }
+            "role": user.role.value,
+        },
     )
 
 
 @router.post("/google", response_model=AuthResponse)
-async def google_auth(request: GoogleAuthRequest, req: Request, db: Session = Depends(get_db)):
+async def google_auth(
+    request: GoogleAuthRequest, req: Request, db: Session = Depends(get_db)
+):
     """Google OAuth authentication"""
     # In a real implementation, verify the Google token
     # For now, simulate Google user data
@@ -417,12 +455,12 @@ async def google_auth(request: GoogleAuthRequest, req: Request, db: Session = De
         "name": "Google User",
         "given_name": "Google",
         "family_name": "User",
-        "sub": "google_user_id"
+        "sub": "google_user_id",
     }
-    
+
     # Find existing user
     user = db.query(User).filter(User.email == google_user_data["email"]).first()
-    
+
     if not user:
         # Create new user
         user = User(
@@ -430,26 +468,26 @@ async def google_auth(request: GoogleAuthRequest, req: Request, db: Session = De
             first_name=google_user_data["given_name"],
             last_name=google_user_data["family_name"],
             full_name=google_user_data["name"],
-            is_verified=True
+            is_verified=True,
         )
-        
+
         db.add(user)
         db.commit()
         db.refresh(user)
-        
+
         # Add Google auth method
         auth_method = UserAuthMethod(
             user_id=user.id,
             method=AuthMethod.GOOGLE_OAUTH,
             provider_id=google_user_data["sub"],
-            provider_data=json.dumps(google_user_data)
+            provider_data=json.dumps(google_user_data),
         )
         db.add(auth_method)
         db.commit()
-    
+
     # Create session
     session = create_user_session(db, user.id, req)
-    
+
     return AuthResponse(
         access_token=session.session_token,
         refresh_token=session.refresh_token,
@@ -463,50 +501,49 @@ async def google_auth(request: GoogleAuthRequest, req: Request, db: Session = De
             "last_name": user.last_name,
             "full_name": user.full_name,
             "is_verified": user.is_verified,
-            "role": user.role.value
-        }
+            "role": user.role.value,
+        },
     )
 
 
 @router.post("/aadhaar", response_model=AuthResponse)
-async def aadhaar_auth(request: AadhaarAuthRequest, req: Request, db: Session = Depends(get_db)):
+async def aadhaar_auth(
+    request: AadhaarAuthRequest, req: Request, db: Session = Depends(get_db)
+):
     """Aadhaar-based authentication"""
     # In a real implementation, verify Aadhaar with UIDAI
     # For now, simulate Aadhaar verification
     aadhaar_hash = hash_aadhaar(request.aadhaar_number)
-    
+
     # Find user by Aadhaar hash
     user = db.query(User).filter(User.aadhaar_number_hash == aadhaar_hash).first()
-    
+
     if not user:
         # Create new user with Aadhaar
         full_name = request.name or "Aadhaar User"
         name_parts = full_name.split(" ", 1)
-        
+
         user = User(
             first_name=name_parts[0],
             last_name=name_parts[1] if len(name_parts) > 1 else "",
             full_name=full_name,
             aadhaar_number_hash=aadhaar_hash,
             aadhaar_verified=True,
-            is_verified=True
+            is_verified=True,
         )
-        
+
         db.add(user)
         db.commit()
         db.refresh(user)
-        
+
         # Add Aadhaar auth method
-        auth_method = UserAuthMethod(
-            user_id=user.id,
-            method=AuthMethod.AADHAAR
-        )
+        auth_method = UserAuthMethod(user_id=user.id, method=AuthMethod.AADHAAR)
         db.add(auth_method)
         db.commit()
-    
+
     # Create session
     session = create_user_session(db, user.id, req)
-    
+
     return AuthResponse(
         access_token=session.session_token,
         refresh_token=session.refresh_token,
@@ -520,36 +557,41 @@ async def aadhaar_auth(request: AadhaarAuthRequest, req: Request, db: Session = 
             "last_name": user.last_name,
             "full_name": user.full_name,
             "is_verified": user.is_verified,
-            "role": user.role.value
-        }
+            "role": user.role.value,
+        },
     )
 
 
 @router.post("/refresh", response_model=AuthResponse)
-async def refresh_token(request: RefreshTokenRequest, req: Request, db: Session = Depends(get_db)):
+async def refresh_token(
+    request: RefreshTokenRequest, req: Request, db: Session = Depends(get_db)
+):
     """Refresh access token"""
-    session = db.query(UserSession).filter(
-        and_(
-            UserSession.refresh_token == request.refresh_token,
-            UserSession.expires_at > datetime.utcnow()
+    session = (
+        db.query(UserSession)
+        .filter(
+            and_(
+                UserSession.refresh_token == request.refresh_token,
+                UserSession.expires_at > datetime.utcnow(),
+            )
         )
-    ).first()
-    
+        .first()
+    )
+
     if not session:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         )
-    
+
     # Create new session
     new_session = create_user_session(db, session.user_id, req)
-    
+
     # Invalidate old session
     db.delete(session)
     db.commit()
-    
+
     user = db.query(User).filter(User.id == new_session.user_id).first()
-    
+
     return AuthResponse(
         access_token=new_session.session_token,
         refresh_token=new_session.refresh_token,
@@ -563,50 +605,58 @@ async def refresh_token(request: RefreshTokenRequest, req: Request, db: Session 
             "last_name": user.last_name,
             "full_name": user.full_name,
             "is_verified": user.is_verified,
-            "role": user.role.value
-        }
+            "role": user.role.value,
+        },
     )
 
 
 @router.post("/logout")
-async def logout(credentials: HTTPAuthorizationCredentials = Depends(security), 
-                db: Session = Depends(get_db)):
+async def logout(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
     """Logout and invalidate session"""
-    session = db.query(UserSession).filter(
-        UserSession.session_token == credentials.credentials
-    ).first()
-    
+    session = (
+        db.query(UserSession)
+        .filter(UserSession.session_token == credentials.credentials)
+        .first()
+    )
+
     if session:
         db.delete(session)
         db.commit()
-    
+
     return {"message": "Logged out successfully"}
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security),
-                          db: Session = Depends(get_db)):
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
     """Get current user information"""
-    session = db.query(UserSession).filter(
-        and_(
-            UserSession.session_token == credentials.credentials,
-            UserSession.expires_at > datetime.utcnow()
+    session = (
+        db.query(UserSession)
+        .filter(
+            and_(
+                UserSession.session_token == credentials.credentials,
+                UserSession.expires_at > datetime.utcnow(),
+            )
         )
-    ).first()
-    
+        .first()
+    )
+
     if not session:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
-    
+
     user = db.query(User).filter(User.id == session.user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     return UserResponse(
         id=user.id,
         uuid=user.uuid,
@@ -617,32 +667,433 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         full_name=user.full_name,
         is_verified=user.is_verified,
         role=user.role.value,
-        created_at=user.created_at
+        created_at=user.created_at,
+    )
+
+
+# DigiLocker OAuth Configuration
+DIGILOCKER_CLIENT_ID = os.getenv("DIGILOCKER_CLIENT_ID")
+DIGILOCKER_CLIENT_SECRET = os.getenv("DIGILOCKER_CLIENT_SECRET")
+DIGILOCKER_REDIRECT_URI = os.getenv("DIGILOCKER_REDIRECT_URI")
+
+DIGILOCKER_AUTH_URL = "https://www.digilocker.gov.in/oauth/v1/authorize"
+DIGILOCKER_TOKEN_URL = "https://www.digilocker.gov.in/oauth/v1/token"
+DIGILOCKER_USER_INFO_URL = "https://www.digilocker.gov.in/oauth/v1/user"
+DIGILOCKER_SCOPE = "openid,uid,name,picture"
+
+
+class DigiLockerUserResponse(BaseModel):
+    uid: str
+    name: str
+    picture: Optional[str] = None
+
+
+def build_digilocker_auth_url(state: str) -> str:
+    """Build DigiLocker authorization URL"""
+    if not DIGILOCKER_CLIENT_ID or not DIGILOCKER_REDIRECT_URI:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="DigiLocker OAuth not configured",
+        )
+
+    params = {
+        "client_id": DIGILOCKER_CLIENT_ID,
+        "redirect_uri": DIGILOCKER_REDIRECT_URI,
+        "response_type": "code",
+        "scope": DIGILOCKER_SCOPE,
+        "state": state,
+    }
+    return f"{DIGILOCKER_AUTH_URL}?{urlencode(params)}"
+
+
+async def exchange_code_for_token(code: str) -> Dict[str, Any]:
+    """Exchange authorization code for access token"""
+    if (
+        not DIGILOCKER_CLIENT_ID
+        or not DIGILOCKER_CLIENT_SECRET
+        or not DIGILOCKER_REDIRECT_URI
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="DigiLocker OAuth not configured",
+        )
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            DIGILOCKER_TOKEN_URL,
+            data={
+                "grant_type": "authorization_code",
+                "client_id": DIGILOCKER_CLIENT_ID,
+                "client_secret": DIGILOCKER_CLIENT_SECRET,
+                "code": code,
+                "redirect_uri": DIGILOCKER_REDIRECT_URI,
+            },
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to exchange code for token",
+            )
+
+        return response.json()
+
+
+async def get_digilocker_user_info(access_token: str) -> DigiLockerUserResponse:
+    """Get user info from DigiLocker"""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            DIGILOCKER_USER_INFO_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to get user info",
+            )
+
+        return DigiLockerUserResponse(**response.json())
+
+
+# DigiLocker OAuth endpoints
+@router.get("/digilocker")
+async def digilocker_login(request: Request):
+    """Redirect to DigiLocker consent page"""
+    if not DIGILOCKER_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="DigiLocker OAuth not configured",
+        )
+
+    state = secrets.token_urlsafe(32)
+
+    auth_url = build_digilocker_auth_url(state)
+
+    request.session["digilocker_state"] = state
+
+    return Response(status_code=302, headers={"Location": auth_url})
+
+
+@router.get("/digilocker/callback")
+async def digilocker_callback(
+    code: str, state: str, request: Request, db: Session = Depends(get_db)
+):
+    """Handle OAuth return, create/update user"""
+    saved_state = request.session.get("digilocker_state")
+
+    if not saved_state or saved_state != state:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid state parameter"
+        )
+
+    try:
+        token_data = await exchange_code_for_token(code)
+        access_token = token_data["access_token"]
+
+        user_info = await get_digilocker_user_info(access_token)
+
+        existing_auth = (
+            db.query(UserAuthMethod)
+            .filter(
+                and_(
+                    UserAuthMethod.method == AuthMethod.DIGILOCKER,
+                    UserAuthMethod.provider_id == user_info.uid,
+                )
+            )
+            .first()
+        )
+
+        if existing_auth:
+            user = db.query(User).filter(User.id == existing_auth.user_id).first()
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+                )
+        else:
+            name_parts = (
+                user_info.name.split(" ", 1)
+                if user_info.name
+                else ["DigiLocker", "User"]
+            )
+
+            user = User(
+                first_name=name_parts[0],
+                last_name=name_parts[1] if len(name_parts) > 1 else "",
+                full_name=user_info.name or "DigiLocker User",
+                is_verified=True,
+            )
+
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+            auth_method = UserAuthMethod(
+                user_id=user.id,
+                method=AuthMethod.DIGILOCKER,
+                provider_id=user_info.uid,
+                provider_data=json.dumps(
+                    {
+                        "uid": user_info.uid,
+                        "name": user_info.name,
+                        "picture": user_info.picture,
+                    }
+                ),
+            )
+            db.add(auth_method)
+            db.commit()
+
+        session = create_user_session(db, user.id, request)
+
+        return AuthResponse(
+            access_token=session.session_token,
+            refresh_token=session.refresh_token,
+            expires_in=86400,
+            user={
+                "id": user.id,
+                "uuid": user.uuid,
+                "email": user.email,
+                "phone": user.phone,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "full_name": user.full_name,
+                "is_verified": user.is_verified,
+                "role": user.role.value,
+            },
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"DigiLocker authentication failed: {str(e)}",
+        )
+
+
+# Supabase Phone OTP models
+class SupabaseLoginRequest(BaseModel):
+    phone: str
+
+    @validator("phone")
+    def validate_phone(cls, v):
+        if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
+            raise ValueError("Invalid phone number format")
+        return v
+
+
+class SupabaseVerifyRequest(BaseModel):
+    phone: str
+    otp_code: str
+
+    @validator("phone")
+    def validate_phone(cls, v):
+        if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
+            raise ValueError("Invalid phone number format")
+        return v
+
+
+# Supabase endpoints
+@router.post("/supabase/login")
+async def supabase_login(request: SupabaseLoginRequest, db: Session = Depends(get_db)):
+    """Send Supabase phone OTP"""
+    from supabase import create_client, Client
+
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
+
+    if not supabase_url or not supabase_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Supabase not configured",
+        )
+
+    try:
+        supabase: Client = create_client(supabase_url, supabase_key)
+
+        response = supabase.auth.sign_in_with_otp({"phone": request.phone})
+
+        return {
+            "message": "OTP sent successfully",
+            "session_id": response.session.access_token if response.session else None,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to send OTP: {str(e)}",
+        )
+
+
+@router.post("/supabase/verify", response_model=AuthResponse)
+async def supabase_verify(
+    request: SupabaseVerifyRequest, req: Request, db: Session = Depends(get_db)
+):
+    """Verify Supabase OTP"""
+    from supabase import create_client, Client
+
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
+
+    if not supabase_url or not supabase_key:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Supabase not configured",
+        )
+
+    try:
+        supabase: Client = create_client(supabase_url, supabase_key)
+
+        response = supabase.auth.verify_otp(
+            {"phone": request.phone, "token": request.otp_code}
+        )
+
+        if not response.user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid OTP"
+            )
+
+        user = db.query(User).filter(User.phone == request.phone).first()
+
+        if not user:
+            full_name = (
+                response.user.user_metadata.get("full_name", "User")
+                if response.user.user_metadata
+                else "User"
+            )
+            name_parts = full_name.split(" ", 1)
+
+            user = User(
+                phone=request.phone,
+                first_name=name_parts[0],
+                last_name=name_parts[1] if len(name_parts) > 1 else "",
+                full_name=full_name,
+                is_verified=True,
+            )
+
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+            auth_method = UserAuthMethod(
+                user_id=user.id,
+                method=AuthMethod.SUPABASE,
+                provider_id=response.user.id,
+            )
+            db.add(auth_method)
+            db.commit()
+
+        session = create_user_session(db, user.id, req)
+
+        return AuthResponse(
+            access_token=session.session_token,
+            refresh_token=session.refresh_token,
+            expires_in=86400,
+            user={
+                "id": user.id,
+                "uuid": user.uuid,
+                "email": user.email,
+                "phone": user.phone,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "full_name": user.full_name,
+                "is_verified": user.is_verified,
+                "role": user.role.value,
+            },
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to verify OTP: {str(e)}",
+        )
+
+
+@router.get("/supabase/authenticate", response_model=UserResponse)
+async def supabase_authenticate(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    """Check Supabase session"""
+    session = (
+        db.query(UserSession)
+        .filter(
+            and_(
+                UserSession.session_token == credentials.credentials,
+                UserSession.expires_at > datetime.utcnow(),
+            )
+        )
+        .first()
+    )
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired session",
+        )
+
+    user = db.query(User).filter(User.id == session.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+
+    auth_method = (
+        db.query(UserAuthMethod)
+        .filter(
+            and_(
+                UserAuthMethod.user_id == user.id,
+                UserAuthMethod.method == AuthMethod.SUPABASE,
+            )
+        )
+        .first()
+    )
+
+    if not auth_method:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not a Supabase session"
+        )
+
+    return UserResponse(
+        id=user.id,
+        uuid=user.uuid,
+        email=user.email,
+        phone=user.phone,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        full_name=user.full_name,
+        is_verified=user.is_verified,
+        role=user.role.value,
+        created_at=user.created_at,
     )
 
 
 # Dependency to get current user
-async def get_current_user_dependency(credentials: HTTPAuthorizationCredentials = Depends(security),
-                                     db: Session = Depends(get_db)) -> User:
+async def get_current_user_dependency(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> User:
     """Dependency to get current authenticated user"""
-    session = db.query(UserSession).filter(
-        and_(
-            UserSession.session_token == credentials.credentials,
-            UserSession.expires_at > datetime.utcnow()
+    session = (
+        db.query(UserSession)
+        .filter(
+            and_(
+                UserSession.session_token == credentials.credentials,
+                UserSession.expires_at > datetime.utcnow(),
+            )
         )
-    ).first()
-    
+        .first()
+    )
+
     if not session:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
-    
+
     user = db.query(User).filter(User.id == session.user_id).first()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    
+
     return user

@@ -1,58 +1,188 @@
+"""
+Embedding engine — HuggingFace API for semantic search.
+Falls back gracefully to text search if API unavailable.
+
+Architecture:
+  - Query embedding: HuggingFace API (free tier)
+  - Fallback: PostgreSQL ILIKE text search (always works)
+  - Zero RAM on Fly.io — no local model loaded
+"""
+
 import os
+import httpx
+import asyncio
+import concurrent.futures
 from typing import List, Dict, Any
 from sqlalchemy import text
 from .database import SessionLocal
-from .search import SearchEngine
+
 
 def get_model_name() -> str:
-    return os.getenv('EMBEDDING_MODEL', 'all-MiniLM-L6-v2')
+    return os.getenv("EMBEDDING_MODEL", "intfloat/multilingual-e5-small")
+
+
+async def _embed_via_hf_api(text_input: str, is_query: bool = False) -> List[float]:
+    """
+    Call HuggingFace Inference API to embed a single text.
+    Returns [] on any error — caller uses text search fallback.
+    """
+    model = get_model_name()
+
+    # Apply e5 prefix — same format used when chunks were originally embedded
+    if "e5" in model.lower():
+        prefix = "query: " if is_query else "passage: "
+        text_input = prefix + text_input.strip()
+
+    hf_token = os.getenv("HF_TOKEN", "")
+    url = f"https://router.huggingface.co/hf-inference/models/{model}"
+
+    headers = {"Content-Type": "application/json"}
+    if hf_token:
+        headers["Authorization"] = f"Bearer {hf_token}"
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            url,
+            headers=headers,
+            json={"inputs": text_input, "options": {"wait_for_model": True}},
+        )
+
+        if response.status_code != 200:
+            print(f"⚠️  HF API error {response.status_code}: {response.text[:200]}")
+            return []
+
+        result = response.json()
+
+        # Unwrap nested lists: [[[ ]]] → [[]] → [] → [float, ...]
+        while isinstance(result, list) and len(result) > 0 and isinstance(result[0], list):
+            result = result[0]
+
+        if isinstance(result, list) and len(result) > 0 and isinstance(result[0], float):
+            return result
+
+        print(f"⚠️  HF API unexpected shape: {str(result)[:100]}")
+        return []
+
+
+class EmbeddingEngine:
+    """
+    Embedding engine — calls HuggingFace API for vector search.
+    is_loaded() always True so text fallback is never blocked.
+    """
+
+    def __init__(self):
+        self.model = None  # Never loaded locally — zero RAM
+        self._hf_available = bool(os.getenv("HF_TOKEN", ""))
+        if self._hf_available:
+            print(f"✅ Embedding engine ready (HuggingFace API): {get_model_name()}")
+        else:
+            print("⚠️  HF_TOKEN not set — text search fallback active")
+
+    def is_loaded(self) -> bool:
+        """
+        Always True — text fallback works even without HF API.
+        Returning False would block all search in SearchEngine._generate_embedding().
+        """
+        return True
+
+    def has_semantic(self) -> bool:
+        """True only if HF API token is configured."""
+        return self._hf_available
+
+    def embed_text(self, text: str, is_query: bool = False) -> List[float]:
+        """
+        Generate embedding via HF API.
+        Returns [] if API fails — SearchEngine uses text fallback.
+        """
+        if not self._hf_available or not text:
+            return []
+
+        try:
+            try:
+                loop = asyncio.get_running_loop()
+                # Inside FastAPI event loop — offload to thread pool
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    future = pool.submit(
+                        asyncio.run, _embed_via_hf_api(text, is_query)
+                    )
+                    return future.result(timeout=35)
+            except RuntimeError:
+                # No running loop — call directly
+                return asyncio.run(_embed_via_hf_api(text, is_query))
+
+        except Exception as e:
+            print(f"⚠️  embed_text error: {e}")
+            return []
+
+    def embed_batch(self, texts: List[str], is_query: bool = False) -> List[List[float]]:
+        """Generate embeddings for multiple texts sequentially."""
+        if not self._hf_available or not texts:
+            return [[] for _ in texts]
+        return [self.embed_text(t, is_query=is_query) for t in texts]
+
+
+# ── Global singleton ──────────────────────────────────────────────────────────
+
+_embedding_engine = None
+
+
+def get_embedding_engine() -> EmbeddingEngine:
+    """Get or create the global embedding engine instance."""
+    global _embedding_engine
+    if _embedding_engine is None:
+        _embedding_engine = EmbeddingEngine()
+    return _embedding_engine
+
 
 def get_transformer():
-    """Lazily import transformer only if embeddings are enabled."""
-    enabled = os.getenv('EMBEDDING_ENABLED', 'true').lower() in ('1', 'true', 'yes')
-    if not enabled:
-        return None
-    try:
-        from sentence_transformers import SentenceTransformer
-        return SentenceTransformer(get_model_name())
-    except Exception:
-        return None
+    """Legacy compatibility shim."""
+    return get_embedding_engine()
+
+
+# ── Utility functions ─────────────────────────────────────────────────────────
 
 def configure_pgvector() -> bool:
-    """Verify pgvector extension is available."""
     db = SessionLocal()
     try:
         conn = db.connection()
-        res = conn.execute(text("SELECT extname FROM pg_extension WHERE extname='vector'")).fetchone()
+        res = conn.execute(
+            text("SELECT extname FROM pg_extension WHERE extname='vector'")
+        ).fetchone()
         db.close()
         return bool(res)
     except Exception:
         db.close()
         return False
 
-def embedding_generation_pipeline(texts: List[str]) -> List[List[float]]:
-    """Generate embeddings for a list of texts, if enabled."""
-    model = get_transformer()
-    if model is None:
-        return [[] for _ in texts]
-    try:
-        return [model.encode(t or "").tolist() for t in texts]
-    except Exception:
-        return [[] for _ in texts]
+
+def embedding_generation_pipeline(
+    texts: List[str], is_query: bool = False
+) -> List[List[float]]:
+    engine = get_embedding_engine()
+    return engine.embed_batch(texts, is_query=is_query)
+
 
 def vector_similarity_search(db, query: str, limit: int = 5) -> Dict[str, Any]:
-    """Run semantic search using the core SearchEngine wrapper."""
+    from .search import SearchEngine
     return SearchEngine(db).search(query, limit=limit)
 
+
 def optimize_vector_indexing() -> bool:
-    """Create ivfflat indexes for vector columns if pgvector is available."""
     db = SessionLocal()
     try:
         conn = db.connection()
-        res = conn.execute(text("SELECT extname FROM pg_extension WHERE extname='vector'"))
+        res = conn.execute(
+            text("SELECT extname FROM pg_extension WHERE extname='vector'")
+        )
         if res.fetchone():
-            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_documents_embedding ON documents USING ivfflat (embedding vector_cosine_ops);"))
-            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_chunks_embedding ON content_chunks USING ivfflat (embedding vector_cosine_ops);"))
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_documents_embedding "
+                "ON documents USING ivfflat (embedding vector_cosine_ops);"
+            ))
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS idx_chunks_embedding "
+                "ON content_chunks USING ivfflat (embedding vector_cosine_ops);"
+            ))
             db.commit()
         db.close()
         return True
@@ -60,6 +190,6 @@ def optimize_vector_indexing() -> bool:
         db.close()
         return False
 
+
 def ensure_multilingual_model() -> str:
-    """Return the currently configured model; supports multilingual models via ENV."""
     return get_model_name()

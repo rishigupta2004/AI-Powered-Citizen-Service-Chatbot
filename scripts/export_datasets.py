@@ -21,7 +21,7 @@ def export_chunks(db, out_path):
     chunks = db.query(ContentChunk).all()
     with out_path.open('w', encoding='utf-8') as f:
         for ch in chunks:
-            text = normalize(ch.content_text)
+            text = normalize(ch.chunk_text)
             if len(text) < 80:
                 continue
             service = db.get(Service, ch.service_id) if ch.service_id else None

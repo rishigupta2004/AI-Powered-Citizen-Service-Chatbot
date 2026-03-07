@@ -297,7 +297,7 @@ class ComprehensiveDataIngestion:
         for chunk_text in self._create_chunks(text, service):
             self.db.add(
                 ContentChunk(
-                    content_text=chunk_text,
+                    chunk_text=chunk_text,
                     service_id=service.service_id if service else None,
                     category=service.category if service else 'general',
                 )

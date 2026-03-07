@@ -7,37 +7,39 @@ from sqlalchemy import and_, or_, func, desc, text
 from pgvector.sqlalchemy import Vector
 from .models import Service, Procedure, Document, FAQ, ContentChunk, RawContent
 
+
 class BaseRepository:
     def __init__(self, db: Session, model_class):
         self.db = db
         self.model_class = model_class
-    
+
     def create(self, **kwargs):
         obj = self.model_class(**kwargs)
         self.db.add(obj)
         self.db.commit()
         self.db.refresh(obj)
         return obj
-    
+
     def get_by_id(self, id: int):
         return self.db.query(self.model_class).filter(self.model_class.id == id).first()
-    
+
     def get_all(self, skip: int = 0, limit: int = 100):
         return self.db.query(self.model_class).offset(skip).limit(limit).all()
-    
+
     def count(self):
         return self.db.query(self.model_class).count()
+
 
 class ServiceRepository(BaseRepository):
     def __init__(self, db: Session):
         super().__init__(db, Service)
-    
+
     def get_by_category(self, category: str) -> List[Service]:
         return self.db.query(Service).filter(Service.category == category).all()
-    
+
     def get_active_services(self) -> List[Service]:
         return self.db.query(Service).filter(Service.is_active == True).all()
-    
+
     def search_services(self, query: str) -> List[Service]:
         search_term = f"%{query}%"
         return self.db.query(Service).filter(
@@ -50,13 +52,14 @@ class ServiceRepository(BaseRepository):
             )
         ).all()
 
+
 class DocumentRepository(BaseRepository):
     def __init__(self, db: Session):
         super().__init__(db, Document)
-    
+
     def get_by_service(self, service_id: int) -> List[Document]:
         return self.db.query(Document).filter(Document.service_id == service_id).all()
-    
+
     def get_mandatory_documents(self, service_id: int) -> List[Document]:
         return self.db.query(Document).filter(
             and_(
@@ -64,7 +67,7 @@ class DocumentRepository(BaseRepository):
                 Document.is_mandatory == True
             )
         ).all()
-    
+
     def search_semantic(self, query_embedding: List[float], limit: int = 10) -> List[Document]:
         return self.db.query(Document).filter(
             Document.embedding.isnot(None)
@@ -73,35 +76,47 @@ class DocumentRepository(BaseRepository):
         ).limit(limit).all()
 
     def search_text(self, query: str, limit: int = 10) -> List[Document]:
-        """Prefer Postgres full-text search; fallback to ILIKE."""
+        """Full-text search with tsvector; fallback to ILIKE."""
         try:
-            # Use tsvector search for better performance where available
-            ts_query = func.plainto_tsquery('english', query)
-            vector = func.to_tsvector('english', func.coalesce(Document.name, '') + ' ' + func.coalesce(Document.description, '') + ' ' + func.coalesce(Document.raw_content, ''))
+            ts_query = func.plainto_tsquery("english", query)
+            vector = func.to_tsvector(
+                "english",
+                func.coalesce(Document.name, "")
+                + " "
+                + func.coalesce(Document.description, "")
+                + " "
+                + func.coalesce(Document.raw_content, ""),
+            )
             return (
                 self.db.query(Document)
-                .filter(vector.op('@@')(ts_query))
+                .filter(vector.op("@@")(ts_query))
                 .order_by(desc(func.ts_rank_cd(vector, ts_query)))
                 .limit(limit)
                 .all()
             )
         except Exception:
             term = f"%{query}%"
-            return self.db.query(Document).filter(
-                or_(
-                    Document.name.ilike(term),
-                    Document.description.ilike(term),
-                    Document.raw_content.ilike(term)
+            return (
+                self.db.query(Document)
+                .filter(
+                    or_(
+                        Document.name.ilike(term),
+                        Document.description.ilike(term),
+                        Document.raw_content.ilike(term),
+                    )
                 )
-            ).limit(limit).all()
+                .limit(limit)
+                .all()
+            )
+
 
 class FAQRepository(BaseRepository):
     def __init__(self, db: Session):
         super().__init__(db, FAQ)
-    
+
     def get_by_service(self, service_id: int) -> List[FAQ]:
         return self.db.query(FAQ).filter(FAQ.service_id == service_id).all()
-    
+
     def search_semantic(self, query_embedding: List[float], limit: int = 10) -> List[FAQ]:
         return self.db.query(FAQ).filter(
             FAQ.question_embedding.isnot(None)
@@ -109,16 +124,49 @@ class FAQRepository(BaseRepository):
             FAQ.question_embedding.cosine_distance(query_embedding)
         ).limit(limit).all()
 
+    def search_text(self, query: str, limit: int = 10) -> List[FAQ]:
+        """ILIKE text search across question and answer."""
+        term = f"%{query}%"
+        return (
+            self.db.query(FAQ)
+            .filter(
+                or_(
+                    FAQ.question.ilike(term),
+                    FAQ.answer.ilike(term),
+                )
+            )
+            .limit(limit)
+            .all()
+        )
+
+
 class ContentChunkRepository(BaseRepository):
     def __init__(self, db: Session):
         super().__init__(db, ContentChunk)
-    
+
     def search_semantic(self, query_embedding: List[float], limit: int = 10) -> List[ContentChunk]:
-        return self.db.query(ContentChunk).filter(
-            ContentChunk.embedding.isnot(None)
-        ).order_by(
-            ContentChunk.embedding.cosine_distance(query_embedding)
-        ).limit(limit).all()
+        """Vector cosine similarity search against stored embeddings."""
+        return (
+            self.db.query(ContentChunk)
+            .filter(ContentChunk.embedding.isnot(None))
+            .order_by(ContentChunk.embedding.cosine_distance(query_embedding))
+            .limit(limit)
+            .all()
+        )
+
+    def search_text(self, query: str, limit: int = 10) -> List[ContentChunk]:
+        """
+        ILIKE text fallback — always works even when embeddings unavailable.
+        This is the safety net that ensures sources[] is never empty.
+        """
+        term = f"%{query}%"
+        return (
+            self.db.query(ContentChunk)
+            .filter(ContentChunk.chunk_text.ilike(term))
+            .limit(limit)
+            .all()
+        )
+
 
 class RawContentRepository(BaseRepository):
     def __init__(self, db: Session):
