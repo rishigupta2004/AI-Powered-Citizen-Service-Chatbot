@@ -208,8 +208,11 @@ async def chat(
         messages=messages,
         system_prompt=system_prompt,
         temperature=0.3,
-        max_tokens=512,
+        max_tokens=300,
     )
+    # Strip chain-of-thought tags leaked by sarvam-m
+    import re as _re
+    response_text = _re.sub(r"<think>.*?</think>", "", response_text, flags=_re.DOTALL).strip()
 
     if user or request.session_id:
         user_msg = ChatSession(
@@ -231,9 +234,12 @@ async def chat(
         db.add(assistant_msg)
         db.commit()
 
-    _resp = dict(response=response_text, language=lang, sources=sources, session_id=request.session_id)
-    chat_cache.set(message, _lang, _resp)
-    return ChatResponse(**_resp)
+    return ChatResponse(
+        response=response_text,
+        language=lang,
+        sources=sources,
+        session_id=request.session_id,
+    )
 
 
 @chat_router.post("/speech-to-text")
@@ -268,7 +274,7 @@ async def speech_to_text(
     )
 
     if "error" in result and not result.get("transcript"):
-        raise HTTPException(status_code=500, detail=result["error"])
+        return {"transcript": "", "error": str(result.get("error","STT failed"))}
 
     return result
 
@@ -289,7 +295,7 @@ async def text_to_speech(request: TTSRequest):
     )
 
     if "error" in result:
-        raise HTTPException(status_code=500, detail=result["error"])
+        return {"transcript": "", "error": str(result.get("error","STT failed"))}
 
     return Response(
         content=result["audio_bytes"],

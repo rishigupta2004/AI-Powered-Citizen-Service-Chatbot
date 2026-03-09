@@ -30,7 +30,7 @@ function groupLanguagesByScript(languages: Language[]): LanguageGroup[] {
 }
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [search, setSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -67,7 +67,7 @@ export function LanguageSwitcher() {
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center gap-2 text-slate-300 hover:text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-saffron outline-none transition-colors"
+          className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] text-[var(--foreground)] hover:bg-[var(--surface-3)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring-color)] outline-none transition-colors"
         >
           <Globe className="w-3.5 h-3.5" />
           <span className="hidden md:inline font-medium text-[11px]">{currentLanguage.nativeLabel}</span>
@@ -76,40 +76,40 @@ export function LanguageSwitcher() {
       <DropdownMenuContent
         ref={menuRef}
         align="end"
-        className="w-64 max-h-[400px] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl p-0"
+        className="w-72 max-h-[420px] overflow-y-auto bg-[var(--surface-1)] border border-[var(--border)] shadow-[var(--shadow-12)] rounded-2xl p-0"
       >
-        <div className="p-3 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md z-10">
+        <div className="p-3 border-b border-[var(--border)] sticky top-0 bg-[var(--surface-1)]/95 backdrop-blur-md z-10">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search languages..."
+              placeholder={t("navigation.searchLanguage", "Search languages...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-900 dark:text-white placeholder:text-slate-400 transition-all"
+              className="w-full pl-9 pr-3 py-2 text-sm bg-[var(--surface-2)] border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring-color)] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] transition-all"
             />
           </div>
         </div>
         <div className="p-2" role="group">
           {groupedLanguages.map((group) => (
             <div key={group.script} className="mb-2 last:mb-0">
-              <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <div className="px-3 py-1.5 text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">
                 {group.script}
               </div>
               {group.languages.map((lang) => (
                 <button
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-saffron ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring-color)] ${
                     i18n.language === lang.code 
-                      ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 font-semibold" 
-                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      ? "bg-[var(--surface-2)] text-[var(--color-navy)] font-semibold" 
+                      : "text-[var(--foreground)] hover:bg-[var(--surface-2)]"
                   }`}
                 >
                   <span className="flex items-center gap-2">
                     <span>{lang.nativeLabel}</span>
-                    <span className="text-slate-400 dark:text-slate-500 text-xs font-normal">{lang.label}</span>
+                    <span className="text-[var(--muted-foreground)] text-xs font-normal">{lang.label}</span>
                   </span>
                   {i18n.language === lang.code && <Check className="w-4 h-4" />}
                 </button>

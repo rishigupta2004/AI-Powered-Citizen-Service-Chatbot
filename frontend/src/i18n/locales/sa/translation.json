@@ -1,0 +1,165 @@
+{
+  "app": {
+    "title": "Seva Sindhu - Government Services Portal",
+    "subtitle": "Your gateway to government services"
+  },
+  "navigation": {
+    "home": "Home",
+    "services": "Services",
+    "dashboard": "Dashboard",
+    "tracker": "Application Tracker",
+    "faq": "FAQ",
+    "about": "About",
+    "admin": "Admin",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "language": "Language"
+  },
+  "home": {
+    "hero": {
+      "title": "Access Government Services Made Easy",
+      "subtitle": "One portal for all your government service needs. Simple, fast, and secure.",
+      "ctaPrimary": "Explore Services",
+      "ctaSecondary": "Track Application"
+    },
+    "features": {
+      "title": "Why Choose Seva Sindhu",
+      "services": {
+        "title": "100+ Services",
+        "description": "Access a wide range of government services from one place"
+      },
+      "languages": {
+        "title": "Multi-language Support",
+        "description": "Available in English, Hindi, and other regional languages"
+      },
+      "tracking": {
+        "title": "Track Applications",
+        "description": "Real-time status updates for all your applications"
+      },
+      "support": {
+        "title": "24/7 Support",
+        "description": "AI-powered chatbot available round the clock"
+      }
+    }
+  },
+  "chatbot": {
+    "title": "Seva Sindhu AI",
+    "placeholder": "Ask anything about government services...",
+    "welcome": "नमस्ते! Welcome to Seva Sindhu AI Assistant 🇮🇳",
+    "poweredBy": "Powered by Sarvam AI",
+    "online": "Online",
+    "listening": "Listening...",
+    "thinking": "Thinking..."
+  },
+  "common": {
+    "govtPortal": "Seva Sindhu",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "back": "Back",
+    "continue": "Continue",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to access your government services",
+    "description": "Secure login to your account",
+    "digilocker": {
+      "button": "Login with DigiLocker",
+      "description": "Login with DigiLocker for verified identity and easy access to Aadhaar, PAN, Driving License and more"
+    },
+    "google": {
+      "button": "Continue with Google"
+    },
+    "orContinueWith": "Or continue with",
+    "tabs": {
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "email": {
+      "label": "Email Address",
+      "placeholder": "Enter your email",
+      "submit": "Login with Email"
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "Enter your password",
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "phone": {
+      "label": "Phone Number",
+      "placeholder": "Enter 10-digit mobile number",
+      "sendOtp": "Send OTP",
+      "verify": "Verify & Login"
+    },
+    "otp": {
+      "label": "Enter OTP",
+      "placeholder": "Enter 6-digit OTP",
+      "changePhone": "Change number",
+      "resend": "Resend OTP"
+    },
+    "forgotPassword": "Forgot Password?",
+    "signUp": {
+      "prompt": "Don't have an account?",
+      "link": "Sign Up"
+    },
+    "terms": {
+      "text": "By continuing, you agree to our",
+      "privacy": "Privacy Policy",
+      "and": "and",
+      "terms": "Terms of Service"
+    },
+    "errors": {
+      "loginFailed": "Invalid email or password",
+      "otpSendFailed": "Failed to send OTP. Please try again.",
+      "otpVerifyFailed": "Invalid OTP. Please try again."
+    }
+  },
+  "services": {
+    "title": "Government Services",
+    "subtitle": "Browse and apply for government services",
+    "categories": {
+      "identity": "Identity",
+      "finance": "Finance",
+      "health": "Health",
+      "education": "Education",
+      "travel": "Travel",
+      "housing": "Housing",
+      "employment": "Employment"
+    },
+    "popular": "Popular Services",
+    "viewAll": "View All Services",
+    "applyNow": "Apply Now",
+    "checkStatus": "Check Status",
+    "documents": "Required Documents",
+    "fees": "Fees",
+    "timeline": "Processing Time"
+  },
+  "footer": {
+    "about": "About Seva Sindhu",
+    "aboutText": "Your trusted partner for accessing government services easily and efficiently.",
+    "quickLinks": "Quick Links",
+    "services": "Services",
+    "help": "Help & Support",
+    "contact": "Contact Us",
+    "rights": "All rights reserved.",
+    "government": "Government of India initiative"
+  }
+}
