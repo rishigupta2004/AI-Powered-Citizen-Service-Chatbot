@@ -208,11 +208,20 @@ async def chat(
         messages=messages,
         system_prompt=system_prompt,
         temperature=0.3,
-        max_tokens=300,
+        max_tokens=500,
     )
     # Strip chain-of-thought tags leaked by sarvam-m
+    # Strip think tags — handle both closed and unclosed (truncated by max_tokens)
+    import re as _re
+    # Strip think tags — handle both closed and unclosed (truncated by max_tokens)
     import re as _re
     response_text = _re.sub(r"<think>.*?</think>", "", response_text, flags=_re.DOTALL).strip()
+    if "<think>" in response_text:
+        response_text = response_text[response_text.find("<think>"):]
+        response_text = _re.sub(r"<think>.*", "", response_text, flags=_re.DOTALL).strip()
+    if "<think>" in response_text:
+        response_text = response_text[response_text.find("<think>"):]
+        response_text = _re.sub(r"<think>.*", "", response_text, flags=_re.DOTALL).strip()
 
     if user or request.session_id:
         user_msg = ChatSession(
