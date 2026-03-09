@@ -70,7 +70,7 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
             <Badge className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm px-6 py-2 text-base">
               Government Services
             </Badge>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold font-display mb-6">
               All Services
             </h1>
             <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
@@ -165,7 +165,7 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
                 className="mb-16"
               >
                 <div className="flex items-center gap-3 mb-8">
-                  <h2 className="text-3xl font-bold text-[var(--foreground)]">{category}</h2>
+                  <h2 className="text-3xl font-bold font-display text-[var(--foreground)]">{category}</h2>
                   <Badge variant="secondary" className="text-sm">
                     {services.length} {services.length === 1 ? 'Service' : 'Services'}
                   </Badge>
@@ -218,7 +218,7 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-bold text-[var(--foreground)] group-hover:text-[#000080] transition-colors">
+                          <h3 className="text-xl font-bold font-display text-[var(--foreground)] group-hover:text-[#000080] transition-colors">
                             {service.name}
                           </h3>
                           {service.badge && (
@@ -265,7 +265,7 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
             <div className="w-24 h-24 bg-[var(--muted)]/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-12 h-12 text-[var(--muted-foreground)]" />
             </div>
-            <h3 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+            <h3 className="text-2xl font-bold font-display text-[var(--foreground)] mb-2">
               No services found
             </h3>
             <p className="text-[var(--muted-foreground)] mb-6">
@@ -298,7 +298,7 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
                 }} />
               </div>
               <CardContent className="relative z-10 py-12 text-center">
-                <h2 className="text-3xl font-bold mb-4">Need Help Choosing?</h2>
+                <h2 className="text-3xl font-bold font-display mb-4">Need Help Choosing?</h2>
                 <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
                   Our support team is available 24/7 to guide you through the process
                 </p>

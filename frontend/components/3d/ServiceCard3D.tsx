@@ -66,7 +66,7 @@ export function ServiceCard3D({
         transformStyle: 'preserve-3d',
         perspective: '1000px',
       }}
-      className="relative cursor-pointer group"
+      className="relative cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF9933] focus-visible:ring-offset-2 rounded-[var(--radius-2xl)]" tabIndex={0}
       whileHover={{ scale: 1.05 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
     >

@@ -76,6 +76,43 @@ export function Navigation({
 
   return (
     <>
+      {/* UX4G Standard Government Top Bar */}
+      <div className={`w-full bg-slate-900 text-white text-[10px] md:text-xs py-1.5 px-4 z-[100] transition-transform duration-300 ${isScrolled ? "-translate-y-full absolute" : "relative"}`}>
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5 font-medium tracking-wide">
+              <span className="flex h-3 w-4 flex-col rounded-[1px] overflow-hidden border border-white/20">
+                <span className="h-1 bg-[#FF9933]"></span>
+                <span className="h-1 bg-white"></span>
+                <span className="h-1 bg-[#138808]"></span>
+              </span>
+              Government of India | भारत सरकार
+            </span>
+            <a href="#main-content" className="hidden md:inline-block text-slate-300 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-[#FF9933] outline-none">
+              Skip to main content
+            </a>
+          </div>
+          <div className="flex items-center gap-3">
+             <LanguageSwitcher />
+             <div className="flex items-center border-l border-slate-700 pl-3 gap-2">
+               <button onClick={() => toggleTheme()} className="text-slate-300 hover:text-white focus-visible:ring-2 focus-visible:ring-[#FF9933] outline-none rounded" aria-label="Toggle theme">
+                 {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+               </button>
+               <Popover>
+                 <PopoverTrigger asChild>
+                   <button className="text-slate-300 hover:text-white focus-visible:ring-2 focus-visible:ring-[#FF9933] outline-none rounded" aria-label="Accessibility settings">
+                     <SettingsIcon className="w-3.5 h-3.5" />
+                   </button>
+                 </PopoverTrigger>
+                 <PopoverContent className="w-80 p-0" align="end">
+                   <AccessibilitySettings />
+                 </PopoverContent>
+               </Popover>
+             </div>
+          </div>
+        </div>
+      </div>
+
       <nav
         className={`fixed top-0 left-0 right-0 z-[var(--z-sticky)] transition-all duration-300 ${
           isScrolled

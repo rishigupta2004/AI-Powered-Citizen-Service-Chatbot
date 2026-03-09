@@ -209,7 +209,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
-            className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
+            className="text-5xl md:text-7xl font-bold font-display text-white mb-6 leading-tight"
           >
             Your Gateway to
             <br />
@@ -270,7 +270,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
                 <div className="absolute inset-0 bg-white/10 rounded-[var(--radius-2xl)] backdrop-blur-sm blur-xl group-hover:blur-2xl transition-all" />
                 <div className="relative bg-white/5 backdrop-blur-md border border-white/20 rounded-[var(--radius-2xl)] p-6 hover:bg-white/10 transition-all">
                   <stat.icon className="w-8 h-8 text-white mb-3 mx-auto" />
-                  <div className="text-4xl font-bold text-white mb-2">{stat.value}</div>
+                  <div className="text-4xl font-bold font-display text-white mb-2">{stat.value}</div>
                   <div className="text-white/80 text-sm">{stat.label}</div>
                 </div>
               </motion.div>
@@ -314,7 +314,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
             <Badge className="mb-4 bg-[#000080]/10 text-[#000080] border-[#000080]/20">
               Why Choose Us
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold font-display text-[var(--foreground)] mb-4">
               Built for Citizens, By Government
             </h2>
             <p className="text-xl text-[var(--muted-foreground)] max-w-2xl mx-auto">
@@ -366,7 +366,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
             <Badge className="mb-4 bg-[#138808]/10 text-[#138808] border-[#138808]/20">
               Simple Process
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold font-display text-[var(--foreground)] mb-4">
               How It Works
             </h2>
             <p className="text-xl text-[var(--muted-foreground)] max-w-2xl mx-auto">
@@ -423,7 +423,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
             <Badge className="mb-4 bg-[#FF9933]/10 text-[#FF9933] border-[#FF9933]/20">
               Popular Services
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold font-display text-[var(--foreground)] mb-4">
               Most Requested Services
             </h2>
             <p className="text-xl text-[var(--muted-foreground)] max-w-2xl mx-auto">
@@ -484,7 +484,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
             <Badge className="mb-4 bg-purple-500/10 text-purple-600 border-purple-500/20">
               Testimonials
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold font-display text-[var(--foreground)] mb-4">
               What Citizens Say
             </h2>
             <p className="text-xl text-[var(--muted-foreground)] max-w-2xl mx-auto">
@@ -544,7 +544,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
             <Badge className="mb-4 bg-purple-500/10 text-purple-600 border-purple-500/20">
               AI-Powered Assistant
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold font-display text-[var(--foreground)] mb-4">
               Meet Your Personal AI Assistant
             </h2>
             <p className="text-xl text-[var(--muted-foreground)] max-w-2xl mx-auto">
@@ -598,7 +598,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
                     <feature.icon className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-[var(--foreground)] mb-2">
+                    <h3 className="text-xl font-bold font-display text-[var(--foreground)] mb-2">
                       {feature.title}
                     </h3>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
@@ -629,7 +629,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
                         <MessageSquare className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-white font-bold text-lg">Seva Sindhu AI</div>
+                        <div className="text-white font-bold font-display text-lg">Seva Sindhu AI</div>
                         <div className="flex items-center gap-2 text-xs text-white/90">
                           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                           Always Online
@@ -750,7 +750,7 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
             viewport={{ once: true }}
           >
             <MessageSquare className="w-16 h-16 text-white mx-auto mb-6" />
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold font-display mb-6">
               Ready to Get Started?
             </h2>
             <p className="text-xl text-white/90 mb-12 max-w-2xl mx-auto">

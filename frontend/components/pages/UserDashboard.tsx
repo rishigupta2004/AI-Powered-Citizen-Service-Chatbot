@@ -182,7 +182,7 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-[var(--foreground)] mb-2">
+              <h1 className="text-4xl font-bold font-display text-[var(--foreground)] mb-2">
                 Welcome back, {userProfile.name.split(' ')[0]}! 👋
               </h1>
               <p className="text-[var(--muted-foreground)]">
@@ -274,7 +274,7 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[var(--foreground)] mb-1">
+                    <div className="text-3xl font-bold font-display text-[var(--foreground)] mb-1">
                       {stat.value}
                     </div>
                     <div className="text-sm text-[var(--muted-foreground)]">

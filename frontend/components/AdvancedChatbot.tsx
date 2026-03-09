@@ -42,7 +42,7 @@ import {
   textToSpeech,
   playAudioBlob,
   ChatMessage as APIChatMessage,
-} from "../lib/api";
+} from "../src/lib/api";
 
 interface Message {
   id: string;
