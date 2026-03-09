@@ -1,0 +1,513 @@
+{
+  "project": "SevaSindhu",
+  "timestamp": "2026-03-07T20:36:59Z",
+  "overall_score_pct": 36,
+  "overall_status": "FAIL",
+  "phases": [
+    {
+      "phase": 1,
+      "label": "RAG Quality",
+      "score_pct": 0,
+      "passed": 0,
+      "total": 15,
+      "avg_latency_ms": 9,
+      "max_latency_ms": 120,
+      "search_modes": {
+        "?": 15
+      },
+      "indic_score": "0/4",
+      "status": "FAIL",
+      "details": [
+        {
+          "query": "passport application form",
+          "pass": false,
+          "latency_ms": 120,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "documents required for passport",
+          "pass": false,
+          "latency_ms": 3,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "tatkal passport urgent processing",
+          "pass": false,
+          "latency_ms": 1,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "pan card apply online",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "pan card lost duplicate",
+          "pass": false,
+          "latency_ms": 1,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "aadhaar update address online",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "driving license renewal process",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "voter id card new registration",
+          "pass": false,
+          "latency_ms": 1,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "ration card apply below poverty",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "birth certificate municipal corporation",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "income certificate state government",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "caste certificate obc sc st",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "epfo provident fund withdrawal",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "gst registration new business",
+          "pass": false,
+          "latency_ms": 0,
+          "mode": "?",
+          "total_results": 0
+        },
+        {
+          "query": "property registration stamp duty",
+          "pass": false,
+          "latency_ms": 2,
+          "mode": "?",
+          "total_results": 0
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "label": "Auth",
+      "score_pct": 50,
+      "passed": 7,
+      "total": 14,
+      "status": "FAIL",
+      "details": [
+        {
+          "label": "DATABASE_URL",
+          "pass": true,
+          "detail": "set"
+        },
+        {
+          "label": "SARVAM_API_KEY",
+          "pass": false,
+          "detail": "MISSING — add to .env and flyctl secrets"
+        },
+        {
+          "label": "HF_TOKEN",
+          "pass": false,
+          "detail": "MISSING — add to .env and flyctl secrets"
+        },
+        {
+          "label": "JWT_SECRET_KEY",
+          "pass": false,
+          "detail": "MISSING — add to .env and flyctl secrets"
+        },
+        {
+          "label": "GET /health",
+          "pass": true,
+          "detail": "HTTP 200 — Health check — 120ms"
+        },
+        {
+          "label": "GET /api/auth/me",
+          "pass": true,
+          "detail": "HTTP 404 — Requires auth — 401 expected — 123ms"
+        },
+        {
+          "label": "POST /api/auth/send-otp",
+          "pass": true,
+          "detail": "HTTP 404 — OTP send (422=validation OK) — 118ms"
+        },
+        {
+          "label": "POST /api/auth/verify-otp",
+          "pass": true,
+          "detail": "HTTP 404 — OTP verify (422=validation OK) — 115ms"
+        },
+        {
+          "label": "GET /api/auth/digilocker",
+          "pass": true,
+          "detail": "HTTP 404 — DigiLocker redirect — 116ms"
+        },
+        {
+          "label": "POST /api/auth/logout",
+          "pass": true,
+          "detail": "HTTP 404 — Logout — 118ms"
+        },
+        {
+          "label": "send-otp rejects invalid phone",
+          "pass": false,
+          "detail": "HTTP 404"
+        },
+        {
+          "label": "verify-otp rejects wrong OTP",
+          "pass": false,
+          "detail": "HTTP 404"
+        },
+        {
+          "label": "/auth/me blocks unauthenticated",
+          "pass": false,
+          "detail": "HTTP 404"
+        },
+        {
+          "label": "/auth/me rejects invalid JWT",
+          "pass": false,
+          "detail": "HTTP 404"
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "label": "22 Languages",
+      "score_pct": 57,
+      "passed": 20,
+      "total": 35,
+      "live_lm_score": "15/15",
+      "avg_chat_latency_ms": 5576,
+      "status": "FAIL",
+      "live_results": [
+        {
+          "code": "en",
+          "name": "English",
+          "script": "Latin",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 5746,
+          "response_len": 2186,
+          "detected_lang": "en"
+        },
+        {
+          "code": "hi",
+          "name": "Hindi",
+          "script": "Devanagari",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 5982,
+          "response_len": 958,
+          "detected_lang": "hi"
+        },
+        {
+          "code": "bn",
+          "name": "Bengali",
+          "script": "Bengali",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 6540,
+          "response_len": 1242,
+          "detected_lang": "bn"
+        },
+        {
+          "code": "te",
+          "name": "Telugu",
+          "script": "Telugu",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 5457,
+          "response_len": 818,
+          "detected_lang": "te"
+        },
+        {
+          "code": "mr",
+          "name": "Marathi",
+          "script": "Devanagari",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 5258,
+          "response_len": 811,
+          "detected_lang": "mr"
+        },
+        {
+          "code": "ta",
+          "name": "Tamil",
+          "script": "Tamil",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 5412,
+          "response_len": 891,
+          "detected_lang": "ta"
+        },
+        {
+          "code": "gu",
+          "name": "Gujarati",
+          "script": "Gujarati",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 6488,
+          "response_len": 942,
+          "detected_lang": "gu"
+        },
+        {
+          "code": "kn",
+          "name": "Kannada",
+          "script": "Kannada",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 6949,
+          "response_len": 1114,
+          "detected_lang": "kn"
+        },
+        {
+          "code": "ml",
+          "name": "Malayalam",
+          "script": "Malayalam",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 5118,
+          "response_len": 687,
+          "detected_lang": "ml"
+        },
+        {
+          "code": "pa",
+          "name": "Punjabi",
+          "script": "Gurmukhi",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 6736,
+          "response_len": 866,
+          "detected_lang": "pa"
+        },
+        {
+          "code": "or",
+          "name": "Odia",
+          "script": "Odia",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 6325,
+          "response_len": 202,
+          "detected_lang": "or"
+        },
+        {
+          "code": "as",
+          "name": "Assamese",
+          "script": "Bengali",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 6120,
+          "response_len": 573,
+          "detected_lang": "as"
+        },
+        {
+          "code": "ur",
+          "name": "Urdu",
+          "script": "Arabic",
+          "rtl": true,
+          "pass": true,
+          "latency_ms": 2599,
+          "response_len": 257,
+          "detected_lang": "ur"
+        },
+        {
+          "code": "ks",
+          "name": "Kashmiri",
+          "script": "Arabic",
+          "rtl": true,
+          "pass": true,
+          "latency_ms": 2807,
+          "response_len": 242,
+          "detected_lang": "ks"
+        },
+        {
+          "code": "ne",
+          "name": "Nepali",
+          "script": "Devanagari",
+          "rtl": false,
+          "pass": true,
+          "latency_ms": 6097,
+          "response_len": 1054,
+          "detected_lang": "ne"
+        }
+      ],
+      "details": [
+        {
+          "label": "All language files present",
+          "pass": false
+        },
+        {
+          "label": "en.json exists",
+          "pass": false
+        },
+        {
+          "label": "hi.json exists",
+          "pass": false
+        },
+        {
+          "label": "ta.json exists",
+          "pass": false
+        },
+        {
+          "label": "ur.json exists",
+          "pass": false
+        },
+        {
+          "label": "bn.json exists",
+          "pass": false
+        },
+        {
+          "label": "RTL direction switching in main.tsx",
+          "pass": true
+        },
+        {
+          "label": "Urdu (ur) in RTL list",
+          "pass": false
+        },
+        {
+          "label": "Kashmiri (ks) in RTL list",
+          "pass": false
+        },
+        {
+          "label": "Font: Noto Sans",
+          "pass": true
+        },
+        {
+          "label": "Font: Noto Sans Bengali",
+          "pass": true
+        },
+        {
+          "label": "Font: Noto Sans Telugu",
+          "pass": true
+        },
+        {
+          "label": "Font: Noto Sans Tamil",
+          "pass": true
+        },
+        {
+          "label": "Font: Noto Sans Gujarati",
+          "pass": false
+        },
+        {
+          "label": "Font: Noto Sans Kannada",
+          "pass": false
+        },
+        {
+          "label": "Font: Noto Sans Malayalam",
+          "pass": false
+        },
+        {
+          "label": "Font: Noto Sans Gurmukhi",
+          "pass": false
+        },
+        {
+          "label": "Font: Noto Sans Odia",
+          "pass": false
+        },
+        {
+          "label": "Font: Noto Sans Arabic",
+          "pass": false
+        },
+        {
+          "label": "Font: Noto Sans Ol Chiki",
+          "pass": false
+        },
+        {
+          "label": "Live LLM: English (en)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Hindi (hi)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Bengali (bn)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Telugu (te)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Marathi (mr)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Tamil (ta)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Gujarati (gu)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Kannada (kn)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Malayalam (ml)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Punjabi (pa)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Odia (or)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Assamese (as)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Urdu (ur)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Kashmiri (ks)",
+          "pass": true
+        },
+        {
+          "label": "Live LLM: Nepali (ne)",
+          "pass": true
+        }
+      ]
+    }
+  ]
+}

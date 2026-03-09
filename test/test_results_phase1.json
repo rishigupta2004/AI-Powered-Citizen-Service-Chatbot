@@ -1,0 +1,121 @@
+{
+  "phase": 1,
+  "label": "RAG Quality",
+  "score_pct": 100,
+  "passed": 15,
+  "total": 15,
+  "avg_latency_ms": 1260,
+  "max_latency_ms": 7562,
+  "search_modes": {
+    "semantic": 15
+  },
+  "indic_score": "6/6",
+  "status": "PASS",
+  "details": [
+    {
+      "query": "passport application form",
+      "pass": true,
+      "latency_ms": 7562,
+      "mode": "semantic",
+      "total_results": 3
+    },
+    {
+      "query": "documents required for passport",
+      "pass": true,
+      "latency_ms": 920,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "passport fees charges payment",
+      "pass": true,
+      "latency_ms": 827,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "pan card apply online",
+      "pass": true,
+      "latency_ms": 786,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "pan card lost duplicate",
+      "pass": true,
+      "latency_ms": 770,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "aadhaar update address online",
+      "pass": true,
+      "latency_ms": 791,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "driving license renewal process",
+      "pass": true,
+      "latency_ms": 706,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "voter id card new registration",
+      "pass": true,
+      "latency_ms": 785,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "ration card apply below poverty",
+      "pass": true,
+      "latency_ms": 772,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "birth certificate municipal corporation",
+      "pass": true,
+      "latency_ms": 833,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "income tax return filing",
+      "pass": true,
+      "latency_ms": 843,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "aadhaar card enrolment form",
+      "pass": true,
+      "latency_ms": 871,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "epfo provident fund withdrawal",
+      "pass": true,
+      "latency_ms": 800,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "gst registration new business",
+      "pass": true,
+      "latency_ms": 834,
+      "mode": "semantic",
+      "total_results": 6
+    },
+    {
+      "query": "property document registration",
+      "pass": true,
+      "latency_ms": 803,
+      "mode": "semantic",
+      "total_results": 6
+    }
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "timestamp": "2026-03-09T14:17:00.920219",
+  "api": "https://gov-chatbot.fly.dev",
+  "score": "10/36",
+  "pct": 27,
+  "results": [
+    {
+      "status": "✅",
+      "category": "Health",
+      "test": "Backend reachable",
+      "detail": "",
+      "latency_ms": 7291
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "What documents are needed for a passport?",
+      "detail": "HTTP 500",
+      "latency_ms": 4252
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "How to apply for PAN card online?",
+      "detail": "HTTP 500",
+      "latency_ms": 6126
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "How to update Aadhaar address?",
+      "detail": "HTTP 500",
+      "latency_ms": 3931
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "What is the process for driving license renew",
+      "detail": "HTTP 500",
+      "latency_ms": 10931
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "How to register for voter ID?",
+      "detail": "HTTP 500",
+      "latency_ms": 4799
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "How to apply for ration card?",
+      "detail": "HTTP 500",
+      "latency_ms": 4749
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "What is EPFO provident fund withdrawal proces",
+      "detail": "HTTP 500",
+      "latency_ms": 5058
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "How to register a new business for GST?",
+      "detail": "HTTP 500",
+      "latency_ms": 4874
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "पासपोर्ट के लिए दस्तावेज क्या चाहिए?",
+      "detail": "HTTP 500",
+      "latency_ms": 5413
+    },
+    {
+      "status": "❌",
+      "category": "Chatbot",
+      "test": "ஆதார் முகவரி மாற்றம் எப்படி செய்வது?",
+      "detail": "HTTP 500",
+      "latency_ms": 6593
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "passport application form",
+      "detail": "HTTP 500",
+      "latency_ms": 9274
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "documents required for passport",
+      "detail": "HTTP 500",
+      "latency_ms": 9399
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "pan card apply online",
+      "detail": "HTTP 500",
+      "latency_ms": 6090
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "aadhaar update address online",
+      "detail": "HTTP 500",
+      "latency_ms": 5344
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "driving license renewal process",
+      "detail": "HTTP 500",
+      "latency_ms": 5132
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "voter id card new registration",
+      "detail": "HTTP 500",
+      "latency_ms": 14343
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "epfo provident fund withdrawal",
+      "detail": "HTTP 500",
+      "latency_ms": 7565
+    },
+    {
+      "status": "❌",
+      "category": "RAG",
+      "test": "gst registration new business",
+      "detail": "HTTP 500",
+      "latency_ms": 6869
+    },
+    {
+      "status": "❌",
+      "category": "TTT",
+      "test": "EN→Hindi",
+      "detail": "HTTP 500",
+      "latency_ms": 4248
+    },
+    {
+      "status": "❌",
+      "category": "TTT",
+      "test": "EN→Tamil",
+      "detail": "HTTP 500",
+      "latency_ms": 19911
+    },
+    {
+      "status": "❌",
+      "category": "TTT",
+      "test": "EN→Bengali",
+      "detail": "HTTP 500",
+      "latency_ms": 5831
+    },
+    {
+      "status": "❌",
+      "category": "TTT",
+      "test": "EN→Telugu",
+      "detail": "HTTP 500",
+      "latency_ms": 2620
+    },
+    {
+      "status": "❌",
+      "category": "TTT",
+      "test": "EN→Kannada",
+      "detail": "HTTP 500",
+      "latency_ms": 3126
+    },
+    {
+      "status": "✅",
+      "category": "TTS",
+      "test": "[en] Your passport application has been ...",
+      "detail": "100KB wav",
+      "latency_ms": 1111
+    },
+    {
+      "status": "✅",
+      "category": "TTS",
+      "test": "[hi] आपका पासपोर्ट आवेदन प्राप्त हो गया ...",
+      "detail": "102KB wav",
+      "latency_ms": 821
+    },
+    {
+      "status": "✅",
+      "category": "TTS",
+      "test": "[ta] உங்கள் கோரிக்கை பெறப்பட்டது....",
+      "detail": "68KB wav",
+      "latency_ms": 960
+    },
+    {
+      "status": "✅",
+      "category": "Tracker",
+      "test": "SVS-2025-000001 → Under Review",
+      "detail": "Passport Application",
+      "latency_ms": 418
+    },
+    {
+      "status": "✅",
+      "category": "Tracker",
+      "test": "SVS-2025-000002 → Approved",
+      "detail": "Aadhaar Update",
+      "latency_ms": 407
+    },
+    {
+      "status": "✅",
+      "category": "Tracker",
+      "test": "SVS-2025-000003 → Submitted",
+      "detail": "PAN Card",
+      "latency_ms": 407
+    },
+    {
+      "status": "❌",
+      "category": "Security",
+      "test": "prompt injection",
+      "detail": "HTTPSConnectionPool(host='gov-chatbot.fly.dev', port=443): Read timed out. (read timeout=30)",
+      "latency_ms": 0
+    },
+    {
+      "status": "✅",
+      "category": "Security",
+      "test": "Rejected: SQL injection",
+      "detail": "HTTP 500",
+      "latency_ms": 4481
+    },
+    {
+      "status": "✅",
+      "category": "Security",
+      "test": "Rejected: XSS attempt",
+      "detail": "HTTP 500",
+      "latency_ms": 2374
+    },
+    {
+      "status": "❌",
+      "category": "STT",
+      "test": "[Hindi]",
+      "detail": "HTTP 500: {\"error\":{\"type\":\"HTTPException\",\"detail\":\"Speech recognition failed\",\"path\":\"/a",
+      "latency_ms": 372
+    },
+    {
+      "status": "❌",
+      "category": "STT",
+      "test": "[English]",
+      "detail": "HTTP 500: {\"error\":{\"type\":\"HTTPException\",\"detail\":\"Speech recognition failed\",\"path\":\"/a",
+      "latency_ms": 368
+    },
+    {
+      "status": "✅",
+      "category": "STS",
+      "test": "Full pipeline: STT→RAG→TTT→TTS",
+      "detail": "audio=no | text=yes",
+      "latency_ms": 385
+    }
+  ]
+}

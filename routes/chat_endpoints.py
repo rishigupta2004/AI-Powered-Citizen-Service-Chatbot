@@ -231,12 +231,9 @@ async def chat(
         db.add(assistant_msg)
         db.commit()
 
-    return ChatResponse(
-        response=response_text,
-        language=lang,
-        sources=sources,
-        session_id=request.session_id,
-    )
+    _resp = dict(response=response_text, language=lang, sources=sources, session_id=request.session_id)
+    chat_cache.set(message, _lang, _resp)
+    return ChatResponse(**_resp)
 
 
 @chat_router.post("/speech-to-text")
@@ -356,3 +353,39 @@ async def get_chat_history(
         )
 
     return result
+
+# ── Voice Chat (STS Pipeline) ─────────────────────────────────────────────────
+@chat_router.post("/voice-chat")
+async def voice_chat(
+    audio: UploadFile = File(...),
+    language: str = "hi",
+    db: Session = Depends(get_db),
+):
+    """Full Speech-to-Speech: STT → RAG/LLM → TTT → TTS."""
+    if not sarvam.is_available():
+        raise HTTPException(503, "Sarvam API not configured")
+    # STT
+    audio_bytes = await audio.read()
+    stt = await sarvam.speech_to_text(audio_bytes, language=language)
+    transcript = stt.get("transcript", "")
+    if not transcript:
+        return {"transcript": "", "response": "Could not transcribe audio.", "audio_base64": ""}
+    # RAG + LLM
+    from core.search import SearchEngine
+    engine = SearchEngine(db=db)
+    results = engine.search(transcript, limit=3)
+    context = "\n".join(c.get("content","")[:300] for c in results.get("results",[])[:3])
+    system = f"You are SevaSindhu AI for Indian government services. Answer in {language} language.\nContext:\n{context}"
+    messages = [{"role":"user","content":transcript}]
+    response_text = await sarvam.chat(messages=messages, system_prompt=system, max_tokens=200)
+    # TTT if non-English
+    if language not in ("en","en-IN"):
+        response_text = await sarvam.translate(response_text, source_language="en", target_language=language)
+    # TTS
+    tts = await sarvam.text_to_speech(response_text, language=language)
+    return {
+        "transcript": transcript,
+        "response": response_text,
+        "audio_base64": tts.get("audio_base64",""),
+        "language": language,
+    }

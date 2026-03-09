@@ -1,0 +1,110 @@
+{
+  "phase": 2,
+  "label": "Auth",
+  "score_pct": 95,
+  "passed": 19,
+  "total": 20,
+  "status": "PASS",
+  "details": [
+    {
+      "label": "DATABASE_URL",
+      "pass": true,
+      "detail": "set"
+    },
+    {
+      "label": "SARVAM_API_KEY",
+      "pass": true,
+      "detail": "set"
+    },
+    {
+      "label": "HF_TOKEN",
+      "pass": true,
+      "detail": "set"
+    },
+    {
+      "label": "JWT_SECRET_KEY",
+      "pass": true,
+      "detail": "set"
+    },
+    {
+      "label": "table 'users' exists",
+      "pass": true,
+      "detail": "found"
+    },
+    {
+      "label": "table 'user_sessions' exists",
+      "pass": true,
+      "detail": "found"
+    },
+    {
+      "label": "table 'content_chunks' exists",
+      "pass": true,
+      "detail": "found"
+    },
+    {
+      "label": "table 'services' exists",
+      "pass": true,
+      "detail": "found"
+    },
+    {
+      "label": "table 'faqs' exists",
+      "pass": true,
+      "detail": "found"
+    },
+    {
+      "label": "GET /health",
+      "pass": true,
+      "detail": "HTTP 200 \u2014 Health check \u2014 230ms"
+    },
+    {
+      "label": "GET /api/auth/me",
+      "pass": true,
+      "detail": "HTTP 403 \u2014 Requires auth \u2014 401 expected \u2014 130ms"
+    },
+    {
+      "label": "POST /api/auth/otp/send",
+      "pass": true,
+      "detail": "HTTP 422 \u2014 OTP send (422=validation OK) \u2014 169ms"
+    },
+    {
+      "label": "POST /api/auth/otp/verify",
+      "pass": true,
+      "detail": "HTTP 422 \u2014 OTP verify (422=validation OK) \u2014 118ms"
+    },
+    {
+      "label": "GET /api/auth/digilocker",
+      "pass": false,
+      "detail": "HTTP 500 \u2014 DigiLocker redirect \u2014 183ms"
+    },
+    {
+      "label": "POST /api/auth/logout",
+      "pass": true,
+      "detail": "HTTP 403 \u2014 Logout \u2014 114ms"
+    },
+    {
+      "label": "JWT encode/decode",
+      "pass": true,
+      "detail": "token length=135"
+    },
+    {
+      "label": "send-otp rejects invalid phone",
+      "pass": true,
+      "detail": "HTTP 422"
+    },
+    {
+      "label": "verify-otp rejects wrong OTP",
+      "pass": true,
+      "detail": "HTTP 422"
+    },
+    {
+      "label": "/auth/me blocks unauthenticated",
+      "pass": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "label": "/auth/me rejects invalid JWT",
+      "pass": true,
+      "detail": "HTTP 401"
+    }
+  ]
+}

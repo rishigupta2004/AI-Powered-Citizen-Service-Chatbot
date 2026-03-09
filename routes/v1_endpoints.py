@@ -234,3 +234,24 @@ def graphql_status() -> Dict[str, Any]:
     if router is None:
         return {"status": "not_configured", "message": "Install 'strawberry-graphql' to enable GraphQL."}
     return {"status": "available", "message": "GraphQL router is mounted at /api/v1/graphql"}
+# ── Application Tracker ────────────────────────────────────────────────────────
+from sqlalchemy import text as sql_text
+import random as _random, string as _string
+
+@router.get("/tracker/{ref_id}")
+def track_application(ref_id: str, db: Session = Depends(get_db)):
+    from fastapi import HTTPException
+    row = db.execute(sql_text("SELECT ref_id,service_name,status,applicant_name,submitted_at,updated_at FROM applications WHERE UPPER(ref_id)=UPPER(:r)"),{"r":ref_id}).fetchone()
+    if not row: raise HTTPException(404,"Application not found")
+    history = db.execute(sql_text("SELECT status,note,changed_at FROM status_history WHERE ref_id=:r ORDER BY changed_at DESC"),{"r":row.ref_id}).fetchall()
+    sm={"submitted":{"label":"Submitted","step":1,"color":"blue"},"under_review":{"label":"Under Review","step":2,"color":"yellow"},"approved":{"label":"Approved","step":3,"color":"green"},"rejected":{"label":"Rejected","step":3,"color":"red"},"completed":{"label":"Completed","step":4,"color":"green"}}
+    s=sm.get(row.status,{"label":row.status,"step":1,"color":"gray"})
+    return {"ref_id":row.ref_id,"service_name":row.service_name,"applicant_name":row.applicant_name,"status":row.status,"status_label":s["label"],"status_step":s["step"],"status_color":s["color"],"submitted_at":str(row.submitted_at),"updated_at":str(row.updated_at),"history":[{"status":h.status,"note":h.note,"at":str(h.changed_at)} for h in history]}
+
+@router.post("/tracker")
+def create_application(payload: dict, db: Session = Depends(get_db)):
+    ref_id="SVS-"+"".join(_random.choices(_string.digits,k=10))
+    db.execute(sql_text("INSERT INTO applications(ref_id,service_name,applicant_name,status) VALUES(:r,:s,:a,'submitted')"),{"r":ref_id,"s":payload.get("service_name","General"),"a":payload.get("applicant_name","")})
+    db.execute(sql_text("INSERT INTO status_history(ref_id,status,note) VALUES(:r,'submitted','Application received')"),{"r":ref_id})
+    db.commit()
+    return {"ref_id":ref_id,"status":"submitted","message":"Application submitted successfully"}

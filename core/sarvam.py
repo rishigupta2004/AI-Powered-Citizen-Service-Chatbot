@@ -154,18 +154,21 @@ class SarvamClient:
         lang_code = LANG_CODES.get(language, "hi-IN")
 
         default_speakers = {
-            "hi-IN": "meera",
-            "ta-IN": "pavithra",
-            "te-IN": "arvind",
-            "bn-IN": "isha",
-            "mr-IN": "maitreyi",
-            "gu-IN": "diya",
-            "kn-IN": "neel",
-            "ml-IN": "lekha",
-            "pa-IN": "amol",
-            "en-IN": "arjun",
+            "hi-IN": "anushka",
+            "ta-IN": "anushka",
+            "te-IN": "anushka",
+            "bn-IN": "anushka",
+            "mr-IN": "anushka",
+            "gu-IN": "anushka",
+            "kn-IN": "anushka",
+            "ml-IN": "anushka",
+            "pa-IN": "anushka",
+            "en-IN": "anushka",
+            "or-IN": "anushka",
+            "as-IN": "anushka",
+            "ur-IN": "anushka",
         }
-        voice = speaker or default_speakers.get(lang_code, "meera")
+        voice = speaker or default_speakers.get(lang_code, "anushka")
 
         payload = {
             "inputs": [text[:500]],
