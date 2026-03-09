@@ -210,27 +210,27 @@ async def chat(
         temperature=0.3,
         max_tokens=500,
     )
-    # Strip chain-of-thought tags leaked by sarvam-m
-    if "<think>" in response_text:
-        if "</think>" in response_text:
-            response_text = response_text.split("</think>")[-1].strip()
-        else:
-            response_text = response_text.split("<think>")[0].strip()
-    import re as _re
-    if "<think>" in response_text:
-        if "</think>" in response_text:
-            response_text = response_text.split("</think>")[-1].strip()
-        else:
-            response_text = response_text.split("<think>")[0].strip()
-    import re as _re
-    response_text = _re.sub(r"<think>.*?</think>", "", response_text, flags=_re.DOTALL).strip()
-    if "<think>" in response_text:
-        response_text = response_text[response_text.find("<think>"):]
-        response_text = _re.sub(r"<think>.*", "", response_text, flags=_re.DOTALL).strip()
-    if "<think>" in response_text:
-        response_text = response_text[response_text.find("<think>"):]
-        response_text = _re.sub(r"<think>.*", "", response_text, flags=_re.DOTALL).strip()
+    if "</think>" in response_text:
+        response_text = response_text.split("</think>")[-1].strip()
+    response_text = response_text.strip()
+    if not response_text:
+        response_text = "I can help you with government services. Please ask about passport, Aadhaar, PAN card, voter ID, driving license, or other services."
 
+    if "<think>" in response_text and "</think>" in response_text:
+        response_text = response_text.split("</think>", 1)[-1].strip()
+    elif "<think>" in response_text:
+        response_text = response_text.split("<think>", 1)[0].strip()
+    
+    if "<think>" in response_text and "</think>" in response_text:
+        response_text = response_text.split("</think>", 1)[-1].strip()
+    elif "<think>" in response_text:
+        response_text = response_text.split("<think>", 1)[0].strip()
+    
+    if "<think>" in response_text and "</think>" in response_text:
+        response_text = response_text.split("</think>", 1)[-1].strip()
+    elif "<think>" in response_text:
+        response_text = response_text.split("<think>", 1)[0].strip()
+    
     if user or request.session_id:
         user_msg = ChatSession(
             user_id=user.id if user else None,
