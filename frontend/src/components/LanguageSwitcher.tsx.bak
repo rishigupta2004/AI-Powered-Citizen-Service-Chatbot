@@ -5,7 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
+import { Button } from "../../components/ui/button";
 import { Globe, Check, Search } from "lucide-react";
 import { supportedLanguages, changeLanguage } from "../i18n";
 

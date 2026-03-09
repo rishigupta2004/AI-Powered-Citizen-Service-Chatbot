@@ -1,0 +1,59 @@
+import React, { useEffect, useRef } from 'react';
+import { animate } from 'animejs';
+
+export function AbstractCitizen({ className = "", color = "#FF9933" }: { className?: string, color?: string }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+    
+    // Smooth floating animation
+    animate({
+      targets: svgRef.current,
+      translateY: ['-10px', '10px'],
+      direction: 'alternate',
+      loop: true,
+      duration: 3000,
+      easing: 'easeInOutSine'
+    });
+
+    // Animate the decorative elements around the character
+    animate({
+      targets: svgRef.current.querySelectorAll('.citizen-decor'),
+      scale: [0.8, 1.2],
+      opacity: [0.5, 1],
+      direction: 'alternate',
+      loop: true,
+      duration: 2000,
+      delay: anime.stagger(200),
+      easing: 'easeInOutQuad'
+    });
+  }, []);
+
+  return (
+    <svg ref={svgRef} className={`w-full h-full ${className}`} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Background Glow */}
+      <circle cx="100" cy="100" r="80" fill={color} fillOpacity="0.1" />
+      
+      {/* Character Base (Abstract representation of a person wearing traditional/modern fusion) */}
+      <path d="M100 40 C116.569 40 130 53.4315 130 70 C130 86.5685 116.569 100 100 100 C83.4315 100 70 86.5685 70 70 C70 53.4315 83.4315 40 100 40 Z" fill={color} fillOpacity="0.9"/>
+      
+      {/* Abstract Body/Clothing */}
+      <path d="M40 180 C40 146.863 66.8629 120 100 120 C133.137 120 160 146.863 160 180 L160 200 L40 200 L40 180 Z" fill="url(#paint0_linear)"/>
+      <path d="M70 120 L130 200 L160 200 C160 166.863 133.137 140 100 140 L70 120 Z" fill={color} fillOpacity="0.8"/>
+
+      {/* Decorative tech/Indian fusion elements */}
+      <circle className="citizen-decor" cx="40" cy="80" r="8" fill="#138808" />
+      <circle className="citizen-decor" cx="160" cy="60" r="5" fill="#FF9933" />
+      <circle className="citizen-decor" cx="140" cy="110" r="12" fill="currentColor" fillOpacity="0.2" />
+      <path className="citizen-decor" d="M30 140 L50 140" stroke="#FF9933" strokeWidth="4" strokeLinecap="round"/>
+      
+      <defs>
+        <linearGradient id="paint0_linear" x1="100" y1="120" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+          <stop stopColor="currentColor" stopOpacity="0.2"/>
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.8"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
