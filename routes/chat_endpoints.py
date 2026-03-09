@@ -211,9 +211,17 @@ async def chat(
         max_tokens=500,
     )
     # Strip chain-of-thought tags leaked by sarvam-m
-    # Strip think tags — handle both closed and unclosed (truncated by max_tokens)
+    if "<think>" in response_text:
+        if "</think>" in response_text:
+            response_text = response_text.split("</think>")[-1].strip()
+        else:
+            response_text = response_text.split("<think>")[0].strip()
     import re as _re
-    # Strip think tags — handle both closed and unclosed (truncated by max_tokens)
+    if "<think>" in response_text:
+        if "</think>" in response_text:
+            response_text = response_text.split("</think>")[-1].strip()
+        else:
+            response_text = response_text.split("<think>")[0].strip()
     import re as _re
     response_text = _re.sub(r"<think>.*?</think>", "", response_text, flags=_re.DOTALL).strip()
     if "<think>" in response_text:
