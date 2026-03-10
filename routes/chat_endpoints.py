@@ -273,6 +273,16 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
     return None
 
 
+def _compress_for_voice(text: str, max_chars: int = 140) -> str:
+    cleaned = re.sub(r"\s+", " ", (text or "")).strip()
+    if len(cleaned) <= max_chars:
+        return cleaned
+    clipped = cleaned[:max_chars].rsplit(" ", 1)[0].strip()
+    if not clipped:
+        clipped = cleaned[:max_chars].strip()
+    return f"{clipped}."
+
+
 def _search_context_fast(
     db: Session, query: str, limit: int = 5
 ) -> tuple[list[str], list[str]]:
@@ -745,11 +755,19 @@ async def voice_chat(
         c.get("content", "")[:300] for c in results.get("results", [])[:3]
     )
     target_lang = language if language and language != "auto" else "hi"
-    if fast_mode and context:
-        context_parts = [c.get("content", "") for c in results.get("results", [])[:3]]
-        response_text = _build_rag_fallback(
-            transcript, target_lang, context_parts, None
-        )
+    if fast_mode:
+        instant = _instant_service_template(transcript, target_lang)
+        if instant:
+            response_text = instant
+        elif context:
+            context_parts = [
+                c.get("content", "") for c in results.get("results", [])[:3]
+            ]
+            response_text = _build_rag_fallback(
+                transcript, target_lang, context_parts, None
+            )
+        else:
+            response_text = _build_rag_fallback(transcript, target_lang, [], None)
     else:
         system = (
             "You are SevaSindhu AI for Indian government services. "
@@ -760,8 +778,9 @@ async def voice_chat(
         response_text = await sarvam.chat(
             messages=messages, system_prompt=system, max_tokens=120
         )
+    voice_text = _compress_for_voice(response_text)
     # TTS
-    tts = await sarvam.text_to_speech(response_text, language=target_lang)
+    tts = await sarvam.text_to_speech(voice_text, language=target_lang, speed=1.2)
     return {
         "transcript": transcript,
         "response": response_text,
