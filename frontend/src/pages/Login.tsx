@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth as useClerkAuth, SignIn } from '@clerk/clerk-react';
+import { SignIn } from '@clerk/clerk-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Shield } from 'lucide-react';
@@ -12,7 +12,6 @@ interface LoginProps {
 export function Login({ onNavigate }: LoginProps) {
   const { t } = useTranslation();
   const { isAuthenticated, isLoading } = useAuth();
-  const { isSignedIn } = useClerkAuth();
   const hasClerkKey = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
   const navigateAfterLogin = () => {
@@ -26,10 +25,10 @@ export function Login({ onNavigate }: LoginProps) {
   };
 
   useEffect(() => {
-    if (isAuthenticated || isSignedIn) {
+    if (isAuthenticated) {
       navigateAfterLogin();
     }
-  }, [isAuthenticated, isSignedIn]);
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[var(--surface-2)] via-[var(--background)] to-[var(--surface-3)] flex items-center justify-center p-4">
@@ -47,6 +46,8 @@ export function Login({ onNavigate }: LoginProps) {
         <div className="rounded-[var(--radius-2xl)] border border-[var(--border)] bg-[var(--card)] p-4 shadow-[var(--shadow-12)]">
           {hasClerkKey ? (
             <SignIn
+              routing="virtual"
+              fallbackRedirectUrl={window.location.origin}
               appearance={{
                 variables: {
                   colorPrimary: '#000080',

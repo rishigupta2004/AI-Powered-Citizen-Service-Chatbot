@@ -243,7 +243,8 @@
     "emailSupport": "Email Support",
     "liveChatSupport": "Live Chat Support",
     "instantHelp": "Get instant help from our support team",
-    "startChat": "Start Chat"
+    "startChat": "Start Chat",
+    "noOfficialPdf": "No official PDF is available yet for this service. Please use the official portal."
   },
   "dashboard": {
     "citizenUser": "Citizen User",

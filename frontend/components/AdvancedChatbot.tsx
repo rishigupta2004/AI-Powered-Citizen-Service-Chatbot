@@ -238,13 +238,13 @@ export function AdvancedChatbot({
     return newMessage.id;
   };
 
-  const requestAssistantReply = async (userText: string) => {
+  const requestAssistantReply = async (userText: string, preferredLanguage?: string) => {
     setIsTyping(true);
     try {
       const response = await sendChatMessage(
         userText,
         getHistory(),
-        language,
+        preferredLanguage || language,
         currentService,
         "auto"
       );
@@ -365,13 +365,19 @@ export function AdvancedChatbot({
               }
             } else {
               const result = await speechToText(audioBlob, language);
-              if (result.transcript) {
-                setInputValue(result.transcript);
+              const transcript = result.transcript?.trim() || "";
+              if (transcript) {
+                addUserMessage(transcript);
                 toast.success(
                   t("chatbot.voice.detectedLanguage", "Detected: {{language}}", {
                     language: result.language_code || language,
                   })
                 );
+                const detectedLang = normalizeLang(result.language_code || language);
+                if (language === "auto" && detectedLang) {
+                  setLanguage(detectedLang);
+                }
+                await requestAssistantReply(transcript, detectedLang);
               } else {
                 toast.error(t("chatbot.errors.transcriptionFailed", "Could not transcribe audio. Please try again."));
               }

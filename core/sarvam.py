@@ -40,6 +40,15 @@ LANG_CODES = {
     "od": "od-IN",
     "as": "as-IN",
     "ur": "ur-IN",
+    "ne": "hi-IN",
+    "kok": "mr-IN",
+    "doi": "hi-IN",
+    "mai": "hi-IN",
+    "sa": "hi-IN",
+    "ks": "hi-IN",
+    "sd": "hi-IN",
+    "mni": "hi-IN",
+    "sat": "hi-IN",
     "unknown": "unknown",
     "auto": "unknown",
 }
@@ -51,7 +60,12 @@ def _normalize_lang_code(language: str | None, default: str = "hi-IN") -> str:
     cleaned = language.strip()
     if not cleaned:
         return default
-    return LANG_CODES.get(cleaned.lower(), cleaned)
+    lowered = cleaned.lower()
+    if lowered in LANG_CODES:
+        return LANG_CODES[lowered]
+    if "-" in cleaned and cleaned.upper().endswith("-IN"):
+        return cleaned
+    return default
 
 
 class SarvamClient:

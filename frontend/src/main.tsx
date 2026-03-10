@@ -18,7 +18,7 @@ if (savedLang) {
 
 const container = document.getElementById('root')!
 const root = createRoot(container)
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim()
 
 if (!PUBLISHABLE_KEY) {
   console.warn(

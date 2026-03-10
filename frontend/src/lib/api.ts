@@ -16,7 +16,7 @@ function resolveApiBaseUrl(): string {
 
 export const API_BASE_URL = resolveApiBaseUrl()
 
-const DEFAULT_TIMEOUT_MS = 12000
+const DEFAULT_TIMEOUT_MS = 20000
 
 export class ApiError extends Error {
   status?: number
@@ -114,19 +114,32 @@ export async function sendChat(
   response_mode: ResponseMode = 'auto',
   session_id?: string,
 ): Promise<ChatResponse> {
-  const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message,
-      language,
-      history,
-      service_context,
-      response_mode,
-      session_id,
-    }),
-  })
-  return readJsonResponse<ChatResponse>(response)
+  const payload = {
+    message,
+    language,
+    history,
+    service_context,
+    response_mode,
+    session_id,
+  }
+
+  const attempt = async (mode: ResponseMode): Promise<ChatResponse> => {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, response_mode: mode }),
+    }, mode === 'rag_only' ? 24000 : DEFAULT_TIMEOUT_MS)
+    return readJsonResponse<ChatResponse>(response)
+  }
+
+  try {
+    return await attempt(response_mode)
+  } catch (error) {
+    if (response_mode !== 'rag_only' && error instanceof ApiError && (!error.status || error.status >= 500 || error.message.includes('timed out'))) {
+      return attempt('rag_only')
+    }
+    throw error
+  }
 }
 
 export const sendChatMessage = sendChat

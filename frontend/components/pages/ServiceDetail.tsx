@@ -68,8 +68,8 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
   }, [service.id]);
 
   const combinedDownloads = useMemo(
-    () => [...liveDownloads, ...service.downloads],
-    [liveDownloads, service.downloads]
+    () => liveDownloads.filter((doc) => (doc.format || '').toUpperCase() === 'PDF'),
+    [liveDownloads]
   );
 
   return (
@@ -288,6 +288,11 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               className="bg-[var(--card)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-8 border-2 border-[var(--card-border)]"
             >
               <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">{t('serviceDetail.downloadableResources', 'Downloadable Resources')}</h2>
+              {combinedDownloads.length === 0 && (
+                <div className="mb-4 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm text-[var(--muted-foreground)]">
+                  {t('serviceDetail.noOfficialPdf', 'No official PDF is available yet for this service. Please use the official portal.')}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {combinedDownloads.map((doc, index) => {
                   const docHref = doc.url

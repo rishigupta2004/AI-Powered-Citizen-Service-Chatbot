@@ -107,6 +107,7 @@ def _build_rag_fallback(
     user: Optional[User],
 ) -> str:
     query_l = (query or "").lower()
+    instant = _instant_service_template(query, language)
     localized_generic = {
         "hi": "मैं पासपोर्ट, आधार, पैन, ईपीएफओ, डिजिलॉकर और अन्य सरकारी सेवाओं में मदद कर सकता हूँ। कृपया अपना सवाल बताएं, मैं चरण-दर-चरण मार्गदर्शन दूंगा।",
         "ta": "பாஸ்போர்ட், ஆதார், பான், EPFO, DigiLocker மற்றும் பிற அரசு சேவைகளில் உதவ முடியும். உங்கள் கேள்வியை எழுதுங்கள்; படிப்படியாக வழிகாட்டுவேன்.",
@@ -119,13 +120,10 @@ def _build_rag_fallback(
         "pa": "ਪਾਸਪੋਰਟ, ਆਧਾਰ, ਪੈਨ, EPFO, DigiLocker ਅਤੇ ਹੋਰ ਸਰਕਾਰੀ ਸੇਵਾਵਾਂ ਵਿੱਚ ਮੈਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਆਪਣਾ ਸਵਾਲ ਲਿਖੋ; ਮੈਂ ਕਦਮ-ਦਰ-ਕਦਮ ਗਾਈਡ ਕਰਾਂਗਾ।",
     }
 
-    if context_parts:
-        synthesized = _summarize_context_locally(context_parts)
-        base = (
-            "Based on available government records, here is a synthesized response:\n"
-            f"{synthesized}\n\n"
-            "Suggested next step: Use the relevant official government portal for final submission/verification."
-        )
+    if instant:
+        base = instant
+    elif context_parts:
+        base = _summarize_context_locally(context_parts)
     elif "passport" in query_l:
         base = (
             "For Passport service, start on Passport Seva portal.\n"
@@ -168,6 +166,10 @@ def _summarize_context_locally(context_parts: list[str]) -> str:
         if not cleaned:
             continue
         lowered = cleaned.lower()
+        if re.search(r"\b(refer rules|annexure|signature/thumb impression)\b", lowered):
+            continue
+        if "form" in lowered and len(cleaned) > 140:
+            continue
         if any(lowered == p.lower() for p in unique_points):
             continue
         unique_points.append(cleaned)
@@ -220,6 +222,11 @@ def _should_use_rag_fast_path(query: str, context_parts: list[str]) -> bool:
         "passport",
         "aadhaar",
         "aadhar",
+        "पासपोर्ट",
+        "आधार",
+        "পাসপোর্ট",
+        "আধার",
+        "ड्राइविंग",
         "pan",
         "epfo",
         "document",
@@ -231,6 +238,8 @@ def _should_use_rag_fast_path(query: str, context_parts: list[str]) -> bool:
         "apply",
     ]
     if any(term in query_l for term in quick_terms):
+        return True
+    if any(ord(ch) > 127 for ch in query):
         return True
     if len(context_parts) >= 2:
         return True
@@ -244,9 +253,26 @@ def _should_use_rag_fast_path(query: str, context_parts: list[str]) -> bool:
     return overlap >= 2
 
 
+def _looks_like_upstream_error(text: str) -> bool:
+    lowered = (text or "").strip().lower()
+    if not lowered:
+        return True
+    patterns = [
+        "trouble connecting to the ai service",
+        "something went wrong",
+        "please try again in a moment",
+        "service unavailable",
+        "temporarily unavailable",
+    ]
+    return any(p in lowered for p in patterns)
+
+
 def _instant_service_template(query: str, language: str) -> Optional[str]:
     q = (query or "").lower()
-    if "passport" in q:
+    if any(
+        token in q
+        for token in ["passport", "पासपोर्ट", "পাসপোর্ট", "પાસપોર્ટ", "பாஸ்போர்ட்", "పాస్పోర్ట్"]
+    ):
         return (
             "For Passport service, follow this fast checklist:\n"
             "1. Register/login on Passport Seva portal.\n"
@@ -255,7 +281,10 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
             "4. Carry identity, address, and DOB proofs to appointment.\n"
             "5. Track file number for police verification and dispatch."
         )
-    if "aadhaar" in q or "aadhar" in q:
+    if any(
+        token in q
+        for token in ["aadhaar", "aadhar", "आधार", "আধার", "আধার", "ಆಧಾರ್", "ஆதார்"]
+    ):
         return (
             "For Aadhaar update, use UIDAI official portal:\n"
             "1. Choose update type (address/name/DOB/mobile).\n"
@@ -263,7 +292,7 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
             "3. Pay update fee and submit.\n"
             "4. Save URN and track status online."
         )
-    if "pan" in q:
+    if any(token in q for token in ["pan", "पैन", "প্যান", "પાન"]):
         return (
             "For PAN services:\n"
             "1. Use NSDL/UTI official PAN service page.\n"
@@ -271,7 +300,7 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
             "3. Fill form, upload proof, and pay fee.\n"
             "4. Track acknowledgement number for status."
         )
-    if "epfo" in q or "pf" in q:
+    if any(token in q for token in ["epfo", "pf", "ईपीएफओ", "पीएफ", "ইপিএফও"]):
         return (
             "For EPFO services:\n"
             "1. Login to EPFO Member e-Sewa using UAN.\n"
@@ -307,7 +336,7 @@ def _build_guided_actions(query: str, language: str) -> list[dict]:
     q = (query or "").lower()
     is_hi = language == "hi"
 
-    if any(token in q for token in ["aadhaar", "aadhar"]):
+    if any(token in q for token in ["aadhaar", "aadhar", "आधार", "আধার", "ஆதார்"]):
         return [
             {
                 "id": "open_uidai",
@@ -332,7 +361,19 @@ def _build_guided_actions(query: str, language: str) -> list[dict]:
             },
         ]
 
-    if any(token in q for token in ["driving", "licence", "license", "sarathi", "dl"]):
+    if any(
+        token in q
+        for token in [
+            "driving",
+            "licence",
+            "license",
+            "sarathi",
+            "dl",
+            "ड्राइविंग",
+            "লাইসেন্স",
+            "परिवहन",
+        ]
+    ):
         return [
             {
                 "id": "open_sarathi",
@@ -351,7 +392,9 @@ def _build_guided_actions(query: str, language: str) -> list[dict]:
             },
         ]
 
-    if "passport" in q:
+    if any(
+        token in q for token in ["passport", "पासपोर्ट", "পাসপোর্ট", "પાસપોર્ટ", "பாஸ்போர்ட்"]
+    ):
         return [
             {
                 "id": "open_passport_portal",
@@ -573,7 +616,7 @@ async def chat(
             return ChatResponse(**cached)
     response.headers["X-Cache-Hit"] = "0"
 
-    if response_mode in {"auto", "rag_only"} and not request.history:
+    if response_mode in {"auto", "rag_only"}:
         instant = _instant_service_template(query, lang)
         if instant:
             payload = ChatResponse(
@@ -651,7 +694,11 @@ async def chat(
         llm_elapsed_ms = int((time.perf_counter() - llm_started) * 1000)
 
         response_text = _clean_model_text(response_text)
-        if not response_text or "not configured" in response_text.lower():
+        if (
+            not response_text
+            or "not configured" in response_text.lower()
+            or _looks_like_upstream_error(response_text)
+        ):
             response_text = fallback_response
             route_mode_used = "rag_fallback"
 
@@ -910,9 +957,12 @@ async def voice_chat(
         response_text = voice_text
     # TTS
     tts = await sarvam.text_to_speech(voice_text, language=target_lang, speed=1.2)
+    if "error" in tts and target_lang != "en":
+        tts = await sarvam.text_to_speech(voice_text, language="en", speed=1.2)
     return {
         "transcript": transcript,
         "response": response_text,
-        "audio_base64": tts.get("audio_base64", ""),
+        "audio_base64": tts.get("audio_base64", "") if isinstance(tts, dict) else "",
         "language": target_lang,
+        "error": tts.get("error") if isinstance(tts, dict) and "error" in tts else None,
     }

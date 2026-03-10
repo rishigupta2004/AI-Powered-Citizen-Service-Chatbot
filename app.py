@@ -124,11 +124,33 @@ def _candidate_doc_folders(service_slug: str) -> list[str]:
         ("swayam", "education"),
         ("diksha", "education"),
         ("education", "education"),
+        ("tax", "pan"),
+        ("income_tax", "pan"),
+        ("gst", "pan"),
+        ("voter", "other"),
+        ("rti", "other"),
+        ("court", "other"),
+        ("health", "other"),
+        ("cowin", "other"),
+        ("abha", "other"),
+        ("consumer", "other"),
+        ("cyber", "other"),
+        ("pm", "other"),
+        ("nps", "other"),
+        ("grievance", "other"),
     ]
     matched: list[str] = []
+
+    service_specific = DOCS_DIR / "services" / slug
+    if service_specific.exists() and service_specific.is_dir():
+        matched.append(f"services/{slug}")
+
     for token, folder in mapping:
         if token in slug and folder not in matched:
             matched.append(folder)
+
+    if "other" not in matched:
+        matched.append("other")
     return matched
 
 
@@ -141,19 +163,6 @@ async def get_service_docs(service_slug: str):
     seen_paths: set[str] = set()
 
     folders = _candidate_doc_folders(service_slug)
-    profile_path = DOCS_DIR / "national_profiles" / f"{service_slug}.md"
-    if profile_path.exists():
-        rel = profile_path.relative_to(DOCS_DIR).as_posix()
-        docs.append(
-            {
-                "name": f"{service_slug.replace('_', ' ').title()} profile",
-                "format": "MD",
-                "size": f"{max(1, int(profile_path.stat().st_size / 1024))} KB",
-                "url": f"/public/docs/{quote(rel)}",
-                "source": "national_profiles",
-            }
-        )
-        seen_paths.add(rel)
 
     for folder in folders:
         folder_path = DOCS_DIR / folder

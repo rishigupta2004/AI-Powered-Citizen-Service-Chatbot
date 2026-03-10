@@ -213,13 +213,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       clerk.openSignIn({ redirectUrl: window.location.href });
       return;
     }
-    window.location.href = `${API_URL}/api/auth/google`;
+    window.location.href = '/';
   };
 
   const logout = (): void => {
     clearTokens();
     setUser(null);
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   useEffect(() => {
