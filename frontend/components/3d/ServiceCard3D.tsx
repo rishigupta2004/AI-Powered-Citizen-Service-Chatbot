@@ -13,6 +13,8 @@ interface ServiceCard3DProps {
   gradient: string;
   processingTime: string;
   fee: string;
+  mode?: string;
+  officialAuthority?: string;
   onClick?: () => void;
 }
 
@@ -24,6 +26,8 @@ export function ServiceCard3D({
   gradient,
   processingTime,
   fee,
+  mode,
+  officialAuthority,
   onClick,
 }: ServiceCard3DProps) {
   const { t } = useTranslation();
@@ -97,6 +101,13 @@ export function ServiceCard3D({
       </div>
 
       <div className="px-5 pb-5">
+        {(mode || officialAuthority) && (
+          <div className="mb-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
+            {mode && <span className="font-semibold text-[var(--foreground)]">{mode}</span>}
+            {mode && officialAuthority && <span> • </span>}
+            {officialAuthority && <span className="line-clamp-1">{officialAuthority}</span>}
+          </div>
+        )}
         <Button className="cta-primary h-10 w-full rounded-[var(--radius-md)]">
           {t("card.viewDetails", "View Details")}
           <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />

@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   Calendar,
   Shield,
+  Globe,
 } from 'lucide-react';
 import { getServiceById, getAllServices } from '../../data/servicesData';
 import { Button } from '../ui/button';
@@ -28,11 +29,11 @@ interface ServiceDetailProps {
   serviceId?: string;
 }
 
-export function ServiceDetail({ onNavigate, serviceId = 'passport' }: ServiceDetailProps) {
+export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: ServiceDetailProps) {
   const [activeStep, setActiveStep] = useState(1);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-0');
 
-  const service = useMemo(() => getServiceById(serviceId) || getServiceById('passport')!, [serviceId]);
+  const service = useMemo(() => getServiceById(serviceId) || getServiceById('passport_seva')!, [serviceId]);
   const allServices = useMemo(() => getAllServices(), []);
   const relatedServices = useMemo(
     () => allServices.filter((s) => s.category === service.category && s.id !== service.id).slice(0, 3),
@@ -111,7 +112,20 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport' }: ServiceDet
                         <span>{service.validity} validity</span>
                       </div>
                     )}
+                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                      <Globe className="w-4 h-4 text-[var(--primary)]" />
+                      <span>{service.mode}</span>
+                    </div>
                   </div>
+                  <a
+                    href={service.officialUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--color-navy)]"
+                  >
+                    Official Source: {service.officialAuthority}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               </div>
             </motion.div>
@@ -262,9 +276,11 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport' }: ServiceDet
                             <Download className="w-3 h-3 mr-1" />
                             Download
                           </Button>
-                          <Button size="sm" variant="ghost">
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            View
+                          <Button size="sm" variant="ghost" asChild>
+                            <a href={service.officialUrl} target="_blank" rel="noreferrer" className="inline-flex items-center">
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              View
+                            </a>
                           </Button>
                         </div>
                       </div>

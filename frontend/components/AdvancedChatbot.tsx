@@ -475,9 +475,9 @@ export function AdvancedChatbot({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-6 right-6 w-full max-w-md z-50"
+            className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-md md:bottom-6 md:right-6"
           >
-            <div className="bg-[var(--card)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-24)] overflow-hidden border-2 border-[var(--card-border)] max-h-[80vh] flex flex-col">
+            <div className="flex h-[min(82vh,760px)] flex-col overflow-hidden rounded-[var(--radius-2xl)] border-2 border-[var(--card-border)] bg-[var(--card)] shadow-[var(--shadow-24)]">
               {/* Header */}
               <div className="bg-gradient-to-r from-[#000080] to-[#000066] px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -552,7 +552,8 @@ export function AdvancedChatbot({
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4 bg-[var(--background)] max-h-[50vh]">
+              <ScrollArea className="min-h-0 flex-1 bg-[var(--background)]">
+                <div className="p-4">
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div
@@ -680,10 +681,11 @@ export function AdvancedChatbot({
                   )}
                   <div ref={messagesEndRef} />
                 </div>
+                </div>
               </ScrollArea>
 
               {/* Input Area */}
-              <div className="p-4 bg-[var(--card)] border-t-2 border-[var(--border)]">
+              <div className="relative z-10 shrink-0 border-t-2 border-[var(--border)] bg-[var(--card)] p-4">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();

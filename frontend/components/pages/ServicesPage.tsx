@@ -377,6 +377,8 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
                         gradient={service.gradient}
                         processingTime={service.processingTime}
                         fee={service.fee}
+                        mode={service.mode}
+                        officialAuthority={service.officialAuthority}
                         onClick={() => onNavigate("service-detail", service.id)}
                       />
                     </motion.div>
@@ -420,7 +422,17 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
                             <span>{service.fee}</span>
                           </div>
                           <Badge variant="outline" className="text-xs">{service.category}</Badge>
+                          <Badge variant="outline" className="text-xs">{service.mode}</Badge>
                         </div>
+                        <a
+                          href={service.officialUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-navy)]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Official: {service.officialAuthority}
+                        </a>
                       </div>
 
                       <ArrowRight className="h-5 w-5 shrink-0 text-[var(--muted-foreground)] transition-transform group-hover:translate-x-0.5" />
