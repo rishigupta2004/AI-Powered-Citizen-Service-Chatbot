@@ -2,16 +2,16 @@
 Streamlined FastAPI Application - Essential endpoints only
 """
 
-from fastapi import FastAPI, Depends, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.orm import Session
 from typing import Optional
 import time
 import asyncio
 import logging
+import re
 
 from core.database import get_db
-from core.config import FRONTEND_URL
+from core.config import FRONTEND_URL, CORS_ORIGINS, CORS_ORIGIN_REGEX
 
 # Models imported lazily by repositories/endpoints; keep app surface minimal
 from core.repositories import ServiceRepository, DocumentRepository, FAQRepository
@@ -44,17 +44,34 @@ _cors_origins = [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:4173",
+    "https://seva-sindu-portal.vercel.app",
+    "https://gov-chatbot.fly.dev",
 ]
 if FRONTEND_URL:
-    _cors_origins.append(FRONTEND_URL)
+    _cors_origins.append(FRONTEND_URL.rstrip("/"))
+if CORS_ORIGINS:
+    _cors_origins.extend(
+        origin.strip().rstrip("/")
+        for origin in CORS_ORIGINS.split(",")
+        if origin.strip()
+    )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=_cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+_cors_origins = sorted(set(_cors_origins))
+
+
+def _is_allowed_browser_origin(origin: str | None) -> bool:
+    if not origin:
+        return False
+    normalized = origin.strip().rstrip("/")
+    if normalized in _cors_origins:
+        return True
+    if CORS_ORIGIN_REGEX:
+        try:
+            return re.match(CORS_ORIGIN_REGEX, normalized) is not None
+        except re.error:
+            return False
+    return False
+
 
 # Include Phase 4 CSV-derived service API endpoints (links left empty)
 app.include_router(api_router)
@@ -77,6 +94,33 @@ except Exception:
 
 register_middlewares(app)
 register_exception_handlers(app)
+
+
+@app.middleware("http")
+async def explicit_browser_cors(request: Request, call_next):
+    origin = request.headers.get("origin")
+    preflight = request.method == "OPTIONS" and request.headers.get(
+        "access-control-request-method"
+    )
+
+    if preflight:
+        if not _is_allowed_browser_origin(origin):
+            return Response(status_code=400, content="Disallowed CORS origin")
+        response = Response(status_code=204)
+    else:
+        response = await call_next(request)
+
+    if _is_allowed_browser_origin(origin):
+        allowed_origin = origin.rstrip("/") if origin else ""
+        response.headers["Access-Control-Allow-Origin"] = allowed_origin
+        response.headers["Vary"] = "Origin"
+        response.headers["Access-Control-Allow-Methods"] = (
+            "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+        )
+        response.headers["Access-Control-Allow-Headers"] = request.headers.get(
+            "access-control-request-headers", "content-type,authorization"
+        )
+    return response
 
 
 def _run_embedding_warmup() -> None:

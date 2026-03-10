@@ -4,7 +4,6 @@ import {
   X,
   Send,
   Loader2,
-  CheckCircle2,
   Paperclip,
   Mic,
   MicOff,
@@ -12,7 +11,6 @@ import {
   FileText,
   Calendar,
   CreditCard,
-  ArrowRight,
   Bot,
   User as UserIcon,
   Home,
@@ -35,7 +33,6 @@ import { cn } from "./ui/utils";
 import { toast } from "sonner";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
-import { getAllServices } from "../data/servicesData";
 import {
   sendChatMessage,
   sendVoice,
@@ -97,7 +94,6 @@ export function AdvancedChatbot({
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isSlowResponse, setIsSlowResponse] = useState(false);
-  const [currentStep, setCurrentStep] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputElement, setInputElement] = useState<HTMLInputElement | null>(null);
 
@@ -110,8 +106,6 @@ export function AdvancedChatbot({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  const allServices = getAllServices();
 
   // Build message history for API
   const getHistory = useCallback((): APIChatMessage[] => {
@@ -229,15 +223,8 @@ export function AdvancedChatbot({
     return newMessage.id;
   };
 
-  // TEXT CHAT - Updated to use real API
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isTyping) return;
-
-    const userText = inputValue.trim();
-    addUserMessage(userText);
-    setInputValue("");
+  const requestAssistantReply = async (userText: string) => {
     setIsTyping(true);
-
     try {
       const response = await sendChatMessage(
         userText,
@@ -249,10 +236,9 @@ export function AdvancedChatbot({
 
       addBotMessage(response.response, "text", undefined, response.language);
 
-      // Auto-speak if TTS enabled
       if (ttsEnabled && response.response) {
         const responseLang = response.language || language || "en";
-        speakText(response.response, responseLang);
+        await speakText(response.response, responseLang);
       }
     } catch (error) {
       if (error instanceof ApiError && error.message.includes("timed out")) {
@@ -267,6 +253,16 @@ export function AdvancedChatbot({
     } finally {
       setIsTyping(false);
     }
+  };
+
+  // TEXT CHAT - Updated to use real API
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isTyping) return;
+
+    const userText = inputValue.trim();
+    addUserMessage(userText);
+    setInputValue("");
+    await requestAssistantReply(userText);
   };
 
   // SPEECH TO TEXT
@@ -302,6 +298,11 @@ export function AdvancedChatbot({
             if (voiceResult.audio_base64) {
               const audio = playBase64Audio(voiceResult.audio_base64);
               currentAudioRef.current = audio;
+              try {
+                await audio.play();
+              } catch {
+                toast.error("Audio playback blocked by browser. Tap speaker again.");
+              }
             }
           } else {
             const result = await speechToText(audioBlob, language);
@@ -359,6 +360,13 @@ export function AdvancedChatbot({
         const audioBlob = await textToSpeech(text, lang);
         const audio = playAudioBlob(audioBlob);
         currentAudioRef.current = audio;
+        try {
+          await audio.play();
+        } catch {
+          toast.error("Audio playback blocked by browser. Please tap again.");
+          setIsSpeaking(false);
+          return;
+        }
         audio.onended = () => {
           setIsSpeaking(false);
           currentAudioRef.current = null;
@@ -410,150 +418,26 @@ export function AdvancedChatbot({
     },
   ];
 
-  const handleQuickAction = (action: QuickAction) => {
+  const handleQuickAction = async (action: QuickAction) => {
     addUserMessage(action.label);
 
-    setTimeout(() => {
-      setIsTyping(true);
+    if (action.action === "explore_services" && onNavigate) {
+      onNavigate("services");
+    }
 
-      setTimeout(() => {
-        setIsTyping(false);
+    if (action.action === "book_appointment" && onNavigate) {
+      onNavigate("services");
+    }
 
-        switch (action.action) {
-          case "check_status":
-            addBotMessage(
-              "I can help you check your application status. Please provide your Application Reference Number (ARN).\n\nFor example: ARN1234567890",
-              "form"
-            );
-            setCurrentStep("check_status");
-            break;
+    const mappedPrompt: Record<string, string> = {
+      check_status: "How can I check my application status using ARN? Share exact steps and official portal path.",
+      book_appointment: "How do I book an appointment for government service applications?",
+      pay_fees: "How can I pay government service fees online safely?",
+      explore_services: "List major Indian government citizen services and how to choose the right one.",
+    };
 
-          case "book_appointment":
-            if (onNavigate) {
-              onNavigate("services");
-            }
-            addBotMessage(
-              "I'll help you book an appointment. First, let me show you the available services.",
-              "text"
-            );
-            setTimeout(() => {
-              addBotMessage("", "quick-actions", {
-                actions: allServices.slice(0, 6).map((service: any) => ({
-                  id: service.id,
-                  icon: FileText,
-                  label: service.name,
-                  description: service.description,
-                  action: `service_${service.id}`,
-                })),
-              });
-            }, 500);
-            break;
-
-          case "pay_fees":
-            addBotMessage(
-              "I can guide you through the fee payment process. Which service do you need to pay fees for?",
-              "quick-actions",
-              {
-                actions: allServices.slice(0, 6).map((service: any) => ({
-                  id: service.id,
-                  icon: CreditCard,
-                  label: service.name,
-                  description: `Fee: ₹${service.fee || "Varies"}`,
-                  action: `fee_${service.id}`,
-                })),
-              }
-            );
-            break;
-
-          case "explore_services":
-            if (onNavigate) {
-              onNavigate("services");
-            }
-            addBotMessage(
-              "Here are the government services available:",
-              "quick-actions",
-              {
-                actions: allServices.slice(0, 8).map((service: any) => ({
-                  id: service.id,
-                  icon: FileText,
-                  label: service.name,
-                  description: service.description,
-                  action: `service_${service.id}`,
-                })),
-              }
-            );
-            break;
-
-          default:
-            if (action.action.startsWith("service_")) {
-              const serviceId = action.action.replace("service_", "");
-              const service = allServices.find((s: any) => s.id === serviceId);
-              if (service) {
-                addBotMessage(
-                  `Great choice! Here's what I can help you with for ${service.name}:\n\n` +
-                    `1. View requirements and documents needed\n` +
-                    `2. Check eligibility criteria\n` +
-                    `3. Start the application process\n` +
-                    `4. Track existing application\n\n` +
-                    `What would you like to do?`,
-                  "quick-actions",
-                  {
-                    actions: [
-                      {
-                        id: "view_req",
-                        icon: FileText,
-                        label: "View Requirements",
-                        description: "See documents and eligibility",
-                        action: `requirements_${serviceId}`,
-                      },
-                      {
-                        id: "start_app",
-                        icon: ArrowRight,
-                        label: "Start Application",
-                        description: "Begin the process",
-                        action: `apply_${serviceId}`,
-                      },
-                      {
-                        id: "track",
-                        icon: CheckCircle2,
-                        label: "Track Status",
-                        description: "Check your application",
-                        action: `track_${serviceId}`,
-                      },
-                    ],
-                  }
-                );
-              }
-            } else if (action.action.startsWith("apply_")) {
-              const serviceId = action.action.replace("apply_", "");
-              if (onNavigate) {
-                onNavigate("service-detail", serviceId);
-              }
-              addBotMessage(
-                "Perfect! I'm taking you to the application page. You can also ask me any questions about the process.",
-                "text"
-              );
-            } else if (action.action.startsWith("requirements_")) {
-              const serviceId = action.action.replace("requirements_", "");
-              const service = allServices.find((s: any) => s.id === serviceId);
-              if (service) {
-                addBotMessage(
-                  `**${service.name} - Requirements**\n\n` +
-                    `**Documents Required:**\n` +
-                    service.documents
-                      ?.map((doc: string, i: number) => `${i + 1}. ${doc}`)
-                      .join("\n") ||
-                    "• Identity Proof (Aadhaar/PAN)\n" +
-                      "• Address Proof\n" +
-                      "• Passport Size Photos\n" +
-                      "• Supporting documents as per service",
-                  "text"
-                );
-              }
-            }
-        }
-      }, 1000);
-    }, 100);
+    const backendPrompt = mappedPrompt[action.action] || action.label;
+    await requestAssistantReply(backendPrompt);
   };
 
   const formatTime = (date: Date) => {

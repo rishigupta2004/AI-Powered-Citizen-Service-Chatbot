@@ -1,4 +1,20 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+function resolveApiBaseUrl(): string {
+  const configured = import.meta.env.VITE_API_URL?.trim()
+  if (configured) {
+    return configured.replace(/\/$/, '')
+  }
+
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    if (host.includes('vercel.app') || host.includes('seva-sindu-portal')) {
+      return 'https://gov-chatbot.fly.dev'
+    }
+  }
+
+  return 'http://localhost:8000'
+}
+
+export const API_BASE_URL = resolveApiBaseUrl()
 
 const DEFAULT_TIMEOUT_MS = 12000
 
@@ -149,13 +165,11 @@ export function playAudioBlob(audioData: ArrayBuffer) {
   const blob = new Blob([audioData], { type: 'audio/wav' })
   const url = URL.createObjectURL(blob)
   const audio = new Audio(url)
-  void audio.play()
   return audio
 }
 
 export function playBase64Audio(base64Audio: string, mimeType = 'audio/wav') {
   const audio = new Audio(`data:${mimeType};base64,${base64Audio}`)
-  void audio.play()
   return audio
 }
 

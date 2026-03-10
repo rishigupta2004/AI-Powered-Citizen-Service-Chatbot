@@ -106,12 +106,31 @@ def _build_rag_fallback(
     context_parts: list[str],
     user: Optional[User],
 ) -> str:
+    query_l = (query or "").lower()
+
     if context_parts:
         synthesized = _summarize_context_locally(context_parts)
         base = (
             "Based on available government records, here is a synthesized response:\n"
             f"{synthesized}\n\n"
             "Suggested next step: Use the relevant official government portal for final submission/verification."
+        )
+    elif "passport" in query_l:
+        base = (
+            "For Passport service, start on Passport Seva portal.\n"
+            "1. Register/Login and choose fresh/renewal service.\n"
+            "2. Fill application, upload details, and submit.\n"
+            "3. Pay fee and book PSK/POPSK appointment.\n"
+            "4. Carry ID/address/DOB proof and appointment receipt.\n"
+            "5. Track file number for police verification and dispatch updates."
+        )
+    elif "aadhaar" in query_l:
+        base = (
+            "For Aadhaar update, use the UIDAI official portal.\n"
+            "1. Select update type (address, name, DOB, mobile).\n"
+            "2. Upload supporting document as per UIDAI list.\n"
+            "3. Pay update fee and submit request.\n"
+            "4. Save URN and track status on UIDAI portal."
         )
     else:
         base = (
@@ -174,6 +193,22 @@ def _build_context_synthesis_instructions(context_text: str) -> str:
         f"{context_text}\n\n"
         "Now provide the final citizen-friendly answer."
     )
+
+
+def _should_use_rag_fast_path(query: str, context_parts: list[str]) -> bool:
+    """Prefer low-latency RAG synthesis when context looks strong enough."""
+    if not context_parts:
+        return False
+    if len(context_parts) >= 2:
+        return True
+
+    tokens = [t for t in re.findall(r"[a-zA-Z0-9]{3,}", query.lower())]
+    if not tokens:
+        return True
+
+    sample = context_parts[0].lower()
+    overlap = sum(1 for token in tokens if token in sample)
+    return overlap >= 2
 
 
 def _search_context_fast(
@@ -335,7 +370,12 @@ async def chat(
     fallback_response = _build_rag_fallback(query, lang, context_parts, user)
     response_text = fallback_response
 
-    if response_mode != "rag_only":
+    prefer_rag_fast_path = _should_use_rag_fast_path(query, context_parts)
+    use_sarvam = response_mode == "sarvam" or (
+        response_mode == "auto" and not prefer_rag_fast_path
+    )
+
+    if use_sarvam:
         system_prompt = SYSTEM_PROMPTS.get(lang, DEFAULT_SYSTEM_PROMPT)
         system_prompt += (
             "\n\nWhen using retrieved context, synthesize and summarize it in clean citizen-friendly steps. "
@@ -360,7 +400,7 @@ async def chat(
                     messages=messages,
                     system_prompt=system_prompt,
                     temperature=0.3,
-                    max_tokens=400,
+                    max_tokens=220,
                 ),
                 timeout=timeout_seconds,
             )

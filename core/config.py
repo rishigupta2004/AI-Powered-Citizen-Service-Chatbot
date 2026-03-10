@@ -58,3 +58,5 @@ SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "")
 
 # -- Frontend / CORS -----------------------------------------------------------
 FRONTEND_URL: str = os.getenv("FRONTEND_URL", "")
+CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "")
+CORS_ORIGIN_REGEX: str = os.getenv("CORS_ORIGIN_REGEX", r"https?://.*")

@@ -9,6 +9,7 @@ import {
 } from '@clerk/clerk-react'
 
 import { useAuthContext } from '../../contexts/AuthContext'
+import { API_BASE_URL } from '../../lib/api'
 
 export function ClerkAuthButtons() {
   return (
@@ -49,8 +50,7 @@ function ClerkSessionBridge() {
         const clerkToken = await getToken()
         if (!clerkToken) return
 
-        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-        const res = await fetch(`${apiUrl}/api/auth/clerk/sync`, {
+        const res = await fetch(`${API_BASE_URL}/api/auth/clerk/sync`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ clerk_token: clerkToken }),
