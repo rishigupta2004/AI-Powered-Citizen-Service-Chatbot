@@ -262,6 +262,14 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
             "3. Fill form, upload proof, and pay fee.\n"
             "4. Track acknowledgement number for status."
         )
+    if "epfo" in q or "pf" in q:
+        return (
+            "For EPFO services:\n"
+            "1. Login to EPFO Member e-Sewa using UAN.\n"
+            "2. Verify KYC and bank details are approved.\n"
+            "3. Use Online Services for claim/transfer/passbook actions.\n"
+            "4. Track claim status in portal after submission."
+        )
     return None
 
 
@@ -269,32 +277,62 @@ def _search_context_fast(
     db: Session, query: str, limit: int = 5
 ) -> tuple[list[str], list[str]]:
     try:
+        context_parts: list[str] = []
+        sources: list[str] = []
         chunk_repo = ContentChunkRepository(db)
         faq_repo = FAQRepository(db)
+        doc_repo = DocumentRepository(db)
 
-        sources: list[str] = []
-        context_parts: list[str] = []
+        keywords = [query]
+        for token in re.findall(r"[A-Za-z0-9-]+", query):
+            if len(token) >= 5 or token.isupper():
+                keywords.append(token)
 
-        chunks = chunk_repo.search_text(query, limit)
-        for chunk in chunks[:limit]:
-            text = (chunk.chunk_text or "").strip()
-            if not text:
-                continue
-            context_parts.append(text[:320])
-            source = f"chunk_{chunk.chunk_id}"
-            if source not in sources:
-                sources.append(source)
+        for kw in keywords[:5]:
+            if len(context_parts) >= limit:
+                break
+            chunks = chunk_repo.search_text(kw, max(1, limit // 2))
+            for chunk in chunks:
+                text = (chunk.chunk_text or "").strip()
+                if not text:
+                    continue
+                trimmed = text[:320]
+                if trimmed in context_parts:
+                    continue
+                context_parts.append(trimmed)
+                source = f"chunk_{chunk.chunk_id}"
+                if source not in sources:
+                    sources.append(source)
 
-        if len(context_parts) < limit:
-            faqs = faq_repo.search_text(query, max(1, limit // 2))
+        for kw in keywords[:5]:
+            if len(context_parts) >= limit:
+                break
+            faqs = faq_repo.search_text(kw, 2)
             for faq in faqs:
                 text = f"Q: {faq.question}\nA: {faq.answer}".strip()
-                context_parts.append(text[:320])
+                trimmed = text[:320]
+                if trimmed in context_parts:
+                    continue
+                context_parts.append(trimmed)
                 source = (faq.question or "faq")[:80]
                 if source and source not in sources:
                     sources.append(source)
 
-        # Skip document-wide text scan on hot path to keep latency predictable.
+        for kw in keywords[:5]:
+            if len(context_parts) >= limit:
+                break
+            docs = doc_repo.search_text(kw, 1)
+            for doc in docs:
+                text = (doc.description or doc.raw_content or doc.name or "").strip()
+                if not text:
+                    continue
+                trimmed = text[:320]
+                if trimmed in context_parts:
+                    continue
+                context_parts.append(trimmed)
+                source = (doc.name or f"doc_{doc.doc_id}")[:80]
+                if source and source not in sources:
+                    sources.append(source)
 
         return context_parts[:limit], sources[:limit]
     except Exception as exc:
@@ -419,7 +457,7 @@ async def chat(
             return ChatResponse(**cached)
     response.headers["X-Cache-Hit"] = "0"
 
-    if response_mode == "auto" and not request.history:
+    if response_mode in {"auto", "rag_only"} and not request.history:
         instant = _instant_service_template(query, lang)
         if instant:
             payload = ChatResponse(

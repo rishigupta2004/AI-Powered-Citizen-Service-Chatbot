@@ -19,6 +19,7 @@ from .repositories import (
     ContentChunkRepository,
 )
 from .embeddings import get_embedding_engine
+from .config import EMBEDDING_DIM
 
 
 class SearchEngine:
@@ -73,7 +74,10 @@ class SearchEngine:
             # ── Documents ────────────────────────────────────────────────
             docs = []
             if self.embeddings_enabled and query_embedding:
-                docs = self.document_repo.search_semantic(query_embedding, limit)
+                try:
+                    docs = self.document_repo.search_semantic(query_embedding, limit)
+                except Exception:
+                    docs = []
             if not docs:
                 # Text fallback
                 docs = self.document_repo.search_text(query, limit)
@@ -98,7 +102,10 @@ class SearchEngine:
             # ── FAQs ─────────────────────────────────────────────────────
             faqs = []
             if self.embeddings_enabled and query_embedding:
-                faqs = self.faq_repo.search_semantic(query_embedding, limit)
+                try:
+                    faqs = self.faq_repo.search_semantic(query_embedding, limit)
+                except Exception:
+                    faqs = []
             if not faqs:
                 faqs = self.faq_repo.search_text(query, limit)
 
@@ -122,7 +129,10 @@ class SearchEngine:
             # ── Content Chunks ───────────────────────────────────────────
             chunks = []
             if self.embeddings_enabled and query_embedding:
-                chunks = self.chunk_repo.search_semantic(query_embedding, limit)
+                try:
+                    chunks = self.chunk_repo.search_semantic(query_embedding, limit)
+                except Exception:
+                    chunks = []
             if not chunks:
                 # Text fallback — always returns results if data exists
                 chunks = self.chunk_repo.search_text(query, limit)
@@ -189,7 +199,12 @@ class SearchEngine:
             engine = get_embedding_engine()
             if not engine.is_loaded():
                 return []
-            return engine.embed_text(text, is_query=True)
+            vector = engine.embed_text(text, is_query=True)
+            if not vector:
+                return []
+            if len(vector) != EMBEDDING_DIM:
+                return []
+            return vector
         except Exception:
             return []
 
