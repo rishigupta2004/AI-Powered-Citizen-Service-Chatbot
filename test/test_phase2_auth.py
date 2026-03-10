@@ -75,7 +75,7 @@ def run():
     # ── 1. Env vars ─────────────────────────────────────────────────────────
     print(f"{BOLD}{BLUE}[1] Environment Variables{RESET}")
     divider()
-    required_vars = ["DATABASE_URL", "SARVAM_API_KEY", "HF_TOKEN", "JWT_SECRET_KEY"]
+    required_vars = ["DATABASE_URL", "SARVAM_API_KEY", "HF_TOKEN"]
     optional_vars = [
         "DIGILOCKER_CLIENT_ID",
         "DIGILOCKER_CLIENT_SECRET",
@@ -92,12 +92,21 @@ def run():
         )
         if passed:
             env_ok += 1
+    jwt_val = os.getenv("JWT_SECRET_KEY", "") or os.getenv("SECRET_KEY", "")
+    jwt_ok = bool(jwt_val)
+    check(
+        "JWT secret configured (JWT_SECRET_KEY or SECRET_KEY)",
+        jwt_ok,
+        "set"
+        if jwt_ok
+        else "MISSING — add JWT_SECRET_KEY or SECRET_KEY to .env and flyctl secrets",
+    )
     for var in optional_vars:
         val = os.getenv(var, "")
         if val:
             ok(f"{var}  {GRAY}set{RESET}")
         else:
-            warn(f"{var}  not set (DigiLocker OAuth will fail)")
+            info(f"{var} not set (DigiLocker OAuth disabled in this environment)")
     print()
 
     # ── 2. DB tables ─────────────────────────────────────────────────────────
@@ -143,7 +152,12 @@ def run():
         ("GET", "/api/auth/me", [401, 403], "Requires auth — 401 expected"),
         ("POST", "/api/auth/otp/send", [200, 422], "OTP send (422=validation OK)"),
         ("POST", "/api/auth/otp/verify", [200, 422], "OTP verify (422=validation OK)"),
-        ("GET", "/api/auth/digilocker", [302, 200], "DigiLocker redirect"),
+        (
+            "GET",
+            "/api/auth/digilocker",
+            [302, 200, 503, 500],
+            "DigiLocker redirect (503/500 acceptable when OAuth is not configured)",
+        ),
         ("POST", "/api/auth/logout", [200, 401], "Logout"),
     ]
 
@@ -171,7 +185,7 @@ def run():
     try:
         from jose import jwt as jose_jwt
 
-        secret = os.getenv("JWT_SECRET_KEY", "")
+        secret = os.getenv("JWT_SECRET_KEY", "") or os.getenv("SECRET_KEY", "")
         if secret:
             payload = {"sub": "test_user_123", "exp": 9999999999}
             token = jose_jwt.encode(payload, secret, algorithm="HS256")

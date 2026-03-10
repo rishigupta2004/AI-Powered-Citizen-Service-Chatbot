@@ -16,7 +16,7 @@ function resolveApiBaseUrl(): string {
 
 export const API_BASE_URL = resolveApiBaseUrl()
 
-const DEFAULT_TIMEOUT_MS = 20000
+const DEFAULT_TIMEOUT_MS = 30000
 
 export class ApiError extends Error {
   status?: number
@@ -128,18 +128,11 @@ export async function sendChat(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...payload, response_mode: mode }),
-    }, mode === 'rag_only' ? 24000 : DEFAULT_TIMEOUT_MS)
+    }, mode === 'rag_only' ? 30000 : DEFAULT_TIMEOUT_MS)
     return readJsonResponse<ChatResponse>(response)
   }
 
-  try {
-    return await attempt(response_mode)
-  } catch (error) {
-    if (response_mode !== 'rag_only' && error instanceof ApiError && (!error.status || error.status >= 500 || error.message.includes('timed out'))) {
-      return attempt('rag_only')
-    }
-    throw error
-  }
+  return attempt(response_mode)
 }
 
 export const sendChatMessage = sendChat
@@ -153,7 +146,7 @@ export async function sendVoice(audio: Blob, language = 'auto'): Promise<VoiceCh
       method: 'POST',
       body: form,
     },
-    20000,
+    45000,
   )
   return readJsonResponse<VoiceChatResponse>(response)
 }
@@ -165,7 +158,7 @@ export async function speechToText(audio: Blob, language = 'auto'): Promise<Spee
   const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/speech-to-text`, {
     method: 'POST',
     body: form,
-  }, 20000)
+  }, 45000)
   return readJsonResponse<SpeechToTextResponse>(response)
 }
 
@@ -190,14 +183,7 @@ async function textToSpeechRequest(text: string, language: string) {
 }
 
 export async function textToSpeech(text: string, language = 'hi') {
-  try {
-    return await textToSpeechRequest(text, language)
-  } catch (error) {
-    if (language !== 'en') {
-      return textToSpeechRequest(text, 'en')
-    }
-    throw error
-  }
+  return textToSpeechRequest(text, language)
 }
 
 export function playAudioBlob(audioData: ArrayBuffer) {

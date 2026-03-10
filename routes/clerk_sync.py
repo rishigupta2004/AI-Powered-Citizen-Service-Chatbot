@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -14,7 +14,12 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from core.auth_models import AuthMethod, User, UserAuthMethod, UserSession
-from core.config import CLERK_BACKEND_API_URL, CLERK_JWKS_URL, CLERK_SECRET_KEY
+from core.config import (
+    CLERK_BACKEND_API_URL,
+    CLERK_FRONTEND_API_URL,
+    CLERK_DOMAIN,
+    CLERK_JWKS_URL,
+)
 from core.database import get_db
 from routes.auth_endpoints import AuthResponse, create_user_session
 
@@ -30,12 +35,13 @@ class ClerkSyncRequest(BaseModel):
 
 async def _fetch_jwks() -> dict[str, Any]:
     global _jwks_cache
-    if _jwks_cache:
-        return _jwks_cache
+    if _jwks_cache is not None:
+        return cast(dict[str, Any], _jwks_cache)
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(CLERK_JWKS_URL)
         resp.raise_for_status()
-        _jwks_cache = resp.json()
+        payload = resp.json()
+        _jwks_cache = payload if isinstance(payload, dict) else {}
         return _jwks_cache
 
 
@@ -57,12 +63,21 @@ async def _verify_clerk_token(token: str) -> dict[str, Any]:
         if not rsa_key:
             raise HTTPException(status_code=401, detail="Clerk signing key not found")
 
-        return jwt.decode(
+        claims = jwt.decode(
             token,
             rsa_key,
             algorithms=["RS256"],
             options={"verify_aud": False},
         )
+        expected_issuers = {
+            value.rstrip("/")
+            for value in [CLERK_FRONTEND_API_URL, CLERK_DOMAIN]
+            if value
+        }
+        issuer = str(claims.get("iss") or "").rstrip("/")
+        if expected_issuers and issuer and issuer not in expected_issuers:
+            raise HTTPException(status_code=401, detail="Invalid Clerk token issuer")
+        return claims
     except JWTError as exc:
         logger.warning("Clerk JWT verification failed: %s", exc)
         raise HTTPException(status_code=401, detail=f"Invalid Clerk token: {exc}")
@@ -84,11 +99,11 @@ async def clerk_sync(
     req: Request,
     db: Session = Depends(get_db),
 ):
-    if not CLERK_SECRET_KEY:
+    if not CLERK_JWKS_URL:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
-                "Clerk backend sync is disabled. Set CLERK_SECRET_KEY and CLERK_JWKS_URL "
+                "Clerk backend sync is disabled. Set CLERK_JWKS_URL "
                 f"(backend API: {CLERK_BACKEND_API_URL})."
             ),
         )

@@ -445,7 +445,11 @@ export function AdvancedChatbot({
           currentAudioRef.current = null;
         };
       } catch (err) {
-        toast.error(t("chatbot.errors.ttsFailed", "Text-to-speech failed"));
+        toast.error(
+          err instanceof ApiError
+            ? err.message
+            : t("chatbot.errors.ttsFailed", "Text-to-speech failed")
+        );
         setIsSpeaking(false);
         setVoiceStatus("idle");
       }

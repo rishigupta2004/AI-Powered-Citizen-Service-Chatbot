@@ -29,13 +29,22 @@ def candidate_folders(service_slug: str) -> list[str]:
         ("swayam", "education"),
         ("diksha", "education"),
         ("education", "education"),
+        ("voter", "other"),
+        ("rti", "other"),
+        ("court", "other"),
+        ("health", "other"),
+        ("cowin", "other"),
+        ("abha", "other"),
+        ("consumer", "other"),
+        ("cyber", "other"),
+        ("pm", "other"),
+        ("nps", "other"),
+        ("grievance", "other"),
     ]
     matched: list[str] = []
     for token, folder in mapping:
         if token in slug and folder not in matched:
             matched.append(folder)
-    if "other" not in matched:
-        matched.append("other")
     return matched
 
 
@@ -60,6 +69,9 @@ def main() -> None:
         out_dir = SERVICES_DIR / service_slug
         out_dir.mkdir(parents=True, exist_ok=True)
         created += 1
+
+        for old_pdf in out_dir.glob("*.pdf"):
+            old_pdf.unlink(missing_ok=True)
 
         for folder in candidate_folders(service_slug):
             folder_path = DOCS_ROOT / folder

@@ -143,14 +143,11 @@ def _candidate_doc_folders(service_slug: str) -> list[str]:
 
     service_specific = DOCS_DIR / "services" / slug
     if service_specific.exists() and service_specific.is_dir():
-        matched.append(f"services/{slug}")
+        return [f"services/{slug}"]
 
     for token, folder in mapping:
         if token in slug and folder not in matched:
             matched.append(folder)
-
-    if "other" not in matched:
-        matched.append("other")
     return matched
 
 

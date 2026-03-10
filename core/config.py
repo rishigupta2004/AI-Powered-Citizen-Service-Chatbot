@@ -46,10 +46,20 @@ CLERK_BACKEND_API_URL: str = _first_non_empty(
     "CLERK_Backend_API_URL",
     default="https://api.clerk.com",
 )
+CLERK_DOMAIN: str = _first_non_empty(
+    "CLERK_DOMAIN",
+    "CLERK_FRONTEND_API_URL",
+    "CLERK_Frontend_API_URL",
+)
+_default_clerk_jwks_url = (
+    f"{CLERK_DOMAIN.rstrip('/')}/.well-known/jwks.json"
+    if CLERK_DOMAIN
+    else "https://api.clerk.dev/.well-known/jwks.json"
+)
 CLERK_JWKS_URL: str = _first_non_empty(
     "CLERK_JWKS_URL",
     "JWKS_URL",
-    default="https://api.clerk.dev/.well-known/jwks.json",
+    default=_default_clerk_jwks_url,
 )
 JWKS_PUBLIC_KEY: str = _first_non_empty("JWKS_PUBLIC_KEY", "JWKS_Public_Key")
 

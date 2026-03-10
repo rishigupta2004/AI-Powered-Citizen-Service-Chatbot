@@ -8,7 +8,6 @@ import hashlib
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 from sentence_transformers import SentenceTransformer
-import PyPDF2
 import pdfplumber
 import fitz
 from .models import Service, Document, ContentChunk

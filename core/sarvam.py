@@ -18,6 +18,16 @@ logger = logging.getLogger(__name__)
 
 SARVAM_API_BASE = "https://api.sarvam.ai"
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "")
+SARVAM_CHAT_MODEL = os.getenv("SARVAM_CHAT_MODEL", "sarvam-m")
+SARVAM_STT_MODEL = os.getenv("SARVAM_STT_MODEL", "saarika:v2.5")
+SARVAM_STT_FALLBACK_MODEL = os.getenv("SARVAM_STT_FALLBACK_MODEL", "")
+SARVAM_TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v3")
+SARVAM_TTS_SPEAKER = os.getenv("SARVAM_TTS_SPEAKER", "").strip()
+SARVAM_TRANSLATE_MODEL = os.getenv("SARVAM_TRANSLATE_MODEL", "mayura:v1")
+SARVAM_CHAT_HTTP_TIMEOUT_SEC = float(os.getenv("SARVAM_CHAT_HTTP_TIMEOUT_SEC", "35"))
+SARVAM_STT_HTTP_TIMEOUT_SEC = float(os.getenv("SARVAM_STT_HTTP_TIMEOUT_SEC", "45"))
+SARVAM_TTS_HTTP_TIMEOUT_SEC = float(os.getenv("SARVAM_TTS_HTTP_TIMEOUT_SEC", "45"))
+SARVAM_TRANSLATE_TIMEOUT_SEC = float(os.getenv("SARVAM_TRANSLATE_TIMEOUT_SEC", "20"))
 
 if not SARVAM_API_KEY:
     logger.warning(
@@ -95,7 +105,7 @@ class SarvamClient:
             return "Sarvam API key not configured. Please set SARVAM_API_KEY."
 
         payload = {
-            "model": "sarvam-m",
+            "model": SARVAM_CHAT_MODEL,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
@@ -106,7 +116,9 @@ class SarvamClient:
             ] + messages
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(
+                timeout=SARVAM_CHAT_HTTP_TIMEOUT_SEC
+            ) as client:
                 response = await client.post(
                     f"{SARVAM_API_BASE}/v1/chat/completions",
                     headers={**self.headers, "Content-Type": "application/json"},
@@ -120,10 +132,10 @@ class SarvamClient:
             logger.error(
                 f"Sarvam LLM error {e.response.status_code}: {e.response.text}"
             )
-            return "I'm having trouble connecting to the AI service. Please try again."
+            return "SARVAM_ERROR: llm_request_failed"
         except Exception as e:
             logger.error(f"Sarvam LLM unexpected error: {e}")
-            return "Something went wrong. Please try again in a moment."
+            return "SARVAM_ERROR: llm_unexpected_error"
 
     async def speech_to_text(
         self,
@@ -137,7 +149,7 @@ class SarvamClient:
             return {"error": "Sarvam API key not configured", "transcript": ""}
 
         lang_code = _normalize_lang_code(language, default="unknown")
-        stt_model = os.getenv("SARVAM_STT_MODEL", "saaras:v3")
+        stt_model = SARVAM_STT_MODEL
 
         async def _stt_call(model: str, call_mode: str | None) -> dict:
             files = {
@@ -157,7 +169,7 @@ class SarvamClient:
             # STT docs require api-subscription-key header.
             headers = {"api-subscription-key": self.api_key}
 
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=SARVAM_STT_HTTP_TIMEOUT_SEC) as client:
                 response = await client.post(
                     f"{SARVAM_API_BASE}/speech-to-text",
                     headers=headers,
@@ -178,8 +190,9 @@ class SarvamClient:
                     "request_id": result.get("request_id"),
                 }
 
-            if stt_model != "saarika:v2.5":
-                fallback_result = await _stt_call("saarika:v2.5", None)
+            fallback_model = (SARVAM_STT_FALLBACK_MODEL or "").strip()
+            if fallback_model and fallback_model != stt_model:
+                fallback_result = await _stt_call(fallback_model, None)
                 return {
                     "transcript": fallback_result.get("transcript", ""),
                     "language_code": fallback_result.get("language_code", lang_code),
@@ -209,10 +222,10 @@ class SarvamClient:
                         err = inner
             except Exception:
                 pass
-            return {"error": err, "transcript": ""}
+            return {"error": err, "code": "stt_http_error", "transcript": ""}
         except Exception as e:
             logger.error(f"Sarvam STT unexpected error: {e}")
-            return {"error": str(e), "transcript": ""}
+            return {"error": str(e), "code": "stt_unexpected_error", "transcript": ""}
 
     async def text_to_speech(
         self,
@@ -227,19 +240,20 @@ class SarvamClient:
 
         lang_code = _normalize_lang_code(language, default="hi-IN")
 
-        voice = speaker or "shubh"
+        voice = (speaker or SARVAM_TTS_SPEAKER).strip()
 
         payload = {
             "text": text[:2500],
             "target_language_code": lang_code,
-            "speaker": voice,
             "pace": speed,
-            "model": "bulbul:v3",
+            "model": SARVAM_TTS_MODEL,
             "output_audio_codec": "wav",
         }
+        if voice:
+            payload["speaker"] = voice
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=SARVAM_TTS_HTTP_TIMEOUT_SEC) as client:
                 response = await client.post(
                     f"{SARVAM_API_BASE}/text-to-speech",
                     headers={**self.headers, "Content-Type": "application/json"},
@@ -247,7 +261,18 @@ class SarvamClient:
                 )
                 response.raise_for_status()
                 result = response.json()
-                audio_b64 = result["audios"][0]
+                if not isinstance(result, dict):
+                    return {
+                        "error": "Invalid TTS response",
+                        "code": "tts_invalid_response",
+                    }
+                audios = result.get("audios")
+                if not isinstance(audios, list) or not audios:
+                    return {
+                        "error": "No audio returned by TTS",
+                        "code": "tts_empty_audio",
+                    }
+                audio_b64 = audios[0]
                 audio_bytes = base64.b64decode(audio_b64)
                 return {
                     "audio_base64": audio_b64,
@@ -259,10 +284,21 @@ class SarvamClient:
             logger.error(
                 f"Sarvam TTS error {e.response.status_code}: {e.response.text}"
             )
-            return {"error": "Text-to-speech failed"}
+            msg = "Text-to-speech failed"
+            try:
+                parsed = e.response.json()
+                if isinstance(parsed, dict):
+                    inner = parsed.get("error")
+                    if isinstance(inner, dict):
+                        msg = str(inner.get("message") or inner.get("code") or msg)
+                    elif isinstance(inner, str):
+                        msg = inner
+            except Exception:
+                pass
+            return {"error": msg, "code": "tts_http_error"}
         except Exception as e:
             logger.error(f"Sarvam TTS unexpected error: {e}")
-            return {"error": str(e)}
+            return {"error": str(e), "code": "tts_unexpected_error"}
 
     async def translate(
         self,
@@ -284,11 +320,13 @@ class SarvamClient:
             ),
             "speaker_gender": "Female",
             "mode": "formal",
-            "model": "mayura:v1",
+            "model": SARVAM_TRANSLATE_MODEL,
         }
 
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
+            async with httpx.AsyncClient(
+                timeout=SARVAM_TRANSLATE_TIMEOUT_SEC
+            ) as client:
                 response = await client.post(
                     f"{SARVAM_API_BASE}/translate",
                     headers={**self.headers, "Content-Type": "application/json"},

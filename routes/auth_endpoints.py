@@ -15,7 +15,7 @@ import re
 import os
 import httpx
 from urllib.parse import urlencode
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator
 
 from core.database import SessionLocal, get_db
 from core.auth_models import (
@@ -51,7 +51,7 @@ class LoginRequest(BaseModel):
     password: str
     method: AuthMethod = AuthMethod.EMAIL_PASSWORD
 
-    @validator("phone")
+    @field_validator("phone")
     def validate_phone(cls, v):
         if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
             raise ValueError("Invalid phone number format")
@@ -66,13 +66,13 @@ class SignupRequest(BaseModel):
     last_name: str
     method: AuthMethod = AuthMethod.EMAIL_PASSWORD
 
-    @validator("phone")
+    @field_validator("phone")
     def validate_phone(cls, v):
         if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
             raise ValueError("Invalid phone number format")
         return v
 
-    @validator("password")
+    @field_validator("password")
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
@@ -695,7 +695,7 @@ def build_digilocker_auth_url(state: str) -> str:
     """Build DigiLocker authorization URL"""
     if not DIGILOCKER_CLIENT_ID or not DIGILOCKER_REDIRECT_URI:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="DigiLocker OAuth not configured",
         )
 
@@ -717,7 +717,7 @@ async def exchange_code_for_token(code: str) -> Dict[str, Any]:
         or not DIGILOCKER_REDIRECT_URI
     ):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="DigiLocker OAuth not configured",
         )
 
@@ -765,7 +765,7 @@ async def digilocker_login(request: Request):
     """Redirect to DigiLocker consent page"""
     if not DIGILOCKER_CLIENT_ID:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="DigiLocker OAuth not configured",
         )
 
@@ -876,7 +876,7 @@ async def digilocker_callback(
 class SupabaseLoginRequest(BaseModel):
     phone: str
 
-    @validator("phone")
+    @field_validator("phone")
     def validate_phone(cls, v):
         if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
             raise ValueError("Invalid phone number format")
@@ -887,7 +887,7 @@ class SupabaseVerifyRequest(BaseModel):
     phone: str
     otp_code: str
 
-    @validator("phone")
+    @field_validator("phone")
     def validate_phone(cls, v):
         if v and not re.match(r"^\+?[1-9]\d{1,14}$", v):
             raise ValueError("Invalid phone number format")

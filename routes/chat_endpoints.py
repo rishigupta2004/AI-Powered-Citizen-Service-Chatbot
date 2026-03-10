@@ -271,6 +271,7 @@ def _looks_like_upstream_error(text: str) -> bool:
         "please try again in a moment",
         "service unavailable",
         "temporarily unavailable",
+        "sarvam_error:",
     ]
     return any(p in lowered for p in patterns)
 
@@ -391,10 +392,35 @@ def _build_guided_actions(query: str, language: str) -> list[dict]:
     ]
 
 
+def _service_scope_tokens(query: str) -> list[str]:
+    q = (query or "").lower()
+    if any(t in q for t in ["passport", "पासपोर्ट", "পাসপোর্ট"]):
+        return ["passport", "psk", "popsk", "passport seva"]
+    if any(t in q for t in ["aadhaar", "aadhar", "आधार", "আধার"]):
+        return ["aadhaar", "aadhar", "uidai", "myaadhaar"]
+    if any(
+        t in q for t in ["driving", "license", "licence", "sarathi", "परिवहन", "লাইসেন্স"]
+    ):
+        return ["driving", "license", "licence", "sarathi", "parivahan", "dl"]
+    if any(t in q for t in ["pan", "पैन", "প্যান"]):
+        return ["pan", "nsdl", "uti", "income tax"]
+    if any(t in q for t in ["epfo", "pf", "ईपीएफओ"]):
+        return ["epfo", "uan", "pf", "member e-sewa"]
+    return []
+
+
+def _scope_match(text: str, scope_tokens: list[str]) -> bool:
+    if not scope_tokens:
+        return True
+    lowered = (text or "").lower()
+    return any(token in lowered for token in scope_tokens)
+
+
 def _search_context_fast(
     db: Session, query: str, limit: int = 5
 ) -> tuple[list[str], list[str]]:
     try:
+        scope_tokens = _service_scope_tokens(query)
         context_parts: list[str] = []
         sources: list[str] = []
         chunk_repo = ContentChunkRepository(db)
@@ -415,6 +441,8 @@ def _search_context_fast(
                 if not text:
                     continue
                 trimmed = text[:320]
+                if not _scope_match(trimmed, scope_tokens):
+                    continue
                 if trimmed in context_parts:
                     continue
                 context_parts.append(trimmed)
@@ -429,6 +457,8 @@ def _search_context_fast(
             for faq in faqs:
                 text = f"Q: {faq.question}\nA: {faq.answer}".strip()
                 trimmed = text[:320]
+                if not _scope_match(trimmed, scope_tokens):
+                    continue
                 if trimmed in context_parts:
                     continue
                 context_parts.append(trimmed)
@@ -445,6 +475,8 @@ def _search_context_fast(
                 if not text:
                     continue
                 trimmed = text[:320]
+                if not _scope_match(trimmed, scope_tokens):
+                    continue
                 if trimmed in context_parts:
                     continue
                 context_parts.append(trimmed)
@@ -626,7 +658,10 @@ async def chat(
             messages.append({"role": msg.role, "content": msg.content})
         messages.append({"role": "user", "content": retrieval_query})
 
-        timeout_seconds = float(os.getenv("SARVAM_CHAT_TIMEOUT_SEC", "2.0"))
+        try:
+            timeout_seconds = float(os.getenv("SARVAM_CHAT_TIMEOUT_SEC", "8.0"))
+        except ValueError:
+            timeout_seconds = 8.0
         try:
             response_text = await asyncio.wait_for(
                 sarvam.chat(
@@ -744,7 +779,10 @@ async def speech_to_text(
     )
 
     if "error" in result and not result.get("transcript"):
-        return {"transcript": "", "error": str(result.get("error", "STT failed"))}
+        raise HTTPException(
+            status_code=502,
+            detail=str(result.get("error", "STT failed")),
+        )
 
     return result
 
@@ -766,19 +804,10 @@ async def text_to_speech(request: TTSRequest):
     )
 
     if "error" in result:
-        if language != "en":
-            fallback = await sarvam.text_to_speech(
-                text=request.text,
-                language="en",
-                speed=request.speed or 1.0,
-            )
-            if "error" not in fallback:
-                return Response(
-                    content=fallback["audio_bytes"],
-                    media_type="audio/wav",
-                    headers={"Content-Disposition": "inline; filename=response.wav"},
-                )
-        return {"transcript": "", "error": str(result.get("error", "TTS failed"))}
+        raise HTTPException(
+            status_code=502,
+            detail=str(result.get("error", "TTS failed")),
+        )
 
     return Response(
         content=result["audio_bytes"],
@@ -856,92 +885,108 @@ async def voice_chat(
     """Full Speech-to-Speech: STT → RAG/LLM → TTT → TTS."""
     if not sarvam.is_available():
         raise HTTPException(503, "Sarvam API not configured")
-    # STT
-    audio_bytes = await audio.read()
-    content_type = (audio.content_type or "").lower()
-    if "wav" in content_type:
-        audio_format = "wav"
-    elif "mp3" in content_type or "mpeg" in content_type:
-        audio_format = "mp3"
-    else:
-        audio_format = "webm"
+    try:
+        # STT
+        audio_bytes = await audio.read()
+        content_type = (audio.content_type or "").lower()
+        if "wav" in content_type:
+            audio_format = "wav"
+        elif "mp3" in content_type or "mpeg" in content_type:
+            audio_format = "mp3"
+        else:
+            audio_format = "webm"
 
-    stt = await sarvam.speech_to_text(
-        audio_bytes,
-        language=language or "auto",
-        audio_format=audio_format,
-        mode="transcribe",
-    )
-    transcript = stt.get("transcript", "")
-    if not transcript:
+        stt = await sarvam.speech_to_text(
+            audio_bytes,
+            language=language or "auto",
+            audio_format=audio_format,
+            mode="transcribe",
+        )
+        transcript = stt.get("transcript", "")
+        if not transcript:
+            return {
+                "transcript": "",
+                "response": "Could not transcribe audio.",
+                "audio_base64": "",
+                "language": language,
+                "error": stt.get("error") if isinstance(stt, dict) else None,
+            }
+
+        # RAG + LLM
+        from core.search import SearchEngine
+
+        engine = SearchEngine(db=db)
+        detected_lang = _normalize_chat_language(stt.get("language_code") or language)
+        target_lang = _normalize_chat_language(
+            language if language and language != "auto" else detected_lang
+        )
+
+        search_text = transcript
+        if target_lang != "en":
+            translated_search = await sarvam.translate(
+                transcript,
+                source_language=target_lang,
+                target_language="en",
+            )
+            if translated_search and translated_search.strip():
+                search_text = translated_search.strip()
+
+        results = engine.search(search_text, limit=3)
+        context = "\n".join(
+            c.get("content", "")[:300] for c in results.get("results", [])[:3]
+        )
+        if fast_mode:
+            if context:
+                context_parts = [
+                    c.get("content", "") for c in results.get("results", [])[:3]
+                ]
+                response_text = _build_rag_fallback(
+                    search_text, target_lang, context_parts, None
+                )
+            else:
+                response_text = _build_rag_fallback(search_text, target_lang, [], None)
+        else:
+            system = (
+                "You are SevaSindhu AI for Indian government services. "
+                f"Answer only in {target_lang} language in concise, citizen-friendly steps.\n"
+                f"Context:\n{context}"
+            )
+            messages = [{"role": "user", "content": search_text}]
+            response_text = await sarvam.chat(
+                messages=messages, system_prompt=system, max_tokens=120
+            )
+        if target_lang != "en" and response_text:
+            translated = await sarvam.translate(
+                response_text,
+                source_language="en",
+                target_language=target_lang,
+            )
+            if translated and translated.strip():
+                response_text = translated.strip()
+
+        voice_text = _compress_for_voice(response_text, max_chars=max_voice_chars)
+        if fast_mode:
+            response_text = voice_text
+
+        # TTS
+        tts = await sarvam.text_to_speech(voice_text, language=target_lang, speed=1.2)
+        return {
+            "transcript": transcript,
+            "response": response_text,
+            "audio_base64": tts.get("audio_base64", "")
+            if isinstance(tts, dict)
+            else "",
+            "language": target_lang,
+            "error": tts.get("error")
+            if isinstance(tts, dict) and "error" in tts
+            else None,
+        }
+    except Exception as exc:
+        logger.exception("voice_chat pipeline failed: %s", exc)
         return {
             "transcript": "",
-            "response": "Could not transcribe audio.",
+            "response": "Voice pipeline failed. Please try again.",
             "audio_base64": "",
-            "language": language,
+            "language": _normalize_chat_language(language),
+            "error": str(exc),
         }
-    # RAG + LLM
-    from core.search import SearchEngine
-
-    engine = SearchEngine(db=db)
-    search_text = transcript
-    if target_lang != "en":
-        translated_search = await sarvam.translate(
-            transcript,
-            source_language=target_lang,
-            target_language="en",
-        )
-        if translated_search and translated_search.strip():
-            search_text = translated_search.strip()
-
-    results = engine.search(search_text, limit=3)
-    context = "\n".join(
-        c.get("content", "")[:300] for c in results.get("results", [])[:3]
-    )
-    detected_lang = _normalize_chat_language(stt.get("language_code") or language)
-    target_lang = _normalize_chat_language(
-        language if language and language != "auto" else detected_lang
-    )
-    if fast_mode:
-        if context:
-            context_parts = [
-                c.get("content", "") for c in results.get("results", [])[:3]
-            ]
-            response_text = _build_rag_fallback(
-                search_text, target_lang, context_parts, None
-            )
-        else:
-            response_text = _build_rag_fallback(search_text, target_lang, [], None)
-    else:
-        system = (
-            "You are SevaSindhu AI for Indian government services. "
-            f"Answer only in {target_lang} language in concise, citizen-friendly steps.\n"
-            f"Context:\n{context}"
-        )
-        messages = [{"role": "user", "content": search_text}]
-        response_text = await sarvam.chat(
-            messages=messages, system_prompt=system, max_tokens=120
-        )
-    if target_lang != "en" and response_text:
-        translated = await sarvam.translate(
-            response_text,
-            source_language="en",
-            target_language=target_lang,
-        )
-        if translated and translated.strip():
-            response_text = translated.strip()
-
-    voice_text = _compress_for_voice(response_text, max_chars=max_voice_chars)
-    if fast_mode:
-        response_text = voice_text
-    # TTS
-    tts = await sarvam.text_to_speech(voice_text, language=target_lang, speed=1.2)
-    if "error" in tts and target_lang != "en":
-        tts = await sarvam.text_to_speech(voice_text, language="en", speed=1.2)
-    return {
-        "transcript": transcript,
-        "response": response_text,
-        "audio_base64": tts.get("audio_base64", "") if isinstance(tts, dict) else "",
-        "language": target_lang,
-        "error": tts.get("error") if isinstance(tts, dict) and "error" in tts else None,
-    }
