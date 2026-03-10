@@ -107,6 +107,17 @@ def _build_rag_fallback(
     user: Optional[User],
 ) -> str:
     query_l = (query or "").lower()
+    localized_generic = {
+        "hi": "मैं पासपोर्ट, आधार, पैन, ईपीएफओ, डिजिलॉकर और अन्य सरकारी सेवाओं में मदद कर सकता हूँ। कृपया अपना सवाल बताएं, मैं चरण-दर-चरण मार्गदर्शन दूंगा।",
+        "ta": "பாஸ்போர்ட், ஆதார், பான், EPFO, DigiLocker மற்றும் பிற அரசு சேவைகளில் உதவ முடியும். உங்கள் கேள்வியை எழுதுங்கள்; படிப்படியாக வழிகாட்டுவேன்.",
+        "te": "పాస్‌పోర్ట్, ఆధార్, PAN, EPFO, DigiLocker వంటి ప్రభుత్వ సేవలలో నేను సహాయం చేయగలను. మీ ప్రశ్నను పంపండి; దశలవారీగా మార్గనిర్దేశం చేస్తాను.",
+        "bn": "পাসপোর্ট, আধার, প্যান, EPFO, DigiLocker সহ সরকারি পরিষেবা বিষয়ে আমি সাহায্য করতে পারি। আপনার প্রশ্ন লিখুন, আমি ধাপে ধাপে গাইড করব।",
+        "mr": "पासपोर्ट, आधार, पॅन, EPFO, DigiLocker आणि इतर सरकारी सेवांबाबत मी मदत करू शकतो. तुमचा प्रश्न लिहा; मी टप्प्याटप्प्याने मार्गदर्शन करेन.",
+        "gu": "પાસપોર્ટ, આધાર, PAN, EPFO, DigiLocker સહિત સરકારી સેવાઓમાં હું મદદ કરી શકું છું. તમારો પ્રશ્ન લખો; હું સ્ટેપ-બાય-સ્ટેપ માર્ગદર્શન આપીશ.",
+        "kn": "ಪಾಸ್ಪೋರ್ಟ್, ಆಧಾರ್, PAN, EPFO, DigiLocker ಸೇರಿದಂತೆ ಸರ್ಕಾರಿ ಸೇವೆಗಳಲ್ಲಿ ನಾನು ಸಹಾಯ ಮಾಡಬಲ್ಲೆ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಬರೆಯಿರಿ; ಹಂತ ಹಂತವಾಗಿ ಮಾರ್ಗದರ್ಶನ ನೀಡುತ್ತೇನೆ.",
+        "ml": "പാസ്‌പോർട്ട്, ആധാർ, PAN, EPFO, DigiLocker തുടങ്ങിയ സർക്കാർ സേവനങ്ങളിൽ ഞാൻ സഹായിക്കാം. നിങ്ങളുടെ ചോദ്യം എഴുതൂ; ഘട്ടം ഘട്ടമായി ഞാൻ വഴികാട്ടാം.",
+        "pa": "ਪਾਸਪੋਰਟ, ਆਧਾਰ, ਪੈਨ, EPFO, DigiLocker ਅਤੇ ਹੋਰ ਸਰਕਾਰੀ ਸੇਵਾਵਾਂ ਵਿੱਚ ਮੈਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਆਪਣਾ ਸਵਾਲ ਲਿਖੋ; ਮੈਂ ਕਦਮ-ਦਰ-ਕਦਮ ਗਾਈਡ ਕਰਾਂਗਾ।",
+    }
 
     if context_parts:
         synthesized = _summarize_context_locally(context_parts)
@@ -133,19 +144,15 @@ def _build_rag_fallback(
             "4. Save URN and track status on UIDAI portal."
         )
     else:
-        base = (
+        base = localized_generic.get(
+            language,
             "I can help with Indian government services like Passport, Aadhaar, PAN, "
             "EPFO, DigiLocker, voter ID, and driving license. Share your exact query "
-            "and I will provide step-by-step guidance."
+            "and I will provide step-by-step guidance.",
         )
 
     if language == "hi":
-        base = (
-            "मैं पासपोर्ट, आधार, पैन, ईपीएफओ, डिजिलॉकर और अन्य सरकारी सेवाओं में मदद कर सकता हूँ। "
-            "कृपया अपना सवाल बताएं, मैं चरण-दर-चरण मार्गदर्शन दूंगा।"
-            if not context_parts
-            else base
-        )
+        base = localized_generic["hi"] if not context_parts else base
 
     first_name = str(getattr(user, "first_name", "") or "") if user else ""
     if first_name:
