@@ -100,6 +100,49 @@ def _clean_model_text(text: str) -> str:
     return cleaned
 
 
+def _service_playbook_fallback(query: str) -> str | None:
+    q = (query or "").lower()
+    if any(k in q for k in ["aadhaar", "aadhar", "uidai", "myaadhaar"]):
+        return (
+            "Steps:\n"
+            "- Open UIDAI/myAadhaar portal and choose Enrolment or Update service.\n"
+            "- Fill details exactly as per supporting documents and select a nearby center if biometrics are required.\n"
+            "- Upload required proofs and submit request to get URN/acknowledgement.\n\n"
+            "Documents:\n"
+            "- Identity proof, address proof, and date-of-birth proof as per UIDAI list.\n\n"
+            "Timeline and fees:\n"
+            "- Usually same day to a few working days depending on service type.\n"
+            "- Fees vary by update type; confirm latest fee on UIDAI before payment.\n\n"
+            "Official portal:\n"
+            "- https://myaadhaar.uidai.gov.in/"
+        )
+    if any(k in q for k in ["passport", "psk", "passport seva"]):
+        return (
+            "Steps:\n"
+            "- Create/login to Passport Seva account and select New/Re-issue Passport.\n"
+            "- Fill online form, pay fees, and book PSK/POPSK appointment.\n"
+            "- Visit center with originals for verification and biometrics, then track ARN status online.\n\n"
+            "Documents:\n"
+            "- Address proof, date-of-birth proof, identity proof, and old passport for re-issue.\n\n"
+            "Timeline and fees:\n"
+            "- Depends on normal/tatkaal and police verification outcome.\n\n"
+            "Official portal:\n"
+            "- https://www.passportindia.gov.in/"
+        )
+    if any(k in q for k in ["pan", "nsdl", "uti"]):
+        return (
+            "Steps:\n"
+            "- Choose PAN new application or correction on official portal.\n"
+            "- Fill form carefully, upload supporting documents, and pay fee.\n"
+            "- Submit and track acknowledgement number until PAN is issued/updated.\n\n"
+            "Documents:\n"
+            "- Identity proof, address proof, date-of-birth proof, and photo/signature.\n\n"
+            "Official portal:\n"
+            "- https://www.onlineservices.nsdl.com/"
+        )
+    return None
+
+
 def _build_rag_fallback(
     query: str,
     language: str,
@@ -118,7 +161,10 @@ def _build_rag_fallback(
         "pa": "ਪਾਸਪੋਰਟ, ਆਧਾਰ, ਪੈਨ, EPFO, DigiLocker ਅਤੇ ਹੋਰ ਸਰਕਾਰੀ ਸੇਵਾਵਾਂ ਵਿੱਚ ਮੈਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਆਪਣਾ ਸਵਾਲ ਲਿਖੋ; ਮੈਂ ਕਦਮ-ਦਰ-ਕਦਮ ਗਾਈਡ ਕਰਾਂਗਾ।",
     }
 
-    if context_parts:
+    playbook = _service_playbook_fallback(query)
+    if playbook:
+        base = playbook
+    elif context_parts:
         base = _summarize_context_locally(context_parts)
     else:
         base = localized_generic.get(
