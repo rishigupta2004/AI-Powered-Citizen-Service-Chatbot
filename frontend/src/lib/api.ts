@@ -1,9 +1,62 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
+const DEFAULT_TIMEOUT_MS = 12000
+
+export class ApiError extends Error {
+  status?: number
+  payload?: unknown
+
+  constructor(message: string, status?: number, payload?: unknown) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.payload = payload
+  }
+}
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiError(`Request timed out after ${timeoutMs}ms`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+async function readJsonResponse<T>(response: Response): Promise<T> {
+  let body: unknown = null
+  try {
+    body = await response.json()
+  } catch {
+    body = null
+  }
+
+  if (!response.ok) {
+    const message =
+      (typeof body === 'object' && body && 'detail' in body && String((body as { detail: unknown }).detail)) ||
+      (typeof body === 'object' && body && 'error' in body && String((body as { error: unknown }).error)) ||
+      `HTTP ${response.status}`
+    throw new ApiError(message, response.status, body)
+  }
+  return body as T
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
 }
+
+export type ResponseMode = 'auto' | 'rag_only' | 'sarvam'
 
 export interface ChatResponse {
   response: string
@@ -12,50 +65,84 @@ export interface ChatResponse {
   session_id?: string | null
 }
 
+export interface VoiceChatResponse {
+  transcript: string
+  response: string
+  audio_base64?: string
+  language?: string
+  error?: string
+}
+
+export interface SpeechToTextResponse {
+  transcript: string
+  language_code?: string
+  error?: string
+}
+
 export async function sendChat(
   message: string,
   history: ChatMessage[] = [],
   language = 'auto',
   service_context?: string,
+  response_mode: ResponseMode = 'auto',
+  session_id?: string,
 ): Promise<ChatResponse> {
-  const r = await fetch(`${API_BASE_URL}/api/v1/chat`, {
+  const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, language, history, service_context }),
+    body: JSON.stringify({
+      message,
+      language,
+      history,
+      service_context,
+      response_mode,
+      session_id,
+    }),
   })
-  return r.json()
+  return readJsonResponse<ChatResponse>(response)
 }
 
 export const sendChatMessage = sendChat
 
-export async function sendVoice(audio: Blob, language = 'hi') {
+export async function sendVoice(audio: Blob, language = 'auto'): Promise<VoiceChatResponse> {
   const form = new FormData()
   form.append('audio', audio, 'recording.webm')
-  const r = await fetch(`${API_BASE_URL}/api/v1/voice-chat?language=${language}`, {
+  const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/voice-chat?language=${language}`, {
     method: 'POST',
     body: form,
-  })
-  return r.json()
+  }, 20000)
+  return readJsonResponse<VoiceChatResponse>(response)
 }
 
-export async function speechToText(audio: Blob, language = 'hi') {
+export async function speechToText(audio: Blob, language = 'auto'): Promise<SpeechToTextResponse> {
   const form = new FormData()
   form.append('audio', audio, 'recording.webm')
   form.append('language', language)
-  const r = await fetch(`${API_BASE_URL}/api/v1/speech-to-text`, {
+  const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/speech-to-text`, {
     method: 'POST',
     body: form,
-  })
-  return r.json()
+  }, 20000)
+  return readJsonResponse<SpeechToTextResponse>(response)
 }
 
 export async function textToSpeech(text: string, language = 'hi') {
-  const r = await fetch(`${API_BASE_URL}/api/v1/text-to-speech`, {
+  const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/text-to-speech`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text, language }),
   })
-  return r.arrayBuffer()
+
+  if (!response.ok) {
+    return readJsonResponse<never>(response)
+  }
+
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('audio/')) {
+    const fallbackBody = await response.text()
+    throw new ApiError('TTS endpoint did not return audio', response.status, fallbackBody)
+  }
+
+  return response.arrayBuffer()
 }
 
 export function playAudioBlob(audioData: ArrayBuffer) {
@@ -66,7 +153,13 @@ export function playAudioBlob(audioData: ArrayBuffer) {
   return audio
 }
 
+export function playBase64Audio(base64Audio: string, mimeType = 'audio/wav') {
+  const audio = new Audio(`data:${mimeType};base64,${base64Audio}`)
+  void audio.play()
+  return audio
+}
+
 export async function getHealth() {
-  const r = await fetch(`${API_BASE_URL}/health`)
-  return r.json()
+  const response = await fetchWithTimeout(`${API_BASE_URL}/health`, {}, 8000)
+  return readJsonResponse<Record<string, unknown>>(response)
 }

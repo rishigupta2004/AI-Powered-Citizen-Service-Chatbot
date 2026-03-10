@@ -1,18 +1,19 @@
 import { useEffect } from 'react'
 import {
-  Show,
+  SignedIn,
+  SignedOut,
   SignInButton,
   SignUpButton,
   UserButton,
   useAuth,
-} from '@clerk/react'
+} from '@clerk/clerk-react'
 
 import { useAuthContext } from '../../contexts/AuthContext'
 
 export function ClerkAuthButtons() {
   return (
     <>
-      <Show when="signed-out">
+      <SignedOut>
         <div className="flex items-center gap-2">
           <SignInButton mode="modal">
             <button className="rounded-full border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--surface-2)]">
@@ -25,13 +26,13 @@ export function ClerkAuthButtons() {
             </button>
           </SignUpButton>
         </div>
-      </Show>
-      <Show when="signed-in">
+      </SignedOut>
+      <SignedIn>
         <div className="flex items-center gap-2">
           <UserButton />
           <ClerkSessionBridge />
         </div>
-      </Show>
+      </SignedIn>
     </>
   )
 }

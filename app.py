@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import Optional
 import time
+import asyncio
+import logging
 
 from core.database import get_db
 from core.config import FRONTEND_URL
@@ -28,6 +30,9 @@ from routes.middleware import (
     require_api_key,
 )
 from routes.chat_endpoints import chat_router
+from core.embeddings import get_embedding_engine
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Government Services API",
@@ -72,6 +77,23 @@ except Exception:
 
 register_middlewares(app)
 register_exception_handlers(app)
+
+
+def _run_embedding_warmup() -> None:
+    engine = get_embedding_engine()
+    engine.embed_text("passport status check", is_query=True)
+
+
+@app.on_event("startup")
+async def warmup_embeddings() -> None:
+    """Warm embedding path to reduce first-request latency."""
+    try:
+        await asyncio.wait_for(asyncio.to_thread(_run_embedding_warmup), timeout=4.0)
+        logger.info("Embedding warm-up completed")
+    except asyncio.TimeoutError:
+        logger.info("Embedding warm-up timed out; continuing startup")
+    except Exception as exc:  # pragma: no cover
+        logger.info("Embedding warm-up skipped: %s", exc)
 
 
 # Health Check

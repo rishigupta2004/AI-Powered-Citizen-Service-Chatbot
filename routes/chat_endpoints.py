@@ -107,8 +107,12 @@ def _build_rag_fallback(
     user: Optional[User],
 ) -> str:
     if context_parts:
-        context_summary = " ".join(context_parts)[:900]
-        base = f"{context_summary}\n\nFor official steps, use only government portals."
+        synthesized = _summarize_context_locally(context_parts)
+        base = (
+            "Based on available government records, here is a synthesized response:\n"
+            f"{synthesized}\n\n"
+            "Suggested next step: Use the relevant official government portal for final submission/verification."
+        )
     else:
         base = (
             "I can help with Indian government services like Passport, Aadhaar, PAN, "
@@ -124,9 +128,52 @@ def _build_rag_fallback(
             else base
         )
 
-    if user and user.first_name:
-        return f"{user.first_name}, {base}"
+    first_name = str(getattr(user, "first_name", "") or "") if user else ""
+    if first_name:
+        return f"{first_name}, {base}"
     return base
+
+
+def _summarize_context_locally(context_parts: list[str]) -> str:
+    """Fast local summarizer for RAG-only mode; avoids raw chunk dumps."""
+    unique_points: list[str] = []
+    for raw in context_parts:
+        cleaned = " ".join((raw or "").replace("\n", " ").split())
+        if not cleaned:
+            continue
+        lowered = cleaned.lower()
+        if any(lowered == p.lower() for p in unique_points):
+            continue
+        unique_points.append(cleaned)
+        if len(unique_points) >= 4:
+            break
+
+    if not unique_points:
+        return "1. Share the exact service name and I will provide eligibility, documents, fees, and processing steps."
+
+    bullets: list[str] = []
+    for idx, point in enumerate(unique_points):
+        short = point[:220]
+        short = re.sub(r"\s+", " ", short).strip(" .")
+        bullets.append(f"{idx + 1}. Key point: {short}.")
+
+    bullets.append(
+        f"{len(bullets) + 1}. Recommended action: verify latest details on the official service portal before submission."
+    )
+    return "\n".join(bullets)
+
+
+def _build_context_synthesis_instructions(context_text: str) -> str:
+    return (
+        "You are answering citizens about Indian government services. "
+        "Synthesize the retrieved context into a clean answer. "
+        "Never paste chunk text verbatim. "
+        "Provide short sections in this order: Steps, Documents, Timelines/Fees (if available), and Official Portal guidance. "
+        "If something is missing in context, say 'Not specified in source'.\n\n"
+        "Retrieved snippets:\n"
+        f"{context_text}\n\n"
+        "Now provide the final citizen-friendly answer."
+    )
 
 
 def _search_context_fast(
@@ -290,10 +337,13 @@ async def chat(
 
     if response_mode != "rag_only":
         system_prompt = SYSTEM_PROMPTS.get(lang, DEFAULT_SYSTEM_PROMPT)
+        system_prompt += (
+            "\n\nWhen using retrieved context, synthesize and summarize it in clean citizen-friendly steps. "
+            "Do not copy raw chunk text verbatim."
+        )
         if context_text:
-            system_prompt += (
-                f"\n\nRelevant government information:\n{context_text}\n\n"
-                "Use the above information to answer accurately."
+            system_prompt += "\n\n" + _build_context_synthesis_instructions(
+                context_text
             )
         if request.service_context:
             system_prompt += f"\n\nThe user is asking about: {request.service_context}"
@@ -390,7 +440,7 @@ async def speech_to_text(
     else:
         fmt = "webm"
 
-    lang = language if language != "auto" else "hi"
+    lang = language if language != "auto" else "auto"
 
     result = await sarvam.speech_to_text(
         audio_bytes=audio_bytes,
@@ -498,13 +548,27 @@ async def voice_chat(
         raise HTTPException(503, "Sarvam API not configured")
     # STT
     audio_bytes = await audio.read()
-    stt = await sarvam.speech_to_text(audio_bytes, language=language)
+    content_type = (audio.content_type or "").lower()
+    if "wav" in content_type:
+        audio_format = "wav"
+    elif "mp3" in content_type or "mpeg" in content_type:
+        audio_format = "mp3"
+    else:
+        audio_format = "webm"
+
+    stt = await sarvam.speech_to_text(
+        audio_bytes,
+        language=language or "auto",
+        audio_format=audio_format,
+        mode="transcribe",
+    )
     transcript = stt.get("transcript", "")
     if not transcript:
         return {
             "transcript": "",
             "response": "Could not transcribe audio.",
             "audio_base64": "",
+            "language": language,
         }
     # RAG + LLM
     from core.search import SearchEngine
@@ -514,21 +578,21 @@ async def voice_chat(
     context = "\n".join(
         c.get("content", "")[:300] for c in results.get("results", [])[:3]
     )
-    system = f"You are SevaSindhu AI for Indian government services. Answer in {language} language.\nContext:\n{context}"
+    target_lang = language if language and language != "auto" else "hi"
+    system = (
+        "You are SevaSindhu AI for Indian government services. "
+        f"Answer only in {target_lang} language in concise, citizen-friendly steps.\n"
+        f"Context:\n{context}"
+    )
     messages = [{"role": "user", "content": transcript}]
     response_text = await sarvam.chat(
         messages=messages, system_prompt=system, max_tokens=200
     )
-    # TTT if non-English
-    if language not in ("en", "en-IN"):
-        response_text = await sarvam.translate(
-            response_text, source_language="en", target_language=language
-        )
     # TTS
-    tts = await sarvam.text_to_speech(response_text, language=language)
+    tts = await sarvam.text_to_speech(response_text, language=target_lang)
     return {
         "transcript": transcript,
         "response": response_text,
         "audio_base64": tts.get("audio_base64", ""),
-        "language": language,
+        "language": target_lang,
     }

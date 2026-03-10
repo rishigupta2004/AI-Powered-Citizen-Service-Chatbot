@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 import httpx
 import base64
 import logging
-from typing import Optional
 
 # Load .env relative to project root (robust to any CWD).
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=False)
@@ -37,11 +36,22 @@ LANG_CODES = {
     "kn": "kn-IN",
     "ml": "ml-IN",
     "pa": "pa-IN",
-    "or": "or-IN",
+    "or": "od-IN",
+    "od": "od-IN",
     "as": "as-IN",
     "ur": "ur-IN",
-    "auto": "hi-IN",
+    "unknown": "unknown",
+    "auto": "unknown",
 }
+
+
+def _normalize_lang_code(language: str | None, default: str = "hi-IN") -> str:
+    if not language:
+        return default
+    cleaned = language.strip()
+    if not cleaned:
+        return default
+    return LANG_CODES.get(cleaned.lower(), cleaned)
 
 
 class SarvamClient:
@@ -52,8 +62,8 @@ class SarvamClient:
         if not self.api_key:
             logger.warning("SARVAM_API_KEY not set. Sarvam features will be disabled.")
         self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
             "api-subscription-key": self.api_key,
-            "Content-Type": "application/json",
         }
 
     def is_available(self) -> bool:
@@ -62,7 +72,7 @@ class SarvamClient:
     async def chat(
         self,
         messages: list[dict],
-        system_prompt: str = None,
+        system_prompt: str = "",
         temperature: float = 0.3,
         max_tokens: int = 512,
     ) -> str:
@@ -85,7 +95,7 @@ class SarvamClient:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     f"{SARVAM_API_BASE}/v1/chat/completions",
-                    headers=self.headers,
+                    headers={**self.headers, "Content-Type": "application/json"},
                     json=payload,
                 )
                 response.raise_for_status()
@@ -104,31 +114,36 @@ class SarvamClient:
     async def speech_to_text(
         self,
         audio_bytes: bytes,
-        language: str = "hi",
+        language: str = "auto",
         audio_format: str = "webm",
+        mode: str = "transcribe",
     ) -> dict:
         """Transcribe audio to text using Sarvam STT."""
         if not self.is_available():
             return {"error": "Sarvam API key not configured", "transcript": ""}
 
-        lang_code = LANG_CODES.get(language, "hi-IN")
+        lang_code = _normalize_lang_code(language, default="unknown")
+        stt_model = os.getenv("SARVAM_STT_MODEL", "saaras:v3")
 
-        try:
+        async def _stt_call(model: str, call_mode: str | None) -> dict:
+            files = {
+                "file": (
+                    f"audio.{audio_format}",
+                    audio_bytes,
+                    f"audio/{audio_format}",
+                ),
+            }
+            data: dict[str, str] = {
+                "language_code": lang_code,
+                "model": model,
+            }
+            if call_mode:
+                data["mode"] = call_mode
+
+            # STT docs require api-subscription-key header.
+            headers = {"api-subscription-key": self.api_key}
+
             async with httpx.AsyncClient(timeout=30.0) as client:
-                files = {
-                    "file": (
-                        f"audio.{audio_format}",
-                        audio_bytes,
-                        f"audio/{audio_format}",
-                    ),
-                }
-                data = {
-                    "language_code": lang_code,
-                    "model": "saarika:v2",
-                    "with_timestamps": "false",
-                }
-                headers = {"api-subscription-key": self.api_key}
-
                 response = await client.post(
                     f"{SARVAM_API_BASE}/speech-to-text",
                     headers=headers,
@@ -136,18 +151,51 @@ class SarvamClient:
                     data=data,
                 )
                 response.raise_for_status()
-                result = response.json()
+                return response.json()
+
+        try:
+            result = await _stt_call(stt_model, mode)
+            transcript = result.get("transcript", "")
+            if transcript:
                 return {
-                    "transcript": result.get("transcript", ""),
+                    "transcript": transcript,
                     "language_code": result.get("language_code", lang_code),
-                    "confidence": result.get("confidence", 1.0),
+                    "confidence": result.get("language_probability", 1.0),
+                    "request_id": result.get("request_id"),
                 }
+
+            if stt_model != "saarika:v2.5":
+                fallback_result = await _stt_call("saarika:v2.5", None)
+                return {
+                    "transcript": fallback_result.get("transcript", ""),
+                    "language_code": fallback_result.get("language_code", lang_code),
+                    "confidence": fallback_result.get("language_probability", 1.0),
+                    "request_id": fallback_result.get("request_id"),
+                }
+
+            return {
+                "transcript": "",
+                "language_code": result.get("language_code", lang_code),
+                "confidence": result.get("language_probability", 0.0),
+                "request_id": result.get("request_id"),
+            }
 
         except httpx.HTTPStatusError as e:
             logger.error(
                 f"Sarvam STT error {e.response.status_code}: {e.response.text}"
             )
-            return {"error": "Speech recognition failed", "transcript": ""}
+            err = "Speech recognition failed"
+            try:
+                parsed = e.response.json()
+                if isinstance(parsed, dict):
+                    inner = parsed.get("error")
+                    if isinstance(inner, dict):
+                        err = str(inner.get("message") or inner.get("code") or err)
+                    elif isinstance(inner, str):
+                        err = inner
+            except Exception:
+                pass
+            return {"error": err, "transcript": ""}
         except Exception as e:
             logger.error(f"Sarvam STT unexpected error: {e}")
             return {"error": str(e), "transcript": ""}
@@ -156,45 +204,31 @@ class SarvamClient:
         self,
         text: str,
         language: str = "hi",
-        speaker: str = None,
+        speaker: str = "",
         speed: float = 1.0,
     ) -> dict:
         """Convert text to speech using Sarvam TTS."""
         if not self.is_available():
             return {"error": "Sarvam API key not configured"}
 
-        lang_code = LANG_CODES.get(language, "hi-IN")
+        lang_code = _normalize_lang_code(language, default="hi-IN")
 
-        default_speakers = {
-            "hi-IN": "anushka",
-            "ta-IN": "anushka",
-            "te-IN": "anushka",
-            "bn-IN": "anushka",
-            "mr-IN": "anushka",
-            "gu-IN": "anushka",
-            "kn-IN": "anushka",
-            "ml-IN": "anushka",
-            "pa-IN": "anushka",
-            "en-IN": "anushka",
-            "or-IN": "anushka",
-            "as-IN": "anushka",
-            "ur-IN": "anushka",
-        }
-        voice = speaker or default_speakers.get(lang_code, "anushka")
+        voice = speaker or "shubh"
 
         payload = {
-            "inputs": [text[:500]],
+            "text": text[:2500],
             "target_language_code": lang_code,
             "speaker": voice,
             "pace": speed,
-            "enable_preprocessing": True,
+            "model": "bulbul:v3",
+            "output_audio_codec": "wav",
         }
 
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     f"{SARVAM_API_BASE}/text-to-speech",
-                    headers=self.headers,
+                    headers={**self.headers, "Content-Type": "application/json"},
                     json=payload,
                 )
                 response.raise_for_status()
@@ -228,8 +262,12 @@ class SarvamClient:
 
         payload = {
             "input": text,
-            "source_language_code": LANG_CODES.get(source_language, "en-IN"),
-            "target_language_code": LANG_CODES.get(target_language, "hi-IN"),
+            "source_language_code": _normalize_lang_code(
+                source_language, default="auto"
+            ),
+            "target_language_code": _normalize_lang_code(
+                target_language, default="hi-IN"
+            ),
             "speaker_gender": "Female",
             "mode": "formal",
             "model": "mayura:v1",
@@ -239,7 +277,7 @@ class SarvamClient:
             async with httpx.AsyncClient(timeout=20.0) as client:
                 response = await client.post(
                     f"{SARVAM_API_BASE}/translate",
-                    headers=self.headers,
+                    headers={**self.headers, "Content-Type": "application/json"},
                     json=payload,
                 )
                 response.raise_for_status()

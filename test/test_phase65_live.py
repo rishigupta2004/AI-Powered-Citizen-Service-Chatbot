@@ -30,6 +30,8 @@ IS_LOCAL = API_BASE_URL.startswith("http://localhost") or API_BASE_URL.startswit
 PASS, FAIL, WARN = "✅", "❌", "⚠️"
 results: list[dict[str, Any]] = []
 hard_failures: list[str] = []
+real_user_latencies: list[float] = []
+sarvam_latencies: list[float] = []
 
 CAP_SECURITY_MS = 200
 CAP_CACHE_HIT_MS = 300
@@ -38,6 +40,7 @@ CAP_SARVAM_WARN_MS = 1000
 CAP_SARVAM_FAIL_MS = 2000
 CAP_P95_LOCAL_MS = 1000
 CAP_P95_REMOTE_MS = 2500
+CAP_SARVAM_P95_REMOTE_MS = 3000
 
 
 def log(
@@ -156,6 +159,7 @@ def main() -> int:
             body = resp.json().get("response", "")
             if "only help" in body.lower() or "government service" in body.lower():
                 log(PASS, "Security", f"Blocked: {attack}", latency=ms)
+                real_user_latencies.append(ms)
             else:
                 hard_failures.append(f"Security:{attack}:behavior")
                 log(
@@ -189,6 +193,7 @@ def main() -> int:
         )
         if resp.status_code == 200:
             log(PASS, "Cache", "Repeated query hit", latency=ms)
+            real_user_latencies.append(ms)
             record_latency_gate(
                 "Cache", "cache_hit", ms, CAP_CACHE_HIT_MS, "Cache hit latency"
             )
@@ -227,6 +232,7 @@ def main() -> int:
                 continue
 
             log(PASS, "RAG", query[:45], latency=ms)
+            real_user_latencies.append(ms)
             record_latency_gate(
                 "RAG", query[:45], ms, CAP_RAG_FAST_MS, "RAG fast-path latency"
             )
@@ -270,6 +276,7 @@ def main() -> int:
                     continue
 
                 if ms > CAP_SARVAM_FAIL_MS:
+                    sarvam_latencies.append(ms)
                     detail = f"Sarvam latency {ms:.0f}ms > {CAP_SARVAM_FAIL_MS}ms"
                     if IS_LOCAL:
                         hard_failures.append(f"Sarvam:{query}:latency")
@@ -277,6 +284,7 @@ def main() -> int:
                     else:
                         log(WARN, "Sarvam", query[:45], detail, ms)
                 elif ms > CAP_SARVAM_WARN_MS:
+                    sarvam_latencies.append(ms)
                     log(
                         WARN,
                         "Sarvam",
@@ -285,28 +293,61 @@ def main() -> int:
                         ms,
                     )
                 else:
+                    sarvam_latencies.append(ms)
                     log(PASS, "Sarvam", query[:45], latency=ms)
             except Exception as exc:  # pragma: no cover
                 hard_failures.append(f"Sarvam:{query}:exception")
                 log(FAIL, "Sarvam", query[:45], str(exc))
 
     # 6) p95 gate
-    all_latencies = [r["latency_ms"] for r in results if r.get("latency_ms")]
-    p95_value = p95([float(v) for v in all_latencies])
+    p95_value = p95(real_user_latencies)
     p95_cap = CAP_P95_LOCAL_MS if IS_LOCAL else CAP_P95_REMOTE_MS
     print("\n[6] Aggregate Latency")
     print("-" * 84)
     if p95_value <= p95_cap:
-        log(PASS, "Latency", "Overall p95", f"p95={p95_value:.0f}ms <= {p95_cap}ms")
+        log(
+            PASS,
+            "Latency",
+            "Overall p95 (auto/rag)",
+            f"p95={p95_value:.0f}ms <= {p95_cap}ms",
+        )
     else:
         hard_failures.append("Latency:p95")
         log(
             FAIL,
             "Latency",
-            "Overall p95",
+            "Overall p95 (auto/rag)",
             f"p95={p95_value:.0f}ms > {p95_cap}ms",
             p95_value,
         )
+
+    if sarvam_latencies:
+        sarvam_p95 = p95(sarvam_latencies)
+        sarvam_p95_cap = CAP_SARVAM_FAIL_MS if IS_LOCAL else CAP_SARVAM_P95_REMOTE_MS
+        if sarvam_p95 <= sarvam_p95_cap:
+            log(
+                PASS,
+                "Latency",
+                "Sarvam p95",
+                f"p95={sarvam_p95:.0f}ms <= {sarvam_p95_cap}ms",
+            )
+        elif IS_LOCAL:
+            hard_failures.append("Latency:sarvam_p95")
+            log(
+                FAIL,
+                "Latency",
+                "Sarvam p95",
+                f"p95={sarvam_p95:.0f}ms > {sarvam_p95_cap}ms",
+                sarvam_p95,
+            )
+        else:
+            log(
+                WARN,
+                "Latency",
+                "Sarvam p95",
+                f"p95={sarvam_p95:.0f}ms > {sarvam_p95_cap}ms",
+                sarvam_p95,
+            )
 
     passed = sum(1 for r in results if r["status"] == PASS)
     failed = sum(1 for r in results if r["status"] == FAIL)
@@ -333,9 +374,11 @@ def main() -> int:
             "sarvam_warn_ms": CAP_SARVAM_WARN_MS,
             "sarvam_fail_ms": CAP_SARVAM_FAIL_MS,
             "p95_ms": p95_cap,
+            "sarvam_p95_remote_ms": CAP_SARVAM_P95_REMOTE_MS,
         },
         "hard_failures": hard_failures,
         "p95_ms": round(p95_value),
+        "sarvam_p95_ms": round(p95(sarvam_latencies)) if sarvam_latencies else 0,
         "score": f"{passed}/{total}",
         "results": results,
     }

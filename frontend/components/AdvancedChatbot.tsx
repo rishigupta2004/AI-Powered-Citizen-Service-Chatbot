@@ -38,10 +38,13 @@ import { Card, CardContent } from "./ui/card";
 import { getAllServices } from "../data/servicesData";
 import {
   sendChatMessage,
+  sendVoice,
   speechToText,
   textToSpeech,
   playAudioBlob,
+  playBase64Audio,
   ChatMessage as APIChatMessage,
+  ApiError,
 } from "../src/lib/api";
 
 interface Message {
@@ -93,6 +96,7 @@ export function AdvancedChatbot({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isSlowResponse, setIsSlowResponse] = useState(false);
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputElement, setInputElement] = useState<HTMLInputElement | null>(null);
@@ -101,6 +105,7 @@ export function AdvancedChatbot({
   const [language, setLanguage] = useState("auto");
   const [isRecording, setIsRecording] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [voiceChatEnabled, setVoiceChatEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -111,7 +116,6 @@ export function AdvancedChatbot({
   // Build message history for API
   const getHistory = useCallback((): APIChatMessage[] => {
     return messages
-      .filter((m) => m.status !== "error")
       .slice(-12)
       .map((m) => ({
         role: m.sender === "user" ? "user" : "assistant",
@@ -159,6 +163,23 @@ export function AdvancedChatbot({
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isTyping]);
+
+  // Show waiting indicator only if response exceeds 2 seconds
+  useEffect(() => {
+    if (!isTyping) {
+      setIsSlowResponse(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setIsSlowResponse(true);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      setIsSlowResponse(false);
+    };
+  }, [isTyping]);
 
   // Focus input when chat opens
   useEffect(() => {
@@ -222,7 +243,8 @@ export function AdvancedChatbot({
         userText,
         getHistory(),
         language,
-        currentService
+        currentService,
+        "auto"
       );
 
       addBotMessage(response.response, "text", undefined, response.language);
@@ -233,7 +255,11 @@ export function AdvancedChatbot({
         speakText(response.response, responseLang);
       }
     } catch (error) {
-      toast.error("Failed to get response. Please try again.");
+      if (error instanceof ApiError && error.message.includes("timed out")) {
+        toast.error("This is taking longer than expected. Please try again.");
+      } else {
+        toast.error("Failed to get response. Please try again.");
+      }
       addBotMessage(
         "I apologize, but I'm having trouble connecting to the service. Please try again later.",
         "text"
@@ -265,15 +291,33 @@ export function AdvancedChatbot({
 
         setIsTyping(true);
         try {
-          const result = await speechToText(audioBlob, language);
-          if (result.transcript) {
-            setInputValue(result.transcript);
-            toast.success(`Detected: ${result.language_code || language}`);
+          if (voiceChatEnabled) {
+            const voiceResult = await sendVoice(audioBlob, language);
+            if (voiceResult.transcript) {
+              addUserMessage(voiceResult.transcript);
+            }
+            if (voiceResult.response) {
+              addBotMessage(voiceResult.response, "text", undefined, voiceResult.language || language);
+            }
+            if (voiceResult.audio_base64) {
+              const audio = playBase64Audio(voiceResult.audio_base64);
+              currentAudioRef.current = audio;
+            }
           } else {
-            toast.error("Could not transcribe audio. Please try again.");
+            const result = await speechToText(audioBlob, language);
+            if (result.transcript) {
+              setInputValue(result.transcript);
+              toast.success(`Detected: ${result.language_code || language}`);
+            } else {
+              toast.error("Could not transcribe audio. Please try again.");
+            }
           }
         } catch (err) {
-          toast.error("Speech recognition failed");
+          if (err instanceof ApiError) {
+            toast.error(err.message);
+          } else {
+            toast.error("Speech workflow failed");
+          }
         } finally {
           setIsTyping(false);
         }
@@ -287,7 +331,7 @@ export function AdvancedChatbot({
         "Microphone access denied. Please allow mic permissions."
       );
     }
-  }, [language]);
+  }, [language, voiceChatEnabled]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
@@ -599,6 +643,17 @@ export function AdvancedChatbot({
                     )}
                   </Button>
 
+                  {/* STS Toggle */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/20 w-8 h-8"
+                    onClick={() => setVoiceChatEnabled((v) => !v)}
+                    title={voiceChatEnabled ? "Voice chat mode ON" : "Voice chat mode OFF"}
+                  >
+                    <Phone className={cn("w-4 h-4", voiceChatEnabled ? "text-green-300" : "opacity-70")} />
+                  </Button>
+
                   {/* Close */}
                   <Button
                     variant="ghost"
@@ -731,6 +786,11 @@ export function AdvancedChatbot({
                             />
                           ))}
                         </div>
+                        {isSlowResponse && (
+                          <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+                            Still working... fetching verified service details.
+                          </p>
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -804,7 +864,9 @@ export function AdvancedChatbot({
                 </form>
                 <div className="text-xs text-[var(--muted-foreground)] mt-3 text-center flex items-center justify-center gap-2">
                   <Sparkles className="w-3 h-3" />
-                  <span>Powered by Sarvam AI • Speech enabled • 24/7</span>
+                  <span>
+                    Powered by Sarvam AI • STT/TTS enabled • {voiceChatEnabled ? "STS on" : "STS off"}
+                  </span>
                 </div>
               </div>
             </div>
