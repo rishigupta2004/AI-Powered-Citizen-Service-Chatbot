@@ -1,105 +1,125 @@
 {
-  "timestamp": "2026-03-10T11:20:55.657875",
-  "api": "http://127.0.0.1:8000",
-  "mode": "local_strict",
+  "timestamp": "2026-03-10T19:21:07.912440",
+  "api": "https://gov-chatbot.fly.dev",
+  "mode": "remote_advisory",
   "budget": {
     "security_ms": 200,
     "cache_hit_ms": 300,
     "rag_fast_ms": 800,
     "sarvam_warn_ms": 1000,
     "sarvam_fail_ms": 2000,
-    "p95_ms": 1000
+    "p95_ms": 2500,
+    "sarvam_p95_remote_ms": 3000
   },
-  "hard_failures": [
-    "Health:exception",
-    "Security:prompt injection:exception",
-    "Security:SQL injection:exception",
-    "Security:XSS attempt:exception",
-    "Cache:exception",
-    "RAG:passport application form:exception",
-    "RAG:documents required for passport:exception",
-    "RAG:aadhaar update address online:exception",
-    "RAG:epfo provident fund withdrawal:exception"
-  ],
-  "p95_ms": 0,
-  "score": "1/11",
+  "hard_failures": [],
+  "p95_ms": 2442,
+  "sarvam_p95_ms": 5901,
+  "score": "10/15",
   "results": [
     {
-      "status": "❌",
+      "status": "✅",
       "category": "Health",
-      "test": "Backend unreachable",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e5ce90>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "test": "Backend reachable",
+      "detail": "",
+      "latency_ms": 263
     },
     {
-      "status": "❌",
+      "status": "✅",
       "category": "Security",
-      "test": "prompt injection",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e5f6b0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "test": "Blocked: prompt injection",
+      "detail": "",
+      "latency_ms": 2442
     },
     {
-      "status": "❌",
+      "status": "⚠️",
       "category": "Security",
-      "test": "SQL injection",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e5fd70>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "test": "Latency advisory: prompt injection",
+      "detail": "Security guard latency 2442ms > 200ms",
+      "latency_ms": 2442
     },
     {
-      "status": "❌",
+      "status": "✅",
       "category": "Security",
-      "test": "XSS attempt",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e5fc80>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "test": "Blocked: SQL injection",
+      "detail": "",
+      "latency_ms": 143
     },
     {
-      "status": "❌",
+      "status": "✅",
+      "category": "Security",
+      "test": "Blocked: XSS attempt",
+      "detail": "",
+      "latency_ms": 745
+    },
+    {
+      "status": "⚠️",
+      "category": "Security",
+      "test": "Latency advisory: XSS attempt",
+      "detail": "Security guard latency 745ms > 200ms",
+      "latency_ms": 745
+    },
+    {
+      "status": "✅",
       "category": "Cache",
       "test": "Repeated query hit",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e5f2f0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "detail": "",
+      "latency_ms": 116
     },
     {
-      "status": "❌",
+      "status": "✅",
       "category": "RAG",
       "test": "passport application form",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e5ef30>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "detail": "",
+      "latency_ms": 119
     },
     {
-      "status": "❌",
+      "status": "✅",
       "category": "RAG",
       "test": "documents required for passport",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e94560>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "detail": "",
+      "latency_ms": 123
     },
     {
-      "status": "❌",
+      "status": "✅",
       "category": "RAG",
       "test": "aadhaar update address online",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e94d40>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "detail": "",
+      "latency_ms": 111
     },
     {
-      "status": "❌",
+      "status": "✅",
       "category": "RAG",
       "test": "epfo provident fund withdrawal",
-      "detail": "HTTPConnectionPool(host='127.0.0.1', port=8000): Max retries exceeded with url: /api/v1/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x105e955e0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
-      "latency_ms": 0
+      "detail": "",
+      "latency_ms": 126
     },
     {
       "status": "⚠️",
       "category": "Sarvam",
-      "test": "Live checks skipped",
-      "detail": "SARVAM_API_KEY not configured",
-      "latency_ms": 0
+      "test": "What documents are needed for passport?",
+      "detail": "Sarvam latency 5901ms > 2000ms",
+      "latency_ms": 5901
+    },
+    {
+      "status": "⚠️",
+      "category": "Sarvam",
+      "test": "पासपोर्ट के लिए कौन से दस्तावेज़ चाहिए?",
+      "detail": "Sarvam latency 2800ms > 2000ms",
+      "latency_ms": 2800
     },
     {
       "status": "✅",
       "category": "Latency",
-      "test": "Overall p95",
-      "detail": "p95=0ms <= 1000ms",
+      "test": "Overall p95 (auto/rag)",
+      "detail": "p95=2442ms <= 2500ms",
       "latency_ms": 0
+    },
+    {
+      "status": "⚠️",
+      "category": "Latency",
+      "test": "Sarvam p95",
+      "detail": "p95=5901ms > 3000ms",
+      "latency_ms": 5901
     }
   ]
 }

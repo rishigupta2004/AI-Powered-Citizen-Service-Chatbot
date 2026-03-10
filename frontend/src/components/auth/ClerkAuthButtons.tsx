@@ -52,25 +52,33 @@ function ClerkSessionBridge() {
     if (!isLoaded || !isSignedIn || !userId) return
 
     const sync = async () => {
-      try {
-        const clerkToken = await getToken()
-        if (!clerkToken) return
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const clerkToken = await getToken()
+          if (!clerkToken) {
+            await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)))
+            continue
+          }
 
-        const res = await fetch(`${API_BASE_URL}/api/auth/clerk/sync`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clerk_token: clerkToken }),
-        })
+          const res = await fetch(`${API_BASE_URL}/api/auth/clerk/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clerk_token: clerkToken }),
+          })
 
-        if (!res.ok) {
+          if (!res.ok) {
+            await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)))
+            continue
+          }
+
+          const data = await res.json()
+          setBackendSession(data.access_token, data.refresh_token, data.user)
           return
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)))
         }
-
-        const data = await res.json()
-        setBackendSession(data.access_token, data.refresh_token, data.user)
-      } catch {
-        // Intentionally silent: Clerk UI should still function.
       }
+      console.warn('Clerk sign-in succeeded, but backend session sync failed.')
     }
 
     void sync()

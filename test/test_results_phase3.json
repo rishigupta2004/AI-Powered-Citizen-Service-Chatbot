@@ -2,10 +2,10 @@
   "phase": 3,
   "label": "22 Languages",
   "score_pct": 100,
-  "passed": 49,
-  "total": 49,
+  "passed": 48,
+  "total": 48,
   "live_lm_score": "15/15",
-  "avg_chat_latency_ms": 3965,
+  "avg_chat_latency_ms": 3472,
   "status": "PASS",
   "live_results": [
     {
@@ -14,8 +14,8 @@
       "script": "Latin",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3448,
-      "response_len": 984,
+      "latency_ms": 2740,
+      "response_len": 902,
       "detected_lang": "en"
     },
     {
@@ -24,8 +24,8 @@
       "script": "Devanagari",
       "rtl": false,
       "pass": true,
-      "latency_ms": 4239,
-      "response_len": 858,
+      "latency_ms": 3479,
+      "response_len": 710,
       "detected_lang": "hi"
     },
     {
@@ -34,8 +34,8 @@
       "script": "Bengali",
       "rtl": false,
       "pass": true,
-      "latency_ms": 4592,
-      "response_len": 1002,
+      "latency_ms": 3801,
+      "response_len": 705,
       "detected_lang": "bn"
     },
     {
@@ -44,8 +44,8 @@
       "script": "Telugu",
       "rtl": false,
       "pass": true,
-      "latency_ms": 2548,
-      "response_len": 340,
+      "latency_ms": 3297,
+      "response_len": 690,
       "detected_lang": "te"
     },
     {
@@ -54,8 +54,8 @@
       "script": "Devanagari",
       "rtl": false,
       "pass": true,
-      "latency_ms": 4063,
-      "response_len": 844,
+      "latency_ms": 3238,
+      "response_len": 682,
       "detected_lang": "mr"
     },
     {
@@ -64,8 +64,8 @@
       "script": "Tamil",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3581,
-      "response_len": 696,
+      "latency_ms": 3399,
+      "response_len": 937,
       "detected_lang": "ta"
     },
     {
@@ -74,8 +74,8 @@
       "script": "Gujarati",
       "rtl": false,
       "pass": true,
-      "latency_ms": 4974,
-      "response_len": 955,
+      "latency_ms": 3139,
+      "response_len": 605,
       "detected_lang": "gu"
     },
     {
@@ -84,8 +84,8 @@
       "script": "Kannada",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3980,
-      "response_len": 827,
+      "latency_ms": 6022,
+      "response_len": 780,
       "detected_lang": "kn"
     },
     {
@@ -94,8 +94,8 @@
       "script": "Malayalam",
       "rtl": false,
       "pass": true,
-      "latency_ms": 4887,
-      "response_len": 1018,
+      "latency_ms": 3492,
+      "response_len": 855,
       "detected_lang": "ml"
     },
     {
@@ -104,8 +104,8 @@
       "script": "Gurmukhi",
       "rtl": false,
       "pass": true,
-      "latency_ms": 5981,
-      "response_len": 877,
+      "latency_ms": 3429,
+      "response_len": 718,
       "detected_lang": "pa"
     },
     {
@@ -114,8 +114,8 @@
       "script": "Odia",
       "rtl": false,
       "pass": true,
-      "latency_ms": 5670,
-      "response_len": 226,
+      "latency_ms": 3760,
+      "response_len": 768,
       "detected_lang": "or"
     },
     {
@@ -124,8 +124,8 @@
       "script": "Bengali",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3410,
-      "response_len": 445,
+      "latency_ms": 2726,
+      "response_len": 185,
       "detected_lang": "as"
     },
     {
@@ -134,8 +134,8 @@
       "script": "Arabic",
       "rtl": true,
       "pass": true,
-      "latency_ms": 1820,
-      "response_len": 265,
+      "latency_ms": 2673,
+      "response_len": 185,
       "detected_lang": "ur"
     },
     {
@@ -144,8 +144,8 @@
       "script": "Arabic",
       "rtl": true,
       "pass": true,
-      "latency_ms": 2089,
-      "response_len": 250,
+      "latency_ms": 3609,
+      "response_len": 205,
       "detected_lang": "ks"
     },
     {
@@ -154,8 +154,8 @@
       "script": "Devanagari",
       "rtl": false,
       "pass": true,
-      "latency_ms": 4196,
-      "response_len": 827,
+      "latency_ms": 3270,
+      "response_len": 712,
       "detected_lang": "ne"
     }
   ],
@@ -257,6 +257,10 @@
       "pass": true
     },
     {
+      "label": "Font: Noto Sans Devanagari",
+      "pass": true
+    },
+    {
       "label": "Font: Noto Sans Bengali",
       "pass": true
     },
@@ -285,15 +289,7 @@
       "pass": true
     },
     {
-      "label": "Font: Noto Sans Odia",
-      "pass": true
-    },
-    {
       "label": "Font: Noto Sans Arabic",
-      "pass": true
-    },
-    {
-      "label": "Font: Noto Sans Ol Chiki",
       "pass": true
     },
     {

@@ -19,6 +19,7 @@ from core.config import (
     CLERK_FRONTEND_API_URL,
     CLERK_DOMAIN,
     CLERK_JWKS_URL,
+    CLERK_SECRET_KEY,
 )
 from core.database import get_db
 from routes.auth_endpoints import AuthResponse, create_user_session
@@ -83,6 +84,55 @@ async def _verify_clerk_token(token: str) -> dict[str, Any]:
         raise HTTPException(status_code=401, detail=f"Invalid Clerk token: {exc}")
 
 
+async def _fetch_clerk_user_profile(clerk_user_id: str) -> dict[str, Any]:
+    if not CLERK_SECRET_KEY or not clerk_user_id:
+        return {}
+    endpoint = f"{CLERK_BACKEND_API_URL.rstrip('/')}/v1/users/{clerk_user_id}"
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                endpoint,
+                headers={
+                    "Authorization": f"Bearer {CLERK_SECRET_KEY}",
+                    "Content-Type": "application/json",
+                },
+            )
+            if resp.status_code >= 400:
+                logger.warning(
+                    "Clerk profile fetch failed for %s with status %s",
+                    clerk_user_id,
+                    resp.status_code,
+                )
+                return {}
+            payload = resp.json()
+            if not isinstance(payload, dict):
+                return {}
+            return payload
+    except Exception as exc:
+        logger.warning("Clerk profile fetch error for %s: %s", clerk_user_id, exc)
+        return {}
+
+
+def _extract_primary_contact(
+    profile: dict[str, Any], key: str, primary_id_key: str
+) -> str | None:
+    entries = profile.get(key)
+    if not isinstance(entries, list):
+        return None
+    primary_id = profile.get(primary_id_key)
+    selected = None
+    if primary_id:
+        selected = next(
+            (item for item in entries if item.get("id") == primary_id), None
+        )
+    if not selected and entries:
+        selected = entries[0]
+    if not isinstance(selected, dict):
+        return None
+    value = selected.get("email_address") or selected.get("phone_number")
+    return value if isinstance(value, str) and value else None
+
+
 def _clerk_strategy_to_auth_method(claims: dict[str, Any]) -> AuthMethod:
     ext_accounts = claims.get("external_accounts", [])
     for acc in ext_accounts:
@@ -111,14 +161,44 @@ async def clerk_sync(
     claims = await _verify_clerk_token(payload.clerk_token)
 
     clerk_user_id: str = claims.get("sub", "")
+    profile = await _fetch_clerk_user_profile(clerk_user_id)
+
     email: Optional[str] = claims.get("email") or claims.get("email_address")
+    if not email:
+        email = _extract_primary_contact(
+            profile,
+            "email_addresses",
+            "primary_email_address_id",
+        )
+
     phone: Optional[str] = claims.get("phone_number")
-    first_name: str = claims.get("given_name") or claims.get("first_name") or "User"
-    last_name: str = claims.get("family_name") or claims.get("last_name") or ""
+    if not phone:
+        phone = _extract_primary_contact(
+            profile,
+            "phone_numbers",
+            "primary_phone_number_id",
+        )
+
+    first_name: str = (
+        claims.get("given_name")
+        or claims.get("first_name")
+        or str(profile.get("first_name") or "")
+        or "User"
+    )
+    last_name: str = (
+        claims.get("family_name")
+        or claims.get("last_name")
+        or str(profile.get("last_name") or "")
+        or ""
+    )
     full_name: str = f"{first_name} {last_name}".strip()
     is_verified: bool = bool(
         claims.get("email_verified") or claims.get("phone_verified")
     )
+    if not is_verified and profile:
+        is_verified = bool(
+            profile.get("email_addresses") or profile.get("phone_numbers")
+        )
 
     if not email and not phone:
         raise HTTPException(

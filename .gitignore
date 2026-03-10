@@ -207,3 +207,10 @@ local_settings.py
 # End of file
 .venv/
 .env
+.env.local
+.env.*.local
+*/secrets.json
+*/.credentials
+secrets.json            
+.env.example
+    
