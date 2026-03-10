@@ -51,10 +51,10 @@ export function Login({ onNavigate }: LoginProps) {
               appearance={{
                 variables: {
                   colorPrimary: '#000080',
-                  colorText: 'rgb(var(--foreground-rgb, 17 24 39))',
-                  colorBackground: 'rgb(var(--card-rgb, 255 255 255))',
-                  colorInputBackground: 'rgb(var(--input-bg-rgb, 255 255 255))',
-                  colorInputText: 'rgb(var(--foreground-rgb, 17 24 39))',
+                  colorText: '#111827',
+                  colorBackground: '#ffffff',
+                  colorInputBackground: '#ffffff',
+                  colorInputText: '#111827',
                 },
                 elements: {
                   cardBox: 'shadow-none bg-[var(--card)]',

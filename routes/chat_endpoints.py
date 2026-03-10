@@ -275,104 +275,6 @@ def _looks_like_upstream_error(text: str) -> bool:
     return any(p in lowered for p in patterns)
 
 
-def _instant_service_template(query: str, language: str) -> Optional[str]:
-    q = (query or "").lower()
-    is_hi = language == "hi"
-    is_bn = language == "bn"
-    is_as = language == "as"
-    if any(
-        token in q
-        for token in ["passport", "पासपोर्ट", "পাসপোর্ট", "પાસપોર્ટ", "பாஸ்போர்ட்", "పాస్పోర్ట్"]
-    ):
-        if is_hi:
-            return (
-                "पासपोर्ट सेवा के लिए यह त्वरित चेकलिस्ट अपनाएं:\n"
-                "1. Passport Seva पोर्टल पर रजिस्टर/लॉगिन करें।\n"
-                "2. Fresh/Renewal फॉर्म भरकर सबमिट करें।\n"
-                "3. शुल्क भुगतान करें और PSK/POPSK अपॉइंटमेंट बुक करें।\n"
-                "4. अपॉइंटमेंट पर पहचान, पता और DOB दस्तावेज़ साथ रखें।\n"
-                "5. पुलिस वेरिफिकेशन और डिस्पैच के लिए फाइल नंबर ट्रैक करें।"
-            )
-        if is_bn:
-            return (
-                "পাসপোর্ট পরিষেবার জন্য দ্রুত চেকলিস্ট:\n"
-                "1. Passport Seva পোর্টালে রেজিস্টার/লগইন করুন।\n"
-                "2. নতুন/রিনিউয়াল ফর্ম পূরণ করে জমা দিন।\n"
-                "3. ফি প্রদান করে PSK/POPSK অ্যাপয়েন্টমেন্ট বুক করুন।\n"
-                "4. অ্যাপয়েন্টমেন্টে পরিচয়, ঠিকানা ও DOB প্রমাণ নিয়ে যান।\n"
-                "5. পুলিশ ভেরিফিকেশন ও ডিসপ্যাচের জন্য ফাইল নম্বর ট্র্যাক করুন।"
-            )
-        if is_as:
-            return (
-                "পাছপ’ৰ্ট সেৱাৰ বাবে দ্ৰুত চেকলিষ্ট:\n"
-                "1. Passport Seva প’ৰ্টেলত ৰেজিষ্টাৰ/লগইন কৰক।\n"
-                "2. নতুন/নৱীকৰণ ফৰ্ম পূৰণ কৰি দাখিল কৰক।\n"
-                "3. ফী পৰিশোধ কৰি PSK/POPSK অ্যাপইণ্টমেণ্ট বুক কৰক।\n"
-                "4. অ্যাপইণ্টমেণ্টত পৰিচয়, ঠিকনা আৰু জন্ম তাৰিখৰ প্ৰমাণ লৈ যাওক।\n"
-                "5. পুলিচ ভেৰিফিকেচন আৰু ডিচপেচৰ বাবে ফাইল নম্বৰ ট্ৰেক কৰক।"
-            )
-        return (
-            "For Passport service, follow this fast checklist:\n"
-            "1. Register/login on Passport Seva portal.\n"
-            "2. Fill fresh/renewal form and submit.\n"
-            "3. Pay fee and book PSK/POPSK appointment.\n"
-            "4. Carry identity, address, and DOB proofs to appointment.\n"
-            "5. Track file number for police verification and dispatch."
-        )
-    if any(
-        token in q
-        for token in ["aadhaar", "aadhar", "आधार", "আধার", "আধার", "ಆಧಾರ್", "ஆதார்"]
-    ):
-        if is_hi:
-            return (
-                "आधार अपडेट के लिए UIDAI आधिकारिक पोर्टल का उपयोग करें:\n"
-                "1. अपडेट प्रकार चुनें (पता/नाम/DOB/मोबाइल)।\n"
-                "2. UIDAI सूची के अनुसार सपोर्टिंग डॉक्यूमेंट अपलोड करें।\n"
-                "3. शुल्क भुगतान कर अनुरोध सबमिट करें।\n"
-                "4. URN सेव करें और स्टेटस ट्रैक करें।"
-            )
-        return (
-            "For Aadhaar update, use UIDAI official portal:\n"
-            "1. Choose update type (address/name/DOB/mobile).\n"
-            "2. Upload supporting document from UIDAI list.\n"
-            "3. Pay update fee and submit.\n"
-            "4. Save URN and track status online."
-        )
-    if any(token in q for token in ["pan", "पैन", "প্যান", "પાન"]):
-        if is_hi:
-            return (
-                "PAN सेवाओं के लिए:\n"
-                "1. NSDL/UTI आधिकारिक PAN पोर्टल खोलें।\n"
-                "2. नया PAN या करेक्शन विकल्प चुनें।\n"
-                "3. फॉर्म भरें, दस्तावेज़ अपलोड करें, शुल्क दें।\n"
-                "4. स्टेटस के लिए acknowledgement नंबर ट्रैक करें।"
-            )
-        return (
-            "For PAN services:\n"
-            "1. Use NSDL/UTI official PAN service page.\n"
-            "2. Select new PAN or correction.\n"
-            "3. Fill form, upload proof, and pay fee.\n"
-            "4. Track acknowledgement number for status."
-        )
-    if any(token in q for token in ["epfo", "pf", "ईपीएफओ", "पीएफ", "ইপিএফও"]):
-        if is_hi:
-            return (
-                "EPFO सेवाओं के लिए:\n"
-                "1. UAN से EPFO Member e-Sewa में लॉगिन करें।\n"
-                "2. KYC और बैंक डिटेल approved होनी चाहिए।\n"
-                "3. Online Services से claim/transfer/passbook कार्य करें।\n"
-                "4. सबमिशन के बाद पोर्टल में claim status ट्रैक करें।"
-            )
-        return (
-            "For EPFO services:\n"
-            "1. Login to EPFO Member e-Sewa using UAN.\n"
-            "2. Verify KYC and bank details are approved.\n"
-            "3. Use Online Services for claim/transfer/passbook actions.\n"
-            "4. Track claim status in portal after submission."
-        )
-    return None
-
-
 def _compress_for_voice(text: str, max_chars: int = 140) -> str:
     cleaned = re.sub(r"\s+", " ", (text or "")).strip()
     if len(cleaned) <= max_chars:
@@ -643,6 +545,16 @@ async def chat(
         lang = detect_language(query)
     lang = _normalize_chat_language(lang)
 
+    retrieval_query = query
+    if lang != "en":
+        translated_query = await sarvam.translate(
+            query,
+            source_language=lang,
+            target_language="en",
+        )
+        if translated_query and translated_query.strip():
+            retrieval_query = translated_query.strip()
+
     response_mode = (request.response_mode or "auto").strip().lower()
     if response_mode not in {"auto", "rag_only", "sarvam"}:
         response_mode = "auto"
@@ -666,7 +578,7 @@ async def chat(
             session_id=request.session_id,
         )
 
-    cache_key = f"{response_mode}:{query}"
+    cache_key = f"{response_mode}:{retrieval_query}"
     if response_mode != "sarvam":
         cached = chat_cache.get(cache_key, lang)
         if cached:
@@ -679,15 +591,15 @@ async def chat(
     response.headers["X-Cache-Hit"] = "0"
 
     search_started = time.perf_counter()
-    context_parts, sources = _search_context_fast(db, query, limit=3)
+    context_parts, sources = _search_context_fast(db, retrieval_query, limit=3)
     search_elapsed_ms = int((time.perf_counter() - search_started) * 1000)
     response.headers["X-Latency-Search-MS"] = str(search_elapsed_ms)
     context_text = "\n\n".join(context_parts) if context_parts else ""
 
-    fallback_response = _build_rag_fallback(query, lang, context_parts, user)
+    fallback_response = _build_rag_fallback(retrieval_query, lang, context_parts, user)
     response_text = fallback_response
 
-    prefer_rag_fast_path = _should_use_rag_fast_path(query, context_parts)
+    prefer_rag_fast_path = _should_use_rag_fast_path(retrieval_query, context_parts)
     use_sarvam = response_mode == "sarvam" or (
         response_mode == "auto" and not prefer_rag_fast_path
     )
@@ -712,7 +624,7 @@ async def chat(
         messages = []
         for msg in (request.history or [])[-6:]:
             messages.append({"role": msg.role, "content": msg.content})
-        messages.append({"role": "user", "content": query})
+        messages.append({"role": "user", "content": retrieval_query})
 
         timeout_seconds = float(os.getenv("SARVAM_CHAT_TIMEOUT_SEC", "2.0"))
         try:
@@ -743,6 +655,15 @@ async def chat(
         ):
             response_text = fallback_response
             route_mode_used = "rag_fallback"
+
+    if lang != "en" and response_text:
+        translated = await sarvam.translate(
+            response_text,
+            source_language="en",
+            target_language=lang,
+        )
+        if translated and translated.strip():
+            response_text = translated.strip()
 
     if user or request.session_id:
         user_msg = ChatSession(
@@ -963,7 +884,17 @@ async def voice_chat(
     from core.search import SearchEngine
 
     engine = SearchEngine(db=db)
-    results = engine.search(transcript, limit=3)
+    search_text = transcript
+    if target_lang != "en":
+        translated_search = await sarvam.translate(
+            transcript,
+            source_language=target_lang,
+            target_language="en",
+        )
+        if translated_search and translated_search.strip():
+            search_text = translated_search.strip()
+
+    results = engine.search(search_text, limit=3)
     context = "\n".join(
         c.get("content", "")[:300] for c in results.get("results", [])[:3]
     )
@@ -977,20 +908,29 @@ async def voice_chat(
                 c.get("content", "") for c in results.get("results", [])[:3]
             ]
             response_text = _build_rag_fallback(
-                transcript, target_lang, context_parts, None
+                search_text, target_lang, context_parts, None
             )
         else:
-            response_text = _build_rag_fallback(transcript, target_lang, [], None)
+            response_text = _build_rag_fallback(search_text, target_lang, [], None)
     else:
         system = (
             "You are SevaSindhu AI for Indian government services. "
             f"Answer only in {target_lang} language in concise, citizen-friendly steps.\n"
             f"Context:\n{context}"
         )
-        messages = [{"role": "user", "content": transcript}]
+        messages = [{"role": "user", "content": search_text}]
         response_text = await sarvam.chat(
             messages=messages, system_prompt=system, max_tokens=120
         )
+    if target_lang != "en" and response_text:
+        translated = await sarvam.translate(
+            response_text,
+            source_language="en",
+            target_language=target_lang,
+        )
+        if translated and translated.strip():
+            response_text = translated.strip()
+
     voice_text = _compress_for_voice(response_text, max_chars=max_voice_chars)
     if fast_mode:
         response_text = voice_text
