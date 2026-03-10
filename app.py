@@ -173,11 +173,15 @@ async def get_service_docs(service_slug: str):
             rel = file_path.relative_to(DOCS_DIR).as_posix()
             if rel in seen_paths:
                 continue
+            try:
+                size_kb = max(1, int(file_path.stat().st_size / 1024))
+            except FileNotFoundError:
+                continue
             docs.append(
                 {
                     "name": file_path.stem.replace("-", " ").replace("_", " ").strip(),
                     "format": "PDF",
-                    "size": f"{max(1, int(file_path.stat().st_size / 1024))} KB",
+                    "size": f"{size_kb} KB",
                     "url": f"/public/docs/{quote(rel)}",
                     "source": folder,
                 }
