@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SignIn } from '@clerk/clerk-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 import { Shield } from 'lucide-react';
 
 interface LoginProps {
@@ -11,8 +12,12 @@ interface LoginProps {
 
 export function Login({ onNavigate }: LoginProps) {
   const { t } = useTranslation();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
   const hasClerkKey = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigateAfterLogin = () => {
     const redirect = sessionStorage.getItem('redirectAfterLogin');
@@ -29,6 +34,26 @@ export function Login({ onNavigate }: LoginProps) {
       navigateAfterLogin();
     }
   }, [isAuthenticated]);
+
+  const handleFallbackLogin = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!identifier.trim() || !password.trim()) {
+      setLoginError(t('login.errors.loginFailed', 'Please enter your email/phone and password.'));
+      return;
+    }
+
+    setLoginError('');
+    setIsSubmitting(true);
+    try {
+      await login(identifier, password);
+      navigateAfterLogin();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setLoginError(message || t('login.errors.loginFailed', 'Invalid email or password'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[var(--surface-2)] via-[var(--background)] to-[var(--surface-3)] flex items-center justify-center p-4">
@@ -69,10 +94,36 @@ export function Login({ onNavigate }: LoginProps) {
               }}
             />
           ) : (
-            <div className="space-y-3 p-4 text-center">
-              <p className="text-sm text-[var(--muted-foreground)]">{t('login.errors.loginFailed', 'Authentication is unavailable right now.')}</p>
-              <Button onClick={() => onNavigate('home')} disabled={isLoading}>{t('navigation.home', 'Home')}</Button>
-            </div>
+            <form className="space-y-3 p-4" onSubmit={handleFallbackLogin}>
+              <p className="text-sm text-center text-[var(--muted-foreground)]">
+                {t(
+                  'auth.clerkNotConfigured',
+                  'Using backup sign-in. Clerk is not configured on this frontend deployment.'
+                )}
+              </p>
+              <Input
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder={t('login.email', 'Email') + ' / ' + t('login.phone', 'Phone')}
+                autoComplete="username"
+              />
+              <Input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('login.password', 'Password')}
+                type="password"
+                autoComplete="current-password"
+              />
+              {loginError && <p className="text-sm text-center text-red-600">{loginError}</p>}
+              <div className="flex items-center justify-center gap-2">
+                <Button type="submit" disabled={isLoading || isSubmitting}>
+                  {isSubmitting ? t('common.loading', 'Loading...') : t('navigation.signIn', 'Sign In')}
+                </Button>
+                <Button type="button" variant="outline" onClick={() => onNavigate('home')} disabled={isLoading || isSubmitting}>
+                  {t('navigation.home', 'Home')}
+                </Button>
+              </div>
+            </form>
           )}
         </div>
 

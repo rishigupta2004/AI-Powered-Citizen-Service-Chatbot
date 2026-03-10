@@ -899,7 +899,7 @@ export function AdvancedChatbot({
   );
 }
 
-function _compressForSpeak(text: string, maxChars = 220): string {
+function _compressForSpeak(text: string, maxChars = 1800): string {
   const cleaned = (text || "").replace(/\s+/g, " ").trim();
   if (cleaned.length <= maxChars) {
     return cleaned;

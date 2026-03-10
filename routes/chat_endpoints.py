@@ -276,7 +276,7 @@ def _looks_like_upstream_error(text: str) -> bool:
     return any(p in lowered for p in patterns)
 
 
-def _compress_for_voice(text: str, max_chars: int = 140) -> str:
+def _compress_for_voice(text: str, max_chars: int = 1200) -> str:
     cleaned = re.sub(r"\s+", " ", (text or "")).strip()
     if len(cleaned) <= max_chars:
         return cleaned
@@ -631,9 +631,8 @@ async def chat(
     fallback_response = _build_rag_fallback(retrieval_query, lang, context_parts, user)
     response_text = fallback_response
 
-    prefer_rag_fast_path = _should_use_rag_fast_path(retrieval_query, context_parts)
     use_sarvam = response_mode == "sarvam" or (
-        response_mode == "auto" and not prefer_rag_fast_path
+        response_mode == "auto" and sarvam.is_available()
     )
 
     llm_elapsed_ms = 0
@@ -723,7 +722,7 @@ async def chat(
     payload = ChatResponse(
         response=response_text,
         language=lang,
-        speak_text=_compress_for_voice(response_text, max_chars=180),
+        speak_text=_compress_for_voice(response_text, max_chars=1200),
         actions=_build_guided_actions(query, lang),
         sources=sources,
         session_id=request.session_id,
@@ -879,7 +878,7 @@ async def voice_chat(
     audio: UploadFile = File(...),
     language: str = "hi",
     fast_mode: bool = True,
-    max_voice_chars: int = Query(140, ge=80, le=220),
+    max_voice_chars: int = Query(500, ge=120, le=1500),
     db: Session = Depends(get_db),
 ):
     """Full Speech-to-Speech: STT → RAG/LLM → TTT → TTS."""

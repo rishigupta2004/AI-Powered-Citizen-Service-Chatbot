@@ -143,12 +143,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (emailOrPhone: string, password: string): Promise<void> => {
+    const normalized = emailOrPhone.trim();
+    const looksLikePhone = /^\+?[1-9]\d{6,14}$/.test(normalized);
+    const payload = looksLikePhone
+      ? { phone: normalized, password }
+      : { email: normalized, password };
+
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email_or_phone: emailOrPhone, password }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
