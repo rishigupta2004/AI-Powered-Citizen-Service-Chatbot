@@ -276,7 +276,14 @@ async def login(request: LoginRequest, req: Request, db: Session = Depends(get_d
         .first()
     )
 
-    if not user or not verify_password(request.password, user.password_hash):
+    password_ok = False
+    if user and user.password_hash:
+        try:
+            password_ok = verify_password(request.password, user.password_hash)
+        except Exception:
+            password_ok = False
+
+    if not user or not password_ok:
         log_login_attempt(
             db, request.email, request.phone, req, False, "Invalid credentials"
         )
