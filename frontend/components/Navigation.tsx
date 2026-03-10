@@ -22,6 +22,7 @@ export function Navigation({ onNavigate, currentPage }: NavigationProps) {
   const shouldReduceMotion = useReducedMotion();
   const { theme, toggleTheme, isHighContrast } = useTheme();
   const { t } = useTranslation();
+  const hasClerk = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 12);
@@ -148,6 +149,14 @@ export function Navigation({ onNavigate, currentPage }: NavigationProps) {
 
               <div className="hidden lg:flex items-center gap-2">
                 <ClerkAuthButtons />
+                {!hasClerk && (
+                  <Button
+                    className="rounded-full bg-[var(--color-navy)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--color-navy-700)]"
+                    onClick={() => handleNavigate("login")}
+                  >
+                    {t("navigation.signIn", "Sign In")}
+                  </Button>
+                )}
               </div>
 
               <Button
@@ -232,6 +241,11 @@ export function Navigation({ onNavigate, currentPage }: NavigationProps) {
 
                 <div className="pt-2 flex justify-center">
                   <ClerkAuthButtons />
+                  {!hasClerk && (
+                    <Button onClick={() => handleNavigate("login")}>
+                      {t("navigation.signIn", "Sign In")}
+                    </Button>
+                  )}
                 </div>
               </div>
             </motion.div>

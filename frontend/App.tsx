@@ -11,16 +11,28 @@ import { AboutPage } from "./components/pages/AboutPage";
 import { AdminPortalPage } from "./components/pages/AdminPortalPage";
 import { UserDashboard } from "./components/pages/UserDashboard";
 import { ApplicationTracker } from "./components/pages/ApplicationTracker";
+import { Login } from "./src/pages/Login";
 import { Toaster } from "./components/ui/sonner";
+import { toast } from "sonner";
 import { ArrowUp } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useAuthContext } from "./src/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
+
+type ClerkWindow = Window & {
+  Clerk?: {
+    openSignIn?: (opts?: { redirectUrl?: string }) => void;
+  };
+};
 
 function AppContent() {
   const shouldReduceMotion = useReducedMotion();
+  const { isAuthenticated } = useAuthContext();
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState("home");
   const [currentServiceId, setCurrentServiceId] =
-    useState<string>("passport");
+    useState<string>("passport_seva");
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -36,15 +48,51 @@ function AppContent() {
       window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+    const redirect = sessionStorage.getItem("redirectAfterLogin");
+    if (!redirect) {
+      return;
+    }
+    sessionStorage.removeItem("redirectAfterLogin");
+    const target = redirect === "apply" ? "dashboard" : redirect;
+    setCurrentPage(target);
+  }, [isAuthenticated]);
+
+  const openAuthModal = (targetPage: string) => {
+    sessionStorage.setItem("redirectAfterLogin", targetPage);
+    const hasClerkKey = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+    if (hasClerkKey) {
+      const clerk = (window as ClerkWindow).Clerk;
+      if (clerk?.openSignIn) {
+        clerk.openSignIn({ redirectUrl: window.location.href });
+        return;
+      }
+    }
+    toast.info(t("auth.signInRequired", "Please sign in to continue."));
+    setCurrentPage("login");
+  };
+
   const handleNavigate = (page: string, serviceId?: string) => {
-    setCurrentPage(page);
+    const protectedPages = new Set(["dashboard", "tracker", "apply"]);
+    if (protectedPages.has(page) && !isAuthenticated) {
+      openAuthModal(page);
+      return;
+    }
+
+    const resolvedPage = page === "apply" ? "dashboard" : page;
+    setCurrentPage(resolvedPage);
     if (serviceId) {
       setCurrentServiceId(serviceId);
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     // Announce page change to screen readers
-    const announcement = `Navigated to ${page} page`;
+    const announcement = t("app.navigatedTo", "Navigated to {{page}} page", {
+      page,
+    });
     const liveRegion = document.getElementById("live-region");
     if (liveRegion) {
       liveRegion.textContent = announcement;
@@ -69,11 +117,19 @@ function AppContent() {
           />
         );
       case "dashboard":
+        if (!isAuthenticated) {
+          return <Login onNavigate={handleNavigate} />;
+        }
         return <UserDashboard onNavigate={handleNavigate} />;
       case "tracker":
+        if (!isAuthenticated) {
+          return <Login onNavigate={handleNavigate} />;
+        }
         return (
           <ApplicationTracker onNavigate={handleNavigate} />
         );
+      case "login":
+        return <Login onNavigate={handleNavigate} />;
       case "faq":
         return <FAQPage onNavigate={handleNavigate} />;
       case "about":
@@ -88,13 +144,13 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       {/* Skip to Main Content Link */}
-      <a
-        href="#main-content"
-        className="skip-link"
-        tabIndex={0}
-      >
-        Skip to main content
-      </a>
+        <a
+          href="#main-content"
+          className="skip-link"
+          tabIndex={0}
+        >
+          {t("navigation.skipMain", "Skip to main content")}
+        </a>
 
       {/* Live Region for Screen Reader Announcements */}
       <div
@@ -147,7 +203,7 @@ function AppContent() {
           onClick={scrollToTop}
           size="icon"
           className="fixed bottom-24 left-6 z-[var(--z-fixed)] w-12 h-12 rounded-full bg-[var(--card)] border-2 border-[var(--border)] shadow-[var(--shadow-8)] hover:shadow-[var(--shadow-12)] hover:-translate-y-1 transition-all"
-          aria-label="Scroll to top"
+          aria-label={t("app.scrollTop", "Scroll to top")}
         >
           <ArrowUp className="w-5 h-5 text-[var(--primary)]" />
         </Button>

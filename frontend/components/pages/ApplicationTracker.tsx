@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   CheckCircle2,
   Clock,
@@ -31,8 +32,36 @@ interface ApplicationTrackerProps {
   applicationId?: string;
 }
 
-export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: ApplicationTrackerProps) {
+export function ApplicationTracker({ onNavigate, applicationId = '' }: ApplicationTrackerProps) {
+  const { t } = useTranslation();
   const [expandedStep, setExpandedStep] = useState<number | null>(2);
+
+  if (!applicationId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[var(--background)] to-[var(--background-secondary)] pt-32 pb-20">
+        <div className="max-w-4xl mx-auto px-[var(--space-4)] sm:px-[var(--space-6)] lg:px-[var(--space-8)]">
+          <Button variant="ghost" onClick={() => onNavigate('dashboard')} className="mb-6 -ml-2">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {t('tracker.backToDashboard', 'Back to Dashboard')}
+          </Button>
+          <Card className="border-2 border-[var(--card-border)] shadow-[var(--shadow-8)]">
+            <CardHeader>
+              <CardTitle>{t('tracker.title', 'Application Tracker')}</CardTitle>
+              <CardDescription>
+                {t(
+                  'tracker.emptyDescription',
+                  'No live application selected yet. Enter an ARN/application reference from your dashboard to track real status.'
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => onNavigate('services')}>{t('tracker.exploreServices', 'Explore Services')}</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   // Mock application data
   const application = {
@@ -170,16 +199,16 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
             className="mb-4 -ml-2"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
+            {t('tracker.backToDashboard', 'Back to Dashboard')}
           </Button>
 
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-4xl font-bold text-[var(--foreground)] mb-2">
-                Application Tracker
+                {t('tracker.title', 'Application Tracker')}
               </h1>
               <p className="text-[var(--muted-foreground)]">
-                Track your {application.service} application status
+                {t('tracker.trackServiceStatus', 'Track your {{service}} application status', { service: application.service })}
               </p>
             </div>
             <div className="flex gap-2">
@@ -217,7 +246,7 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
                 {/* Progress Bar */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-[var(--muted-foreground)]">Overall Progress</span>
+                    <span className="text-[var(--muted-foreground)]">{t('tracker.overallProgress', 'Overall Progress')}</span>
                     <span className="font-bold text-[var(--foreground)] text-lg">{application.progress}%</span>
                   </div>
                   <Progress value={application.progress} className="h-3" />
@@ -228,19 +257,19 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
                 {/* Application Details */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <div className="text-xs text-[var(--muted-foreground)] mb-1">Applicant</div>
+                    <div className="text-xs text-[var(--muted-foreground)] mb-1">{t('tracker.applicant', 'Applicant')}</div>
                     <div className="font-semibold text-[var(--foreground)]">{application.applicantName}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-[var(--muted-foreground)] mb-1">Application ID</div>
+                    <div className="text-xs text-[var(--muted-foreground)] mb-1">{t('tracker.applicationId', 'Application ID')}</div>
                     <div className="font-semibold text-[var(--foreground)]">{application.id}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-[var(--muted-foreground)] mb-1">Submitted</div>
+                    <div className="text-xs text-[var(--muted-foreground)] mb-1">{t('tracker.submitted', 'Submitted')}</div>
                     <div className="font-semibold text-[var(--foreground)]">{application.submittedDate}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-[var(--muted-foreground)] mb-1">Expected</div>
+                    <div className="text-xs text-[var(--muted-foreground)] mb-1">{t('tracker.expected', 'Expected')}</div>
                     <div className="font-semibold text-[var(--foreground)]">{application.expectedDate}</div>
                   </div>
                 </div>
@@ -249,7 +278,7 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
 
                 {/* Reference Number */}
                 <div className="bg-[var(--muted)]/30 rounded-[var(--radius-lg)] p-4 border border-[var(--border)]">
-                  <div className="text-xs text-[var(--muted-foreground)] mb-1">Reference Number</div>
+                  <div className="text-xs text-[var(--muted-foreground)] mb-1">{t('tracker.referenceNumber', 'Reference Number')}</div>
                   <div className="font-mono font-bold text-[var(--foreground)] text-lg">
                     {application.referenceNumber}
                   </div>
@@ -267,8 +296,8 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
         >
           <Card className="border-2 border-[var(--card-border)] shadow-[var(--shadow-8)]">
             <CardHeader>
-              <CardTitle>Application Timeline</CardTitle>
-              <CardDescription>Detailed status of each step in your application</CardDescription>
+              <CardTitle>{t('tracker.timelineTitle', 'Application Timeline')}</CardTitle>
+              <CardDescription>{t('tracker.timelineDescription', 'Detailed status of each step in your application')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="relative">
@@ -314,14 +343,14 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
                                   </h3>
                                   {step.status === 'completed' && (
                                     <Badge className="bg-[var(--accent)] text-white">
-                                      Completed
-                                    </Badge>
-                                  )}
-                                  {step.status === 'in-progress' && (
-                                    <Badge className="bg-[var(--secondary)] text-white">
-                                      In Progress
-                                    </Badge>
-                                  )}
+                                       {t('tracker.completed', 'Completed')}
+                                     </Badge>
+                                   )}
+                                   {step.status === 'in-progress' && (
+                                     <Badge className="bg-[var(--secondary)] text-white">
+                                       {t('tracker.inProgress', 'In Progress')}
+                                     </Badge>
+                                   )}
                                 </div>
                                 <p className="text-[var(--muted-foreground)] text-sm">
                                   {step.description}
@@ -401,9 +430,9 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
         >
           <Card className="border-2 border-[var(--card-border)] bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] text-white">
             <CardHeader>
-              <CardTitle className="text-white">Need Help?</CardTitle>
+              <CardTitle className="text-white">{t('tracker.needHelp', 'Need Help?')}</CardTitle>
               <CardDescription className="text-white/80">
-                Our support team is here to assist you
+                {t('tracker.supportDescription', 'Our support team is here to assist you')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -413,21 +442,21 @@ export function ApplicationTracker({ onNavigate, applicationId = 'APP001' }: App
                   className="h-auto py-4 flex-col gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
                 >
                   <Info className="w-6 h-6" />
-                  <span className="text-sm">FAQs</span>
+                  <span className="text-sm">{t('navigation.faq', 'FAQ')}</span>
                 </Button>
                 <Button
                   variant="secondary"
                   className="h-auto py-4 flex-col gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
                 >
                   <Calendar className="w-6 h-6" />
-                  <span className="text-sm">Schedule Call</span>
+                  <span className="text-sm">{t('tracker.scheduleCall', 'Schedule Call')}</span>
                 </Button>
                 <Button
                   variant="secondary"
                   className="h-auto py-4 flex-col gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
                 >
                   <AlertCircle className="w-6 h-6" />
-                  <span className="text-sm">Report Issue</span>
+                  <span className="text-sm">{t('tracker.reportIssue', 'Report Issue')}</span>
                 </Button>
               </div>
             </CardContent>

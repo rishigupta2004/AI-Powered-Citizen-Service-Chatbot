@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronRight,
   Download,
@@ -30,6 +31,7 @@ interface ServiceDetailProps {
 }
 
 export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: ServiceDetailProps) {
+  const { t } = useTranslation();
   const [activeStep, setActiveStep] = useState(1);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-0');
 
@@ -52,7 +54,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
           className="mb-6 -ml-2"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Services
+          {t('serviceDetail.backToServices', 'Back to Services')}
         </Button>
 
         {/* Breadcrumbs */}
@@ -60,13 +62,13 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink onClick={() => onNavigate('home')} className="cursor-pointer hover:text-[var(--primary)]">
-                Home
+                {t('navigation.home', 'Home')}
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink onClick={() => onNavigate('services')} className="cursor-pointer hover:text-[var(--primary)]">
-                Services
+                {t('navigation.services', 'Services')}
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -109,7 +111,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                     {service.validity && (
                       <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                         <Calendar className="w-4 h-4 text-[var(--accent)]" />
-                        <span>{service.validity} validity</span>
+                        <span>{t('serviceDetail.validityDuration', '{{value}} validity', { value: service.validity })}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
@@ -123,7 +125,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                     rel="noreferrer"
                     className="mt-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--color-navy)]"
                   >
-                    Official Source: {service.officialAuthority}
+                    {t('serviceDetail.officialSource', 'Official Source')}: {service.officialAuthority}
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
@@ -137,7 +139,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               transition={{ delay: 0.1 }}
               className="bg-[var(--card)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-8 border-2 border-[var(--card-border)]"
             >
-              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">Application Process</h2>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">{t('serviceDetail.applicationProcess', 'Application Process')}</h2>
               
               {/* Visual Stepper */}
               <div className="mb-8 bg-gradient-to-r from-[var(--muted)]/30 to-[var(--background-secondary)]/30 rounded-[var(--radius-xl)] p-6 border border-[var(--border)]">
@@ -160,7 +162,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                         </div>
                         <div className="mt-3 text-center">
                           <div className="text-xs font-semibold text-[var(--muted-foreground)] uppercase">
-                            Step {step.number}
+                            {t('serviceDetail.step', 'Step {{number}}', { number: step.number })}
                           </div>
                         </div>
                       </div>
@@ -210,10 +212,14 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                   onClick={() => {
                     if (activeStep < service.steps.length) {
                       setActiveStep(activeStep + 1);
+                    } else {
+                      onNavigate('apply', service.id);
                     }
                   }}
                 >
-                  {activeStep < service.steps.length ? 'Continue to Next Step' : 'Start Application'}
+                  {activeStep < service.steps.length
+                    ? t('serviceDetail.continueStep', 'Continue to Next Step')
+                    : t('serviceDetail.startApplication', 'Start Application')}
                   <ChevronRight className="ml-2 w-5 h-5" />
                 </Button>
               </div>
@@ -228,7 +234,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
             >
               <div className="flex items-center gap-3 mb-6">
                 <Shield className="w-6 h-6 text-[var(--primary)]" />
-                <h2 className="text-2xl font-bold text-[var(--foreground)]">Required Documents</h2>
+                <h2 className="text-2xl font-bold text-[var(--foreground)]">{t('serviceDetail.requiredDocuments', 'Required Documents')}</h2>
               </div>
               <div className="space-y-3">
                 {service.documents.map((doc, index) => (
@@ -239,7 +245,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                     <CheckCircle2 className={`w-5 h-5 ${doc.required ? 'text-[var(--accent)]' : 'text-[var(--muted-foreground)]'}`} />
                     <span className="flex-1 text-[var(--foreground)]">{doc.name}</span>
                     <Badge variant={doc.required ? 'default' : 'outline'} className={doc.required ? 'bg-[var(--accent)]' : ''}>
-                      {doc.required ? 'Required' : 'Optional'}
+                      {doc.required ? t('common.required', 'Required') : t('common.optional', 'Optional')}
                     </Badge>
                   </div>
                 ))}
@@ -253,7 +259,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               transition={{ delay: 0.3 }}
               className="bg-[var(--card)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-8 border-2 border-[var(--card-border)]"
             >
-              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">Downloadable Resources</h2>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">{t('serviceDetail.downloadableResources', 'Downloadable Resources')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {service.downloads.map((doc, index) => (
                   <div
@@ -274,12 +280,12 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white">
                             <Download className="w-3 h-3 mr-1" />
-                            Download
+                            {t('serviceDetail.download', 'Download')}
                           </Button>
                           <Button size="sm" variant="ghost" asChild>
                             <a href={service.officialUrl} target="_blank" rel="noreferrer" className="inline-flex items-center">
                               <ExternalLink className="w-3 h-3 mr-1" />
-                              View
+                              {t('common.view', 'View')}
                             </a>
                           </Button>
                         </div>
@@ -297,20 +303,20 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               transition={{ delay: 0.4 }}
               className="bg-[var(--card)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-8 border-2 border-[var(--card-border)]"
             >
-              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">Frequently Asked Questions</h2>
+              <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">{t('serviceDetail.faq', 'Frequently Asked Questions')}</h2>
               <Accordion type="single" collapsible value={expandedFAQ || undefined} onValueChange={setExpandedFAQ}>
                 {service.faqs.map((faq, index) => (
                   <AccordionItem key={`faq-${index}`} value={`faq-${index}`} className="border-b border-[var(--border)]">
                     <AccordionTrigger className="text-left hover:no-underline py-4">
                       <div className="flex items-start gap-3 flex-1 pr-4">
-                        <span className="text-sm font-semibold text-[var(--secondary)]">Q{index + 1}:</span>
+                       <span className="text-sm font-semibold text-[var(--secondary)]">{t('serviceDetail.questionLabel', 'Q{{number}}:', { number: index + 1 })}</span>
                         <span className="font-semibold text-[var(--foreground)]">{faq.question}</span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="pl-8 pr-4 pb-4 text-[var(--muted-foreground)]">
-                      <span className="text-sm font-semibold text-[var(--accent)] mr-2">A:</span>
-                      {faq.answer}
-                    </AccordionContent>
+                       <span className="text-sm font-semibold text-[var(--accent)] mr-2">{t('serviceDetail.answerLabel', 'A:')}</span>
+                       {faq.answer}
+                     </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
@@ -324,7 +330,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                 transition={{ delay: 0.5 }}
                 className="bg-gradient-to-r from-[var(--muted)]/30 to-[var(--background-secondary)]/30 rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-8 border-2 border-[var(--border)]"
               >
-                <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">Related Services</h2>
+                <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">{t('serviceDetail.relatedServices', 'Related Services')}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {relatedServices.map((relatedService) => {
                     const RelatedIcon = relatedService.icon;
@@ -356,29 +362,29 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               animate={{ opacity: 1, x: 0 }}
               className="bg-[var(--card)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-6 border-2 border-[var(--card-border)] sticky top-32"
             >
-              <h3 className="font-bold text-[var(--foreground)] mb-4">Service Details</h3>
+              <h3 className="font-bold text-[var(--foreground)] mb-4">{t('serviceDetail.serviceDetails', 'Service Details')}</h3>
               <div className="space-y-4">
                 <div>
-                  <div className="text-sm text-[var(--muted-foreground)] mb-1">Processing Time</div>
+                  <div className="text-sm text-[var(--muted-foreground)] mb-1">{t('serviceDetail.processingTime', 'Processing Time')}</div>
                   <div className="font-semibold text-[var(--foreground)]">{service.processingTime}</div>
                 </div>
                 <Separator />
                 <div>
-                  <div className="text-sm text-[var(--muted-foreground)] mb-1">Application Fee</div>
+                  <div className="text-sm text-[var(--muted-foreground)] mb-1">{t('serviceDetail.applicationFee', 'Application Fee')}</div>
                   <div className="font-semibold text-[var(--foreground)]">{service.fee}</div>
                 </div>
                 <Separator />
                 {service.validity && (
                   <>
                     <div>
-                      <div className="text-sm text-[var(--muted-foreground)] mb-1">Validity</div>
+                      <div className="text-sm text-[var(--muted-foreground)] mb-1">{t('serviceDetail.validity', 'Validity')}</div>
                       <div className="font-semibold text-[var(--foreground)]">{service.validity}</div>
                     </div>
                     <Separator />
                   </>
                 )}
                 <div>
-                  <div className="text-sm text-[var(--muted-foreground)] mb-1">Status</div>
+                  <div className="text-sm text-[var(--muted-foreground)] mb-1">{t('serviceDetail.status', 'Status')}</div>
                   <Badge className="bg-[var(--accent)] text-white">{service.status}</Badge>
                 </div>
               </div>
@@ -391,19 +397,19 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               transition={{ delay: 0.1 }}
               className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-6 text-white"
             >
-              <h3 className="font-bold mb-4">Need Help?</h3>
+              <h3 className="font-bold mb-4">{t('serviceDetail.needHelp', 'Need Help?')}</h3>
               <div className="space-y-3">
                 <a href="tel:1800" className="flex items-center gap-3 p-3 bg-white/10 rounded-[var(--radius-lg)] hover:bg-white/20 transition-colors backdrop-blur-sm">
                   <Phone className="w-5 h-5" />
                   <div>
-                    <div className="text-sm">Toll-Free</div>
+                    <div className="text-sm">{t('serviceDetail.tollFree', 'Toll-Free')}</div>
                     <div className="font-semibold">1800-XXX-XXXX</div>
                   </div>
                 </a>
                 <a href="mailto:" className="flex items-center gap-3 p-3 bg-white/10 rounded-[var(--radius-lg)] hover:bg-white/20 transition-colors backdrop-blur-sm">
                   <Mail className="w-5 h-5" />
                   <div>
-                    <div className="text-sm">Email Support</div>
+                    <div className="text-sm">{t('serviceDetail.emailSupport', 'Email Support')}</div>
                     <div className="font-semibold text-xs">support@gov.in</div>
                   </div>
                 </a>
@@ -418,10 +424,10 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               className="bg-gradient-to-br from-[var(--secondary)] to-[var(--secondary-hover)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-8)] p-6 text-white text-center"
             >
               <MessageCircle className="w-12 h-12 mx-auto mb-3" />
-              <h3 className="font-bold mb-2">Live Chat Support</h3>
-              <p className="text-sm mb-4 text-white/90">Get instant help from our support team</p>
+              <h3 className="font-bold mb-2">{t('serviceDetail.liveChatSupport', 'Live Chat Support')}</h3>
+              <p className="text-sm mb-4 text-white/90">{t('serviceDetail.instantHelp', 'Get instant help from our support team')}</p>
               <Button className="w-full bg-white text-[var(--secondary)] hover:bg-white/90 shadow-[var(--shadow-4)]">
-                Start Chat
+                {t('serviceDetail.startChat', 'Start Chat')}
               </Button>
             </motion.div>
           </div>

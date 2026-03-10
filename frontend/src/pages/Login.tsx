@@ -25,12 +25,22 @@ export function Login({ onNavigate }: LoginProps) {
   const [error, setError] = useState('');
   const [loginError, setLoginError] = useState('');
 
+  const navigateAfterLogin = () => {
+    const redirect = sessionStorage.getItem('redirectAfterLogin');
+    if (redirect) {
+      sessionStorage.removeItem('redirectAfterLogin');
+      onNavigate(redirect === 'apply' ? 'dashboard' : redirect);
+      return;
+    }
+    onNavigate('home');
+  };
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     try {
       await login(email, password);
-      onNavigate('home');
+      navigateAfterLogin();
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : t('login.errors.loginFailed'));
     }
@@ -52,7 +62,7 @@ export function Login({ onNavigate }: LoginProps) {
     setError('');
     try {
       await verifyPhoneOTP(phone, otp);
-      onNavigate('home');
+      navigateAfterLogin();
     } catch (err) {
       setError(err instanceof Error ? err.message : t('login.errors.otpVerifyFailed'));
     }

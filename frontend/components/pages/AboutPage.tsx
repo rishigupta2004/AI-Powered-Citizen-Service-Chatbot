@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   Shield,
   Users,
@@ -36,36 +37,49 @@ interface AboutPageProps {
 }
 
 export function AboutPage({ onNavigate }: AboutPageProps) {
+  const { t } = useTranslation();
   const stats = [
-    { icon: Users, value: '10M+', label: 'Active Citizens', color: 'from-blue-500 to-blue-600' },
-    { icon: FileCheck, value: '50+', label: 'Government Services', color: 'from-orange-500 to-orange-600' },
-    { icon: TrendingUp, value: '99.9%', label: 'System Uptime', color: 'from-green-500 to-green-600' },
-    { icon: Award, value: '24/7', label: 'Citizen Support', color: 'from-purple-500 to-purple-600' },
+    { icon: Users, value: '10M+', label: t('about.stats.activeCitizens', 'Active Citizens'), color: 'from-blue-500 to-blue-600' },
+    { icon: FileCheck, value: '50+', label: t('about.stats.governmentServices', 'Government Services'), color: 'from-orange-500 to-orange-600' },
+    { icon: TrendingUp, value: '99.9%', label: t('about.stats.systemUptime', 'System Uptime'), color: 'from-green-500 to-green-600' },
+    { icon: Award, value: '24/7', label: t('about.stats.citizenSupport', 'Citizen Support'), color: 'from-purple-500 to-purple-600' },
   ];
 
   const objectives = [
     {
       icon: Target,
-      title: 'Digital Transformation',
-      description: 'Transform government service delivery through innovative digital solutions and seamless citizen experience.',
+      title: t('about.objectives.digitalTransformation.title', 'Digital Transformation'),
+      description: t(
+        'about.objectives.digitalTransformation.description',
+        'Transform government service delivery through innovative digital solutions and seamless citizen experience.'
+      ),
       color: 'from-blue-500 to-blue-600',
     },
     {
       icon: Users,
-      title: 'Inclusive Access',
-      description: 'Ensure every citizen, regardless of location or ability, can access government services with ease.',
+      title: t('about.objectives.inclusiveAccess.title', 'Inclusive Access'),
+      description: t(
+        'about.objectives.inclusiveAccess.description',
+        'Ensure every citizen, regardless of location or ability, can access government services with ease.'
+      ),
       color: 'from-purple-500 to-purple-600',
     },
     {
       icon: Shield,
-      title: 'Security & Privacy',
-      description: 'Maintain the highest standards of data security and privacy protection for all citizen information.',
+      title: t('about.objectives.securityPrivacy.title', 'Security & Privacy'),
+      description: t(
+        'about.objectives.securityPrivacy.description',
+        'Maintain the highest standards of data security and privacy protection for all citizen information.'
+      ),
       color: 'from-green-500 to-green-600',
     },
     {
       icon: Zap,
-      title: 'Efficiency & Speed',
-      description: 'Reduce processing times and eliminate bureaucratic delays through automated workflows.',
+      title: t('about.objectives.efficiencySpeed.title', 'Efficiency & Speed'),
+      description: t(
+        'about.objectives.efficiencySpeed.description',
+        'Reduce processing times and eliminate bureaucratic delays through automated workflows.'
+      ),
       color: 'from-orange-500 to-orange-600',
     },
   ];
@@ -73,60 +87,60 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
   const features = [
     {
       icon: Globe,
-      title: 'Multi-Language Support',
-      description: 'Available in 22+ official Indian languages for nationwide accessibility',
+      title: t('about.features.multiLanguage.title', 'Multi-Language Support'),
+      description: t('about.features.multiLanguage.description', 'Available in 22+ official Indian languages for nationwide accessibility'),
       color: 'from-blue-500 to-indigo-600',
     },
     {
       icon: Lock,
-      title: 'Bank-Grade Security',
-      description: '256-bit encryption and ISO 27001 certified infrastructure',
+      title: t('about.features.bankGradeSecurity.title', 'Bank-Grade Security'),
+      description: t('about.features.bankGradeSecurity.description', '256-bit encryption and ISO 27001 certified infrastructure'),
       color: 'from-green-500 to-teal-600',
     },
     {
       icon: Heart,
-      title: 'Accessibility First',
-      description: 'WCAG 2.1 AA compliant for citizens with disabilities',
+      title: t('about.features.accessibilityFirst.title', 'Accessibility First'),
+      description: t('about.features.accessibilityFirst.description', 'WCAG 2.1 AA compliant for citizens with disabilities'),
       color: 'from-pink-500 to-rose-600',
     },
     {
       icon: Clock,
-      title: 'Real-Time Tracking',
-      description: 'Monitor your application status 24/7 with instant updates',
+      title: t('about.features.realTimeTracking.title', 'Real-Time Tracking'),
+      description: t('about.features.realTimeTracking.description', 'Monitor your application status 24/7 with instant updates'),
       color: 'from-orange-500 to-amber-600',
     },
     {
       icon: Star,
-      title: 'User-Friendly Interface',
-      description: 'Intuitive design tested with 10,000+ real users',
+      title: t('about.features.userFriendlyInterface.title', 'User-Friendly Interface'),
+      description: t('about.features.userFriendlyInterface.description', 'Intuitive design tested with 10,000+ real users'),
       color: 'from-yellow-500 to-orange-600',
     },
     {
       icon: Layers,
-      title: 'Integrated Services',
-      description: 'One-stop portal for all central and state services',
+      title: t('about.features.integratedServices.title', 'Integrated Services'),
+      description: t('about.features.integratedServices.description', 'One-stop portal for all central and state services'),
       color: 'from-purple-500 to-violet-600',
     },
   ];
 
   const partnerships = [
-    { name: 'Ministry of Electronics & IT', type: 'Parent Ministry', icon: Landmark },
-    { name: 'National Informatics Centre', type: 'Technology Partner', icon: Building2 },
-    { name: 'UIDAI (Aadhaar)', type: 'Integration Partner', icon: Shield },
-    { name: 'Digital India Corporation', type: 'Implementation Partner', icon: Globe },
-    { name: 'State Governments', type: 'Service Providers', icon: Building2 },
-    { name: 'Common Service Centers', type: 'Last Mile Delivery', icon: MapPin },
+    { name: t('about.partners.ministryElectronics.name', 'Ministry of Electronics & IT'), type: t('about.partners.ministryElectronics.type', 'Parent Ministry'), icon: Landmark },
+    { name: t('about.partners.nic.name', 'National Informatics Centre'), type: t('about.partners.nic.type', 'Technology Partner'), icon: Building2 },
+    { name: t('about.partners.uidai.name', 'UIDAI (Aadhaar)'), type: t('about.partners.uidai.type', 'Integration Partner'), icon: Shield },
+    { name: t('about.partners.dic.name', 'Digital India Corporation'), type: t('about.partners.dic.type', 'Implementation Partner'), icon: Globe },
+    { name: t('about.partners.stateGov.name', 'State Governments'), type: t('about.partners.stateGov.type', 'Service Providers'), icon: Building2 },
+    { name: t('about.partners.csc.name', 'Common Service Centers'), type: t('about.partners.csc.type', 'Last Mile Delivery'), icon: MapPin },
   ];
 
   const certifications = [
-    'ISO 27001:2013 Information Security',
-    'WCAG 2.1 Level AA Accessibility',
-    'GIGW (Government of India Guidelines)',
-    'IT Act 2000 Compliance',
-    'SSL/TLS Encrypted Communication',
-    'Regular Security Audits (CERT-In)',
-    'Data Privacy & Protection Compliant',
-    'Multi-Factor Authentication (MFA)',
+    t('about.certifications.iso27001', 'ISO 27001:2013 Information Security'),
+    t('about.certifications.wcag', 'WCAG 2.1 Level AA Accessibility'),
+    t('about.certifications.gigw', 'GIGW (Government of India Guidelines)'),
+    t('about.certifications.itAct', 'IT Act 2000 Compliance'),
+    t('about.certifications.sslTls', 'SSL/TLS Encrypted Communication'),
+    t('about.certifications.securityAudits', 'Regular Security Audits (CERT-In)'),
+    t('about.certifications.dataPrivacy', 'Data Privacy & Protection Compliant'),
+    t('about.certifications.mfa', 'Multi-Factor Authentication (MFA)'),
   ];
 
   return (
@@ -155,22 +169,22 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
 
             {/* Badge */}
             <Badge className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm px-6 py-2 text-base">
-              Government of India Initiative
+              {t('about.govInitiative', 'Government of India Initiative')}
             </Badge>
 
             {/* Title */}
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Seva Sindhu Portal
+              {t('about.title', 'Seva Sindhu Portal')}
             </h1>
 
             {/* Subtitle */}
             <p className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed mb-4">
-              An integrated digital platform empowering citizens with seamless access to government services across India
+              {t('about.heroSubtitle', 'An integrated digital platform empowering citizens with seamless access to government services across India')}
             </p>
 
             {/* Attribution */}
             <p className="text-lg text-white/80 max-w-3xl mx-auto">
-              Developed under the Digital India programme in collaboration with Ministry of Electronics & Information Technology
+              {t('about.heroAttribution', 'Developed under the Digital India programme in collaboration with Ministry of Electronics & Information Technology')}
             </p>
           </motion.div>
         </div>
@@ -220,19 +234,19 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                     <Landmark className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-3xl text-[var(--foreground)]">About Seva Sindhu</CardTitle>
+                    <CardTitle className="text-3xl text-[var(--foreground)]">{t('about.aboutTitle', 'About Seva Sindhu')}</CardTitle>
                     <CardDescription className="text-lg text-[var(--muted-foreground)]">
-                      Unified National Portal for Citizen Services
+                      {t('about.aboutSubtitle', 'Unified National Portal for Citizen Services')}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-lg text-[var(--foreground)] leading-relaxed">
-                  <strong>Seva Sindhu</strong> (meaning "Ocean of Services") is a flagship digital initiative of the Government of India, 
-                  designed to provide citizens with a unified platform for accessing various government services across 
-                  central and state departments. Launched under the Digital India programme, the portal aims to transform 
-                  governance through technology-enabled service delivery.
+                  {t(
+                    'about.aboutDescription',
+                    'Seva Sindhu (meaning "Ocean of Services") is a flagship digital initiative of the Government of India, designed to provide citizens with a unified platform for accessing various government services across central and state departments. Launched under the Digital India programme, the portal aims to transform governance through technology-enabled service delivery.'
+                  )}
                 </p>
 
                 <Separator className="bg-[var(--border)]" />
@@ -241,21 +255,25 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                   <div>
                     <h3 className="text-xl font-bold text-[var(--foreground)] mb-3 flex items-center gap-2">
                       <Target className="w-5 h-5 text-[#FF9933]" />
-                      Vision
+                      {t('about.visionTitle', 'Vision')}
                     </h3>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
-                      To create a citizen-centric digital ecosystem that ensures transparent, efficient, and 
-                      accessible government services for every Indian, regardless of geographical or socio-economic barriers.
+                      {t(
+                        'about.visionDescription',
+                        'To create a citizen-centric digital ecosystem that ensures transparent, efficient, and accessible government services for every Indian, regardless of geographical or socio-economic barriers.'
+                      )}
                     </p>
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-[var(--foreground)] mb-3 flex items-center gap-2">
                       <BookOpen className="w-5 h-5 text-[#138808]" />
-                      Mission
+                      {t('about.missionTitle', 'Mission')}
                     </h3>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
-                      To digitize and integrate government services across departments, eliminate paperwork, 
-                      reduce processing times, and enhance transparency in public service delivery mechanisms.
+                      {t(
+                        'about.missionDescription',
+                        'To digitize and integrate government services across departments, eliminate paperwork, reduce processing times, and enhance transparency in public service delivery mechanisms.'
+                      )}
                     </p>
                   </div>
                 </div>
@@ -272,9 +290,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-bold text-[var(--foreground)] mb-4">Strategic Objectives</h2>
+            <h2 className="text-4xl font-bold text-[var(--foreground)] mb-4">{t('about.strategicObjectives', 'Strategic Objectives')}</h2>
             <p className="text-xl text-[var(--muted-foreground)] max-w-3xl mx-auto">
-              Core goals driving our digital transformation initiative
+              {t('about.strategicObjectivesSubtitle', 'Core goals driving our digital transformation initiative')}
             </p>
           </motion.div>
 
@@ -315,9 +333,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-bold text-[var(--foreground)] mb-4">Platform Features</h2>
+            <h2 className="text-4xl font-bold text-[var(--foreground)] mb-4">{t('about.platformFeatures', 'Platform Features')}</h2>
             <p className="text-xl text-[var(--muted-foreground)] max-w-3xl mx-auto">
-              Built with cutting-edge technology and citizen-first design principles
+              {t('about.platformFeaturesSubtitle', 'Built with cutting-edge technology and citizen-first design principles')}
             </p>
           </motion.div>
 
@@ -360,9 +378,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                     <Building2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-3xl text-[var(--foreground)]">Implementation Partners</CardTitle>
+                    <CardTitle className="text-3xl text-[var(--foreground)]">{t('about.implementationPartners', 'Implementation Partners')}</CardTitle>
                     <CardDescription className="text-lg text-[var(--muted-foreground)]">
-                      Collaborative ecosystem powering digital governance
+                      {t('about.implementationPartnersSubtitle', 'Collaborative ecosystem powering digital governance')}
                     </CardDescription>
                   </div>
                 </div>
@@ -409,9 +427,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                     <Shield className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl text-[var(--foreground)]">Compliance & Standards</CardTitle>
+                    <CardTitle className="text-2xl text-[var(--foreground)]">{t('about.complianceStandards', 'Compliance & Standards')}</CardTitle>
                     <CardDescription className="text-[var(--muted-foreground)]">
-                      Meeting international security and accessibility standards
+                      {t('about.complianceStandardsSubtitle', 'Meeting international security and accessibility standards')}
                     </CardDescription>
                   </div>
                 </div>
@@ -441,9 +459,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
           >
             <Card className="border-2 border-[var(--card-border)] shadow-[var(--shadow-8)] bg-[var(--card)]">
               <CardHeader>
-                <CardTitle className="text-2xl text-[var(--foreground)]">Contact Information</CardTitle>
+                <CardTitle className="text-2xl text-[var(--foreground)]">{t('about.contactInformation', 'Contact Information')}</CardTitle>
                 <CardDescription className="text-[var(--muted-foreground)]">
-                  Reach out to us for support, feedback, or inquiries
+                  {t('about.contactInformationSubtitle', 'Reach out to us for support, feedback, or inquiries')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -453,9 +471,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                       <Phone className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-[var(--foreground)] mb-1">Helpline</div>
+                      <div className="font-semibold text-[var(--foreground)] mb-1">{t('about.helpline', 'Helpline')}</div>
                       <div className="text-[var(--muted-foreground)]">1800-XXX-XXXX</div>
-                      <div className="text-sm text-[var(--muted-foreground)]">Mon-Sat: 8 AM - 8 PM</div>
+                      <div className="text-sm text-[var(--muted-foreground)]">{t('about.helplineHours', 'Mon-Sat: 8 AM - 8 PM')}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -463,9 +481,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                       <Mail className="w-6 h-6 text-purple-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-[var(--foreground)] mb-1">Email Support</div>
+                      <div className="font-semibold text-[var(--foreground)] mb-1">{t('about.emailSupport', 'Email Support')}</div>
                       <div className="text-[var(--muted-foreground)] break-all">support@sevasindhu.gov.in</div>
-                      <div className="text-sm text-[var(--muted-foreground)]">24-hour response time</div>
+                      <div className="text-sm text-[var(--muted-foreground)]">{t('about.emailResponseTime', '24-hour response time')}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
@@ -473,9 +491,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                       <MapPin className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-[var(--foreground)] mb-1">Office Address</div>
-                      <div className="text-[var(--muted-foreground)]">Electronics Niketan</div>
-                      <div className="text-sm text-[var(--muted-foreground)]">New Delhi - 110003</div>
+                      <div className="font-semibold text-[var(--foreground)] mb-1">{t('about.officeAddress', 'Office Address')}</div>
+                      <div className="text-[var(--muted-foreground)]">{t('about.officeAddressLine1', 'Electronics Niketan')}</div>
+                      <div className="text-sm text-[var(--muted-foreground)]">{t('about.officeAddressLine2', 'New Delhi - 110003')}</div>
                     </div>
                   </div>
                 </div>
@@ -498,9 +516,9 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                 }} />
               </div>
               <CardContent className="relative z-10 py-12 text-center">
-                <h2 className="text-3xl font-bold mb-4">Explore Our Services</h2>
+                <h2 className="text-3xl font-bold mb-4">{t('about.exploreServices', 'Explore Our Services')}</h2>
                 <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                  Access 50+ government services from the comfort of your home
+                  {t('about.exploreSubtitle', 'Access 50+ government services from the comfort of your home')}
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
                   <Button
@@ -508,7 +526,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                     className="bg-white text-[#000080] hover:bg-white/90 px-8 shadow-[var(--shadow-8)]"
                     onClick={() => onNavigate('services')}
                   >
-                    Browse Services
+                    {t('about.browseServices', 'Browse Services')}
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                   <Button
@@ -517,7 +535,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                     className="border-2 border-white text-white hover:bg-white hover:text-[#000080] px-8"
                     onClick={() => onNavigate('faq')}
                   >
-                    View FAQ
+                    {t('about.viewFaq', 'View FAQ')}
                   </Button>
                 </div>
               </CardContent>

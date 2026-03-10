@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, HelpCircle, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -14,6 +15,7 @@ interface FAQPageProps {
 }
 
 export function FAQPage({ onNavigate }: FAQPageProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -27,8 +29,8 @@ export function FAQPage({ onNavigate }: FAQPageProps) {
     const sorted = Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
       .map(([name, count]) => ({ id: name, name, count }));
-    return [{ id: "all", name: "All Questions", count: allFaqs.length }, ...sorted];
-  }, [allFaqs]);
+    return [{ id: "all", name: t("faq.allQuestions", "All Questions"), count: allFaqs.length }, ...sorted];
+  }, [allFaqs, t]);
 
   const filteredFaqs = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -49,15 +51,15 @@ export function FAQPage({ onNavigate }: FAQPageProps) {
       <section className="border-b border-[var(--border)] bg-gradient-to-br from-[#051739] via-[#0a2f73] to-[#04112b] text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 md:py-14">
           <div className="rounded-[var(--radius-2xl)] border border-white/20 bg-white/10 p-6 backdrop-blur-md md:p-8">
-            <Badge className="mb-4 border-white/30 bg-white/15 text-white">Verified FAQ Directory</Badge>
-            <h1 className="text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Service FAQs</h1>
+            <Badge className="mb-4 border-white/30 bg-white/15 text-white">{t("faq.verifiedDirectory", "Verified FAQ Directory")}</Badge>
+            <h1 className="text-4xl font-bold tracking-[-0.03em] sm:text-5xl">{t("faq.serviceFaqs", "Service FAQs")}</h1>
             <p className="mt-3 max-w-3xl text-white/80">
-              Answers are generated from our verified national services catalog and mapped to official authorities.
+              {t("faq.heroDescription", "Answers are generated from our verified national services catalog and mapped to official authorities.")}
             </p>
             <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm">{allFaqs.length} total FAQs</div>
-              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm">{categories.length - 1} categories</div>
-              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm">Sources linked per item</div>
+              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm">{t("faq.totalFaqs", "{{count}} total FAQs", { count: allFaqs.length })}</div>
+              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm">{t("faq.categoryCount", "{{count}} categories", { count: categories.length - 1 })}</div>
+              <div className="rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-sm">{t("faq.sourcesLinked", "Sources linked per item")}</div>
             </div>
           </div>
         </div>
@@ -72,12 +74,15 @@ export function FAQPage({ onNavigate }: FAQPageProps) {
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search question, answer, or service"
+                  placeholder={t("faq.searchPlaceholder", "Search question, answer, or service")}
                   className="h-11 border-[var(--border)] bg-[var(--surface-1)] pl-9"
                 />
               </div>
               <div className="flex items-center justify-end text-sm text-[var(--muted-foreground)]">
-                Showing {filteredFaqs.length} of {allFaqs.length}
+                {t("faq.showingCount", "Showing {{shown}} of {{total}}", {
+                  shown: filteredFaqs.length,
+                  total: allFaqs.length,
+                })}
               </div>
             </div>
             <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
@@ -103,7 +108,7 @@ export function FAQPage({ onNavigate }: FAQPageProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <HelpCircle className="h-5 w-5" />
-                Verified FAQ Answers
+                {t("faq.verifiedAnswers", "Verified FAQ Answers")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -124,7 +129,7 @@ export function FAQPage({ onNavigate }: FAQPageProps) {
                         rel="noreferrer"
                         className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-navy)]"
                       >
-                        Official source: {faq.officialAuthority}
+                        {t("faq.officialSource", "Official source")}: {faq.officialAuthority}
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     </AccordionContent>
@@ -136,7 +141,7 @@ export function FAQPage({ onNavigate }: FAQPageProps) {
         </motion.div>
 
         <div className="mt-8 flex justify-center">
-          <Button variant="outline" onClick={() => onNavigate("services")}>Explore services</Button>
+          <Button variant="outline" onClick={() => onNavigate("services")}>{t("faq.exploreServices", "Explore services")}</Button>
         </div>
       </div>
     </div>

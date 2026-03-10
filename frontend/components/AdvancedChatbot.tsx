@@ -29,17 +29,16 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { cn } from "./ui/utils";
 import { toast } from "sonner";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 import {
   sendChatMessage,
-  sendVoice,
   speechToText,
   textToSpeech,
   playAudioBlob,
-  playBase64Audio,
   ChatMessage as APIChatMessage,
   ApiError,
 } from "../src/lib/api";
@@ -89,6 +88,7 @@ export function AdvancedChatbot({
   currentPage = "home",
   currentService,
 }: AdvancedChatbotProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -121,23 +121,34 @@ export function AdvancedChatbot({
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setTimeout(() => {
-        let welcomeMessage =
-          "नमस्ते! Welcome to Seva Sindhu AI Assistant 🇮🇳\n\n";
+        let welcomeMessage = `${t("chatbot.welcome", "Namaste! Welcome to Seva Sindhu AI Assistant 🇮🇳")}\n\n`;
 
         if (currentPage === "dashboard") {
-          welcomeMessage +=
-            "I can see you're on your dashboard. I can help you track applications, check status, or start a new service.";
+          welcomeMessage += t(
+            "chatbot.context.dashboard",
+            "I can see you're on your dashboard. I can help you track applications, check status, or start a new service.",
+          );
         } else if (currentPage === "services") {
-          welcomeMessage +=
-            "Looking for a specific service? I can help you find and apply for the right government service.";
+          welcomeMessage += t(
+            "chatbot.context.services",
+            "Looking for a specific service? I can help you find and apply for the right government service.",
+          );
         } else if (currentPage === "service-detail" && currentService) {
-          welcomeMessage += `I can help you with ${currentService}. Would you like to know about requirements, process, or start the application?`;
+          welcomeMessage += t(
+            "chatbot.context.serviceDetail",
+            "I can help you with {{service}}. Would you like to know about requirements, process, or start the application?",
+            { service: currentService },
+          );
         } else if (currentPage === "tracker") {
-          welcomeMessage +=
-            "I can help you track your applications. Just provide your Application Reference Number (ARN).";
+          welcomeMessage += t(
+            "chatbot.context.tracker",
+            "I can help you track your applications. Just provide your Application Reference Number (ARN).",
+          );
         } else {
-          welcomeMessage +=
-            "I'm here to help you with government services. How can I assist you today?";
+          welcomeMessage += t(
+            "chatbot.context.default",
+            "I'm here to help you with government services. How can I assist you today?",
+          );
         }
 
         addBotMessage(welcomeMessage, "text");
@@ -242,12 +253,17 @@ export function AdvancedChatbot({
       }
     } catch (error) {
       if (error instanceof ApiError && error.message.includes("timed out")) {
-        toast.error("This is taking longer than expected. Please try again.");
+        toast.error(
+          t("chatbot.errors.slowTimeout", "This is taking longer than expected. Please try again.")
+        );
       } else {
-        toast.error("Failed to get response. Please try again.");
+        toast.error(t("chatbot.errors.responseFailed", "Failed to get response. Please try again."));
       }
       addBotMessage(
-        "I apologize, but I'm having trouble connecting to the service. Please try again later.",
+        t(
+          "chatbot.errors.connectionTrouble",
+          "I apologize, but I'm having trouble connecting to the service. Please try again later."
+        ),
         "text"
       );
     } finally {
@@ -288,51 +304,68 @@ export function AdvancedChatbot({
         setIsTyping(true);
         try {
           if (voiceChatEnabled) {
-            const voiceResult = await sendVoice(audioBlob, language);
-            if (voiceResult.transcript) {
-              addUserMessage(voiceResult.transcript);
+            const sttResult = await speechToText(audioBlob, language);
+            const transcript = sttResult.transcript?.trim() || "";
+            if (!transcript) {
+              toast.error(t("chatbot.errors.transcriptionFailed", "Could not transcribe audio. Please try again."));
+              return;
             }
-            if (voiceResult.response) {
-              addBotMessage(voiceResult.response, "text", undefined, voiceResult.language || language);
-            }
-            if (voiceResult.audio_base64) {
-              const audio = playBase64Audio(voiceResult.audio_base64);
+
+            addUserMessage(transcript);
+
+            const chatResult = await sendChatMessage(
+              transcript,
+              getHistory(),
+              language,
+              currentService,
+              "auto"
+            );
+            const assistantText = chatResult.response || "";
+            addBotMessage(assistantText, "text", undefined, chatResult.language || language);
+
+            if (assistantText) {
+              const audioBlobResponse = await textToSpeech(assistantText, chatResult.language || language || "en");
+              const audio = playAudioBlob(audioBlobResponse);
               currentAudioRef.current = audio;
-              try {
-                await audio.play();
-              } catch {
-                toast.error("Audio playback blocked by browser. Tap speaker again.");
+                try {
+                  await audio.play();
+                } catch {
+                  toast.error(
+                    t("chatbot.errors.audioBlockedRetry", "Audio playback blocked by browser. Tap speaker again.")
+                  );
+                }
+              }
+            } else {
+              const result = await speechToText(audioBlob, language);
+              if (result.transcript) {
+                setInputValue(result.transcript);
+                toast.success(
+                  t("chatbot.voice.detectedLanguage", "Detected: {{language}}", {
+                    language: result.language_code || language,
+                  })
+                );
+              } else {
+                toast.error(t("chatbot.errors.transcriptionFailed", "Could not transcribe audio. Please try again."));
               }
             }
-          } else {
-            const result = await speechToText(audioBlob, language);
-            if (result.transcript) {
-              setInputValue(result.transcript);
-              toast.success(`Detected: ${result.language_code || language}`);
+          } catch (err) {
+            if (err instanceof ApiError) {
+              toast.error(err.message);
             } else {
-              toast.error("Could not transcribe audio. Please try again.");
+              toast.error(t("chatbot.errors.speechWorkflowFailed", "Speech workflow failed"));
             }
-          }
-        } catch (err) {
-          if (err instanceof ApiError) {
-            toast.error(err.message);
-          } else {
-            toast.error("Speech workflow failed");
-          }
-        } finally {
-          setIsTyping(false);
+          } finally {
+            setIsTyping(false);
         }
       };
 
       mediaRecorder.start();
       setIsRecording(true);
-      toast.info("Recording... tap mic again to stop");
+        toast.info(t("chatbot.voice.recording", "Recording... tap mic again to stop"));
     } catch (err) {
-      toast.error(
-        "Microphone access denied. Please allow mic permissions."
-      );
+      toast.error(t("chatbot.voice.micDenied", "Microphone access denied. Please allow mic permissions."));
     }
-  }, [language, voiceChatEnabled]);
+  }, [language, voiceChatEnabled, t]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
@@ -363,7 +396,9 @@ export function AdvancedChatbot({
         try {
           await audio.play();
         } catch {
-          toast.error("Audio playback blocked by browser. Please tap again.");
+          toast.error(
+            t("chatbot.errors.audioBlockedTapAgain", "Audio playback blocked by browser. Please tap again.")
+          );
           setIsSpeaking(false);
           return;
         }
@@ -372,11 +407,11 @@ export function AdvancedChatbot({
           currentAudioRef.current = null;
         };
       } catch (err) {
-        toast.error("Text-to-speech failed");
+        toast.error(t("chatbot.errors.ttsFailed", "Text-to-speech failed"));
         setIsSpeaking(false);
       }
     },
-    []
+    [t]
   );
 
   const stopSpeaking = () => {
@@ -391,29 +426,29 @@ export function AdvancedChatbot({
     {
       id: "1",
       icon: FileText,
-      label: "Check Application Status",
-      description: "Track your application progress",
+      label: t("chatbot.quick.checkStatus", "Check Application Status"),
+      description: t("chatbot.quick.checkStatusDesc", "Track your application progress"),
       action: "check_status",
     },
     {
       id: "2",
       icon: Calendar,
-      label: "Book Appointment",
-      description: "Schedule a visit to service center",
+      label: t("chatbot.quick.bookAppointment", "Book Appointment"),
+      description: t("chatbot.quick.bookAppointmentDesc", "Schedule a visit to service center"),
       action: "book_appointment",
     },
     {
       id: "3",
       icon: CreditCard,
-      label: "Pay Fees",
-      description: "Make online payments",
+      label: t("chatbot.quick.payFees", "Pay Fees"),
+      description: t("chatbot.quick.payFeesDesc", "Make online payments"),
       action: "pay_fees",
     },
     {
       id: "4",
       icon: Home,
-      label: "Explore Services",
-      description: "Browse available government services",
+      label: t("chatbot.quick.exploreServices", "Explore Services"),
+      description: t("chatbot.quick.exploreServicesDesc", "Browse available government services"),
       action: "explore_services",
     },
   ];
@@ -425,8 +460,16 @@ export function AdvancedChatbot({
       onNavigate("services");
     }
 
+    if (action.action === "check_status" && onNavigate) {
+      onNavigate("tracker");
+    }
+
     if (action.action === "book_appointment" && onNavigate) {
-      onNavigate("services");
+      onNavigate("dashboard");
+    }
+
+    if (action.action === "pay_fees" && onNavigate) {
+      onNavigate("dashboard");
     }
 
     const mappedPrompt: Record<string, string> = {
@@ -459,7 +502,7 @@ export function AdvancedChatbot({
               onClick={() => setIsOpen(true)}
               size="icon"
               className="w-14 h-14 rounded-full bg-gradient-to-br from-[#000080] to-[#000066] hover:from-[#000066] hover:to-[#000050] shadow-lg shadow-blue-900/20"
-              aria-label="Open chat"
+              aria-label={t("chatbot.openChat", "Open chat")}
             >
               <MessageCircle className="w-6 h-6 text-white" />
             </Button>
@@ -486,11 +529,11 @@ export function AdvancedChatbot({
                   </div>
                   <div>
                     <div className="text-white font-semibold text-sm">
-                      Seva Sindhu AI
+                      {t("chatbot.title", "Seva Sindhu AI")}
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-green-400" />
-                      <span className="text-white/70 text-xs">Online</span>
+                      <span className="text-white/70 text-xs">{t("chatbot.online", "Online")}</span>
                     </div>
                   </div>
                 </div>
@@ -501,7 +544,7 @@ export function AdvancedChatbot({
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                     className="text-xs bg-white/20 text-white border-0 rounded px-2 py-1 cursor-pointer"
-                    aria-label="Select language"
+                    aria-label={t("chatbot.selectLanguage", "Select language")}
                   >
                     {LANGUAGES.map((l) => (
                       <option key={l.code} value={l.code} className="text-black">
@@ -517,7 +560,9 @@ export function AdvancedChatbot({
                     className="text-white hover:bg-white/20 w-8 h-8"
                     onClick={() => setTtsEnabled((v) => !v)}
                     title={
-                      ttsEnabled ? "Disable auto-speak" : "Enable auto-speak"
+                      ttsEnabled
+                        ? t("chatbot.disableAutoSpeak", "Disable auto-speak")
+                        : t("chatbot.enableAutoSpeak", "Enable auto-speak")
                     }
                   >
                     {ttsEnabled ? (
@@ -533,7 +578,11 @@ export function AdvancedChatbot({
                     size="icon"
                     className="text-white hover:bg-white/20 w-8 h-8"
                     onClick={() => setVoiceChatEnabled((v) => !v)}
-                    title={voiceChatEnabled ? "Voice chat mode ON" : "Voice chat mode OFF"}
+                    title={
+                      voiceChatEnabled
+                        ? t("chatbot.voiceModeOn", "Voice chat mode ON")
+                        : t("chatbot.voiceModeOff", "Voice chat mode OFF")
+                    }
                   >
                     <Phone className={cn("w-4 h-4", voiceChatEnabled ? "text-green-300" : "opacity-70")} />
                   </Button>
@@ -544,7 +593,7 @@ export function AdvancedChatbot({
                     size="icon"
                     className="text-white hover:bg-white/20 w-8 h-8"
                     onClick={() => setIsOpen(false)}
-                    aria-label="Close chat"
+                    aria-label={t("chatbot.closeChat", "Close chat")}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -631,7 +680,7 @@ export function AdvancedChatbot({
                                     )
                                   }
                                   className="p-1 rounded hover:bg-white/10"
-                                  title="Listen"
+                                  title={t("chatbot.listen", "Listen")}
                                 >
                                   <Volume2 className="w-3 h-3 text-[var(--muted-foreground)]" />
                                 </button>
@@ -673,7 +722,7 @@ export function AdvancedChatbot({
                         </div>
                         {isSlowResponse && (
                           <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-                            Still working... fetching verified service details.
+                            {t("chatbot.slowResponse", "Still working... fetching verified service details.")}
                           </p>
                         )}
                       </div>
@@ -698,14 +747,14 @@ export function AdvancedChatbot({
                     variant="ghost"
                     size="icon"
                     className="flex-shrink-0 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                    aria-label="Attach file"
-                    onClick={() => toast.info("File upload coming soon")}
+                    aria-label={t("chatbot.attach", "Attach file")}
+                    onClick={() => toast.info(t("chatbot.fileSoon", "File upload coming soon"))}
                   >
                     <Paperclip className="w-5 h-5" />
                   </Button>
                   <Input
                     type="text"
-                    placeholder="Ask anything about government services..."
+                    placeholder={t("chatbot.placeholder", "Ask anything about government services...")}
                     value={inputValue}
                     onChange={(e) => {
                       setInputValue(e.target.value);
@@ -717,7 +766,7 @@ export function AdvancedChatbot({
                       }
                     }}
                     className="flex-1 h-12 bg-[var(--input-background)] border-[var(--border)] text-[var(--foreground)]"
-                    aria-label="Chat message input"
+                    aria-label={t("chatbot.inputAria", "Chat message input")}
                   />
                   <Button
                     type="button"
@@ -729,7 +778,7 @@ export function AdvancedChatbot({
                         ? "text-red-500 animate-pulse"
                         : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                     )}
-                    aria-label="Voice input"
+                    aria-label={t("chatbot.voiceInput", "Voice input")}
                     onClick={toggleRecording}
                   >
                     {isRecording ? (
@@ -743,7 +792,7 @@ export function AdvancedChatbot({
                     size="icon"
                     className="bg-gradient-to-br from-[#000080] to-[#000066] hover:from-[#000066] hover:to-[#000050] flex-shrink-0 h-12 w-12"
                     disabled={!inputValue.trim() || isTyping}
-                    aria-label="Send message"
+                    aria-label={t("chatbot.send", "Send message")}
                   >
                     <Send className="w-5 h-5" />
                   </Button>
@@ -751,7 +800,7 @@ export function AdvancedChatbot({
                 <div className="text-xs text-[var(--muted-foreground)] mt-3 text-center flex items-center justify-center gap-2">
                   <Sparkles className="w-3 h-3" />
                   <span>
-                    Powered by Sarvam AI • STT/TTS enabled • {voiceChatEnabled ? "STS on" : "STS off"}
+                    {t("chatbot.poweredBy", "Powered by Sarvam AI")} • {t("chatbot.sttTts", "STT/TTS enabled")} • {voiceChatEnabled ? t("chatbot.stsOn", "STS on") : t("chatbot.stsOff", "STS off")}
                   </span>
                 </div>
               </div>

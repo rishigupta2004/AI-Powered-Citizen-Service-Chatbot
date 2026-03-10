@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   User,
   FileText,
@@ -41,6 +42,7 @@ import {
 import { Input } from '../ui/input';
 import { Card3D } from '../animations/Card3D';
 import { FloatingElements } from '../animations/FloatingElements';
+import { useAuth } from '../../src/contexts/AuthContext';
 
 interface UserDashboardProps {
   onNavigate: (page: string, serviceId?: string) => void;
@@ -48,125 +50,84 @@ interface UserDashboardProps {
 
 export function UserDashboard({ onNavigate }: UserDashboardProps) {
   const [selectedTab, setSelectedTab] = useState('overview');
+  const { t } = useTranslation();
+  const { user } = useAuth();
+
+  const applications: Array<{
+    id: string;
+    service: string;
+    status: string;
+    progress: number;
+    submittedDate: string;
+    lastUpdate: string;
+    nextStep: string;
+    priority: string;
+    statusColor: string;
+    gradient: string;
+  }> = [];
+
+  const recentActivity: Array<{
+    action: string;
+    service: string;
+    time: string;
+    icon: any;
+    color: string;
+  }> = [];
+
+  const fullName = user?.full_name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || t('dashboard.citizenUser', 'Citizen User');
+  const firstName = fullName.split(' ')[0] || 'Citizen';
+
+  const userProfile = {
+    name: fullName,
+    email: user?.email || t('dashboard.notProvided', 'Not provided'),
+    phone: user?.phone || t('dashboard.notProvided', 'Not provided'),
+    aadhaar: t('dashboard.maskedPrivacy', 'Masked for privacy'),
+    address: t('dashboard.updateProfileSettings', 'Update in profile settings'),
+    memberSince: user?.created_at ? new Date(user.created_at).toLocaleDateString() : t('dashboard.recentlyJoined', 'Recently joined'),
+    verificationLevel: user?.is_verified ? t('dashboard.verified', 'Verified') : t('dashboard.notVerified', 'Not Verified'),
+  };
+
+  const activeCount = applications.filter((a) => a.status !== 'Completed').length;
+  const completedCount = applications.filter((a) => a.status === 'Completed').length;
 
   const stats = [
     {
-      label: 'Active Applications',
-      value: '3',
-      change: '+2 this month',
+      label: t('dashboard.activeApplications', 'Active Applications'),
+      value: String(activeCount),
+      change: activeCount > 0 ? t('dashboard.liveRecords', 'Live records') : t('dashboard.noLiveApplications', 'No live applications'),
       icon: FileText,
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-950/20',
       textColor: 'text-blue-600 dark:text-blue-400',
     },
     {
-      label: 'Completed',
-      value: '12',
-      change: '+5 this month',
+      label: t('dashboard.completed', 'Completed'),
+      value: String(completedCount),
+      change: completedCount > 0 ? t('dashboard.completedRecords', 'Completed records') : t('dashboard.noCompletedRecords', 'No completed records'),
       icon: CheckCircle2,
       color: 'from-green-500 to-green-600',
       bgColor: 'bg-green-50 dark:bg-green-950/20',
       textColor: 'text-green-600 dark:text-green-400',
     },
     {
-      label: 'Pending Review',
-      value: '2',
-      change: 'Requires action',
+      label: t('dashboard.pendingReview', 'Pending Review'),
+      value: String(activeCount),
+      change: activeCount > 0 ? t('dashboard.requiresAction', 'Requires action') : t('dashboard.noPendingItems', 'No pending items'),
       icon: Clock,
       color: 'from-orange-500 to-orange-600',
       bgColor: 'bg-orange-50 dark:bg-orange-950/20',
       textColor: 'text-orange-600 dark:text-orange-400',
     },
     {
-      label: 'Documents',
-      value: '24',
-      change: '8 verified',
+      label: t('dashboard.documents', 'Documents'),
+      value: '0',
+      change: t('dashboard.uploadWhenPrompted', 'Upload when prompted'),
       icon: Shield,
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-950/20',
       textColor: 'text-purple-600 dark:text-purple-400',
     },
   ];
-
-  const applications = [
-    {
-      id: 'APP001',
-      service: 'Passport Services',
-      status: 'In Progress',
-      progress: 65,
-      submittedDate: '2024-01-15',
-      lastUpdate: '2 days ago',
-      nextStep: 'Document Verification',
-      priority: 'high',
-      statusColor: 'bg-blue-500',
-      gradient: 'from-blue-500 to-blue-600',
-    },
-    {
-      id: 'APP002',
-      service: 'Driving License',
-      status: 'Pending',
-      progress: 30,
-      submittedDate: '2024-01-20',
-      lastUpdate: '5 hours ago',
-      nextStep: 'Payment Required',
-      priority: 'medium',
-      statusColor: 'bg-orange-500',
-      gradient: 'from-orange-500 to-orange-600',
-    },
-    {
-      id: 'APP003',
-      service: 'PAN Card Update',
-      status: 'Completed',
-      progress: 100,
-      submittedDate: '2024-01-10',
-      lastUpdate: '1 week ago',
-      nextStep: 'Collect Document',
-      priority: 'low',
-      statusColor: 'bg-green-500',
-      gradient: 'from-green-500 to-green-600',
-    },
-  ];
-
-  const recentActivity = [
-    {
-      action: 'Document uploaded',
-      service: 'Passport Services',
-      time: '2 hours ago',
-      icon: Upload,
-      color: 'text-blue-600 dark:text-blue-400',
-    },
-    {
-      action: 'Application submitted',
-      service: 'Driving License',
-      time: '5 hours ago',
-      icon: CheckCircle2,
-      color: 'text-green-600 dark:text-green-400',
-    },
-    {
-      action: 'Payment completed',
-      service: 'PAN Card Update',
-      time: '1 day ago',
-      icon: CreditCard,
-      color: 'text-purple-600 dark:text-purple-400',
-    },
-    {
-      action: 'Status updated',
-      service: 'Passport Services',
-      time: '2 days ago',
-      icon: Bell,
-      color: 'text-orange-600 dark:text-orange-400',
-    },
-  ];
-
-  const userProfile = {
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@example.com',
-    phone: '+91 98765 43210',
-    aadhaar: 'XXXX XXXX 1234',
-    address: 'Mumbai, Maharashtra',
-    memberSince: 'January 2023',
-    verificationLevel: 'Verified',
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[var(--background)] to-[var(--background-secondary)] pt-32 pb-20 relative overflow-hidden">
@@ -183,10 +144,12 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
             <div>
               <h1 className="text-4xl font-bold font-display text-[var(--foreground)] mb-2">
-                Welcome back, {userProfile.name.split(' ')[0]}! 👋
+                {t('dashboard.welcomeBack', 'Welcome back, {{name}}! 👋', {
+                  name: userProfile.name.split(' ')[0],
+                })}
               </h1>
               <p className="text-[var(--muted-foreground)]">
-                Track and manage all your government service applications in one place
+                {t('dashboard.subtitle', 'Track and manage all your government service applications in one place')}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -219,28 +182,28 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-white/80" />
                     <div>
-                      <div className="text-xs text-white/80">Email</div>
+                       <div className="text-xs text-white/80">{t('dashboard.email', 'Email')}</div>
                       <div className="font-medium">{userProfile.email}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="w-5 h-5 text-white/80" />
                     <div>
-                      <div className="text-xs text-white/80">Phone</div>
+                       <div className="text-xs text-white/80">{t('dashboard.phone', 'Phone')}</div>
                       <div className="font-medium">{userProfile.phone}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <CreditCard className="w-5 h-5 text-white/80" />
                     <div>
-                      <div className="text-xs text-white/80">Aadhaar</div>
+                       <div className="text-xs text-white/80">{t('dashboard.aadhaar', 'Aadhaar')}</div>
                       <div className="font-medium">{userProfile.aadhaar}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Award className="w-5 h-5 text-white/80" />
                     <div>
-                      <div className="text-xs text-white/80">Status</div>
+                       <div className="text-xs text-white/80">{t('serviceDetail.status', 'Status')}</div>
                       <Badge className="bg-green-500 text-white border-0 mt-1">
                         {userProfile.verificationLevel}
                       </Badge>
@@ -291,16 +254,16 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
           <TabsList className="bg-[var(--card)] border-2 border-[var(--border)] p-1">
             <TabsTrigger value="overview" className="data-[state=active]:bg-[#000080] data-[state=active]:text-white">
-              Overview
+              {t('dashboard.overview', 'Overview')}
             </TabsTrigger>
             <TabsTrigger value="applications" className="data-[state=active]:bg-[#000080] data-[state=active]:text-white">
-              Applications
+              {t('dashboard.applications', 'Applications')}
             </TabsTrigger>
             <TabsTrigger value="documents" className="data-[state=active]:bg-[#000080] data-[state=active]:text-white">
-              Documents
+              {t('dashboard.documents', 'Documents')}
             </TabsTrigger>
             <TabsTrigger value="activity" className="data-[state=active]:bg-[#000080] data-[state=active]:text-white">
-              Activity
+              {t('dashboard.activity', 'Activity')}
             </TabsTrigger>
           </TabsList>
 
@@ -316,14 +279,14 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
                 <Card className="border-2 border-[var(--border)] shadow-lg bg-[var(--card)]">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-[var(--foreground)]">Active Applications</CardTitle>
+                      <CardTitle className="text-[var(--foreground)]">{t('dashboard.activeApplications', 'Active Applications')}</CardTitle>
                       <Button 
                         variant="ghost" 
                         size="sm"
                         onClick={() => setSelectedTab('applications')}
                         className="text-[var(--foreground)]"
                       >
-                        View All
+                        {t('dashboard.viewAll', 'View All')}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
@@ -402,8 +365,8 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
               >
                 <Card className="border-2 border-[var(--border)] shadow-lg bg-[var(--card)]">
                   <CardHeader>
-                    <CardTitle className="text-[var(--foreground)]">Recent Activity</CardTitle>
-                    <CardDescription className="text-[var(--muted-foreground)]">Your latest updates</CardDescription>
+                      <CardTitle className="text-[var(--foreground)]">{t('dashboard.recentActivity', 'Recent Activity')}</CardTitle>
+                      <CardDescription className="text-[var(--muted-foreground)]">{t('dashboard.latestUpdates', 'Your latest updates')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {recentActivity.map((activity, index) => (
@@ -450,9 +413,9 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
                       <Sparkles className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-white">Quick Actions</CardTitle>
+                      <CardTitle className="text-white">{t('dashboard.quickActions', 'Quick Actions')}</CardTitle>
                       <CardDescription className="text-white/80">
-                        Commonly used services
+                        {t('dashboard.commonServices', 'Commonly used services')}
                       </CardDescription>
                     </div>
                   </div>
@@ -460,11 +423,11 @@ export function UserDashboard({ onNavigate }: UserDashboardProps) {
                 <CardContent className="relative z-10">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'New Application', icon: FileText, action: () => onNavigate('services') },
-                      { label: 'Track Status', icon: Clock, action: () => onNavigate('tracker') },
-                      { label: 'Upload Document', icon: Upload, action: () => {} },
-                      { label: 'Make Payment', icon: CreditCard, action: () => {} },
-                    ].map((action) => (
+                       { label: t('dashboard.newApplication', 'New Application'), icon: FileText, action: () => onNavigate('services') },
+                       { label: t('dashboard.trackStatus', 'Track Status'), icon: Clock, action: () => onNavigate('tracker') },
+                       { label: t('dashboard.uploadDocument', 'Upload Document'), icon: Upload, action: () => {} },
+                       { label: t('dashboard.makePayment', 'Make Payment'), icon: CreditCard, action: () => {} },
+                     ].map((action) => (
                       <Button
                         key={action.label}
                         onClick={action.action}
