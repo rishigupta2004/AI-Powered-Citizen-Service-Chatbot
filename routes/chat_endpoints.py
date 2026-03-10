@@ -269,10 +269,40 @@ def _looks_like_upstream_error(text: str) -> bool:
 
 def _instant_service_template(query: str, language: str) -> Optional[str]:
     q = (query or "").lower()
+    is_hi = language == "hi"
+    is_bn = language == "bn"
+    is_as = language == "as"
     if any(
         token in q
         for token in ["passport", "पासपोर्ट", "পাসপোর্ট", "પાસપોર્ટ", "பாஸ்போர்ட்", "పాస్పోర్ట్"]
     ):
+        if is_hi:
+            return (
+                "पासपोर्ट सेवा के लिए यह त्वरित चेकलिस्ट अपनाएं:\n"
+                "1. Passport Seva पोर्टल पर रजिस्टर/लॉगिन करें।\n"
+                "2. Fresh/Renewal फॉर्म भरकर सबमिट करें।\n"
+                "3. शुल्क भुगतान करें और PSK/POPSK अपॉइंटमेंट बुक करें।\n"
+                "4. अपॉइंटमेंट पर पहचान, पता और DOB दस्तावेज़ साथ रखें।\n"
+                "5. पुलिस वेरिफिकेशन और डिस्पैच के लिए फाइल नंबर ट्रैक करें।"
+            )
+        if is_bn:
+            return (
+                "পাসপোর্ট পরিষেবার জন্য দ্রুত চেকলিস্ট:\n"
+                "1. Passport Seva পোর্টালে রেজিস্টার/লগইন করুন।\n"
+                "2. নতুন/রিনিউয়াল ফর্ম পূরণ করে জমা দিন।\n"
+                "3. ফি প্রদান করে PSK/POPSK অ্যাপয়েন্টমেন্ট বুক করুন।\n"
+                "4. অ্যাপয়েন্টমেন্টে পরিচয়, ঠিকানা ও DOB প্রমাণ নিয়ে যান।\n"
+                "5. পুলিশ ভেরিফিকেশন ও ডিসপ্যাচের জন্য ফাইল নম্বর ট্র্যাক করুন।"
+            )
+        if is_as:
+            return (
+                "পাছপ’ৰ্ট সেৱাৰ বাবে দ্ৰুত চেকলিষ্ট:\n"
+                "1. Passport Seva প’ৰ্টেলত ৰেজিষ্টাৰ/লগইন কৰক।\n"
+                "2. নতুন/নৱীকৰণ ফৰ্ম পূৰণ কৰি দাখিল কৰক।\n"
+                "3. ফী পৰিশোধ কৰি PSK/POPSK অ্যাপইণ্টমেণ্ট বুক কৰক।\n"
+                "4. অ্যাপইণ্টমেণ্টত পৰিচয়, ঠিকনা আৰু জন্ম তাৰিখৰ প্ৰমাণ লৈ যাওক।\n"
+                "5. পুলিচ ভেৰিফিকেচন আৰু ডিচপেচৰ বাবে ফাইল নম্বৰ ট্ৰেক কৰক।"
+            )
         return (
             "For Passport service, follow this fast checklist:\n"
             "1. Register/login on Passport Seva portal.\n"
@@ -285,6 +315,14 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
         token in q
         for token in ["aadhaar", "aadhar", "आधार", "আধার", "আধার", "ಆಧಾರ್", "ஆதார்"]
     ):
+        if is_hi:
+            return (
+                "आधार अपडेट के लिए UIDAI आधिकारिक पोर्टल का उपयोग करें:\n"
+                "1. अपडेट प्रकार चुनें (पता/नाम/DOB/मोबाइल)।\n"
+                "2. UIDAI सूची के अनुसार सपोर्टिंग डॉक्यूमेंट अपलोड करें।\n"
+                "3. शुल्क भुगतान कर अनुरोध सबमिट करें।\n"
+                "4. URN सेव करें और स्टेटस ट्रैक करें।"
+            )
         return (
             "For Aadhaar update, use UIDAI official portal:\n"
             "1. Choose update type (address/name/DOB/mobile).\n"
@@ -293,6 +331,14 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
             "4. Save URN and track status online."
         )
     if any(token in q for token in ["pan", "पैन", "প্যান", "પાન"]):
+        if is_hi:
+            return (
+                "PAN सेवाओं के लिए:\n"
+                "1. NSDL/UTI आधिकारिक PAN पोर्टल खोलें।\n"
+                "2. नया PAN या करेक्शन विकल्प चुनें।\n"
+                "3. फॉर्म भरें, दस्तावेज़ अपलोड करें, शुल्क दें।\n"
+                "4. स्टेटस के लिए acknowledgement नंबर ट्रैक करें।"
+            )
         return (
             "For PAN services:\n"
             "1. Use NSDL/UTI official PAN service page.\n"
@@ -301,6 +347,14 @@ def _instant_service_template(query: str, language: str) -> Optional[str]:
             "4. Track acknowledgement number for status."
         )
     if any(token in q for token in ["epfo", "pf", "ईपीएफओ", "पीएफ", "ইপিএফও"]):
+        if is_hi:
+            return (
+                "EPFO सेवाओं के लिए:\n"
+                "1. UAN से EPFO Member e-Sewa में लॉगिन करें।\n"
+                "2. KYC और बैंक डिटेल approved होनी चाहिए।\n"
+                "3. Online Services से claim/transfer/passbook कार्य करें।\n"
+                "4. सबमिशन के बाद पोर्टल में claim status ट्रैक करें।"
+            )
         return (
             "For EPFO services:\n"
             "1. Login to EPFO Member e-Sewa using UAN.\n"
