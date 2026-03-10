@@ -717,6 +717,7 @@ async def voice_chat(
     audio: UploadFile = File(...),
     language: str = "hi",
     fast_mode: bool = True,
+    max_voice_chars: int = Query(140, ge=80, le=220),
     db: Session = Depends(get_db),
 ):
     """Full Speech-to-Speech: STT → RAG/LLM → TTT → TTS."""
@@ -778,7 +779,9 @@ async def voice_chat(
         response_text = await sarvam.chat(
             messages=messages, system_prompt=system, max_tokens=120
         )
-    voice_text = _compress_for_voice(response_text)
+    voice_text = _compress_for_voice(response_text, max_chars=max_voice_chars)
+    if fast_mode:
+        response_text = voice_text
     # TTS
     tts = await sarvam.text_to_speech(voice_text, language=target_lang, speed=1.2)
     return {

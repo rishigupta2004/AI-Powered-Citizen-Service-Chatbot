@@ -123,10 +123,14 @@ export const sendChatMessage = sendChat
 export async function sendVoice(audio: Blob, language = 'auto'): Promise<VoiceChatResponse> {
   const form = new FormData()
   form.append('audio', audio, 'recording.webm')
-  const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/voice-chat?language=${language}`, {
-    method: 'POST',
-    body: form,
-  }, 20000)
+  const response = await fetchWithTimeout(
+    `${API_BASE_URL}/api/v1/voice-chat?language=${language}&fast_mode=true&max_voice_chars=110`,
+    {
+      method: 'POST',
+      body: form,
+    },
+    20000,
+  )
   return readJsonResponse<VoiceChatResponse>(response)
 }
 
