@@ -30,6 +30,9 @@ class AuthMethod(str, Enum):
     OTP_EMAIL = "otp_email"
     DIGILOCKER = "digilocker"
     SUPABASE = "supabase"
+    CLERK = "clerk"
+    CLERK_GOOGLE = "clerk_google"
+    CLERK_PHONE = "clerk_phone"
 
 
 class UserRole(str, Enum):

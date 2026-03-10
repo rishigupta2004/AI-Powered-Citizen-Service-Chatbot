@@ -1,172 +1,194 @@
-import React, { useRef, useState } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
-import {
-  ArrowRight,
-  Shield,
-  Globe,
-  Zap,
-  Lock,
-  Smartphone,
-  Search,
-  CheckCircle2,
-  Sparkles
-} from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { ServiceCard3D } from '../3d/ServiceCard3D';
-import { getAllServices } from '../../data/servicesData';
-import { AbstractCitizen } from '../../src/components/art/AbstractCitizen';
-import { Mandala } from '../../src/components/art/Mandala';
+import React, { useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { ArrowRight, Bell, Clock3, FileText, Globe, LifeBuoy, Phone, Search, Shield, Siren, User } from "lucide-react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { ServiceCard3D } from "../3d/ServiceCard3D";
+import { getAllServices } from "../../data/servicesData";
 
 interface EnhancedHomeProps {
   onNavigate: (page: string, serviceId?: string) => void;
 }
 
 export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
-  const { t, i18n } = useTranslation();
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '40%']);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const { t } = useTranslation();
+  const shouldReduceMotion = useReducedMotion();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const allServices = getAllServices();
+  const quickAccessServices = allServices.slice(0, 6);
   const featuredServices = allServices.slice(0, 6);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      onNavigate('services');
-    }
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+    return allServices
+      .filter((service) => service.name.toLowerCase().includes(query) || service.description.toLowerCase().includes(query))
+      .slice(0, 4);
+  }, [allServices, searchQuery]);
+
+  const announcements = [
+    t("home.ann1", "Income Certificate service maintenance window this Sunday 02:00-04:00 AM."),
+    t("home.ann2", "Scholarship verification cycle is now open across all districts."),
+    t("home.ann3", "Faster tracking notifications are now enabled for high-volume services."),
+  ];
+
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (searchQuery.trim()) onNavigate("services");
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0a0f1c] font-sans overflow-hidden">
-      
-      {/* 
-        Sarvam-Style Vibrant Hero Section 
-        Rich indigos, animated background art, massive bilingual typography
-      */}
-      <section ref={heroRef} className="relative pt-32 pb-40 min-h-[95vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-950 via-[#000080] to-purple-950">
-        
-        {/* Animated Background Art */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40 mix-blend-screen">
-          <div className="absolute top-[-10%] right-[-5%] opacity-50 mix-blend-color-dodge">
-            <Mandala size={800} />
-          </div>
-          <div className="absolute bottom-[-20%] left-[-10%] opacity-30 mix-blend-color-dodge">
-            <Mandala size={600} />
-          </div>
-          {/* Saffron/Green abstract glows */}
-          <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 8, repeat: Infinity }} className="absolute top-[20%] left-[10%] w-96 h-96 bg-saffron rounded-full blur-[120px]" />
-          <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 10, repeat: Infinity, delay: 2 }} className="absolute bottom-[10%] right-[20%] w-[30rem] h-[30rem] bg-green rounded-full blur-[150px]" />
-        </div>
-
-        {/* Floating Cartoon/Abstract Elements (Sarvam vibe) */}
-        <div className="absolute left-[5%] top-[30%] w-32 h-32 hidden lg:block opacity-80 pointer-events-none drop-shadow-2xl">
-          <AbstractCitizen color="#FF9933" />
-        </div>
-        <div className="absolute right-[8%] bottom-[20%] w-40 h-40 hidden lg:block opacity-80 pointer-events-none drop-shadow-2xl">
-          <AbstractCitizen color="#138808" className="scale-x-[-1]" />
-        </div>
-
-        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-xl mb-8"
-          >
-            <Sparkles className="w-4 h-4 text-saffron" />
-            <span className="text-sm font-bold tracking-widest text-white uppercase">
-              {t("app.subtitle")}
-            </span>
-          </motion.div>
-
-          <div className="relative mb-8">
-            {/* Faded Background Translation (Big Indic Text) */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.15 }}
-              transition={{ duration: 2 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-9xl md:text-[12rem] font-bold text-white whitespace-nowrap pointer-events-none select-none font-display tracking-tighter"
+    <div className="page-shell min-h-screen pt-24 md:pt-28">
+      <section className="border-b border-[var(--border)] bg-gradient-to-br from-[#051739] via-[#0a2f73] to-[#04112b] text-white">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 md:py-16">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-10">
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+              animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.35 }}
             >
-              {i18n.language !== 'hi' ? 'सेवा सिंधु' : 'Seva Sindhu'}
+              <p className="page-eyebrow mb-4 border-white/35 bg-white/10 text-white">
+                {t("home.hero.badge", "National Digital Citizen Platform")}
+              </p>
+              <h1 className="max-w-3xl text-balance text-4xl font-bold leading-tight tracking-[-0.03em] sm:text-5xl lg:text-6xl">
+                {t("home.hero.title", "Your gateway to government services")}
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg">
+                {t(
+                  "home.hero.subtitle",
+                  "Search, apply, and track government services from one secure platform designed for every citizen.",
+                )}
+              </p>
+
+              <form onSubmit={handleSearch} className="glass-panel mt-7 rounded-[var(--radius-xl)] p-2.5">
+                <div className="relative flex flex-col gap-2 sm:flex-row">
+                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-white/60" />
+                  <Input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder={t("home.searchPlaceholder", "Search Passport, Income Certificate, Driving License...")}
+                    className="h-12 border-0 bg-transparent pl-11 text-base text-white placeholder:text-white/55 shadow-none focus-visible:ring-0"
+                  />
+                  <Button type="submit" className="h-12 rounded-[var(--radius-lg)] bg-white px-6 text-[var(--color-navy)] hover:bg-white/90">
+                    {t("home.searchCta", "Search Services")}
+                  </Button>
+                </div>
+
+                {searchResults.length > 0 && (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {searchResults.map((service) => (
+                      <button
+                        key={service.id}
+                        type="button"
+                        onClick={() => onNavigate("service-detail", service.id)}
+                        className="rounded-[var(--radius-md)] border border-white/20 bg-white/10 p-3 text-left transition-colors hover:bg-white/15"
+                      >
+                        <div className="truncate text-sm font-semibold text-white">{service.name}</div>
+                        <div className="mt-1 truncate text-xs text-white/70">{service.processingTime}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </form>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {[Globe, Shield, LifeBuoy, Bell].map((Icon, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={index === 3 ? () => onNavigate("faq") : undefined}
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90 transition-colors hover:bg-white/15"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {index === 0
+                      ? t("common.language", "Language")
+                      : index === 1
+                        ? t("common.accessibility", "Accessibility")
+                        : index === 2
+                          ? t("common.chat", "Live Chat")
+                          : t("common.help", "Help")}
+                  </button>
+                ))}
+              </div>
             </motion.div>
 
-            {/* Main Foreground Text */}
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, type: "spring", bounce: 0.3, delay: 0.1 }}
-              className="relative text-5xl md:text-7xl lg:text-8xl font-display font-extrabold text-white tracking-tight leading-[1.1]"
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.4, delay: shouldReduceMotion ? 0 : 0.05 }}
+              className="glass-panel rounded-[var(--radius-xl)] p-6"
             >
-              {t("app.title").split('-')[0].trim()}
-            </motion.h1>
-          </div>
-
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
-            className="text-lg md:text-2xl text-blue-100/90 mb-12 max-w-2xl leading-relaxed font-light backdrop-blur-sm"
-          >
-            {t("home.hero.subtitle", "Access 50+ government services instantly. Fast, secure, and available in your language.")}
-          </motion.p>
-
-          {/* Glowing Search Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="w-full max-w-2xl relative group"
-          >
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-saffron via-white to-green rounded-full blur-md opacity-40 group-hover:opacity-70 transition duration-500"></div>
-            <form onSubmit={handleSearch} className="relative flex items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-full p-2.5 shadow-2xl">
-              <Search className="absolute left-6 w-6 h-6 text-slate-400" />
-              <Input
-                type="text"
-                placeholder={t("home.hero.searchPlaceholder", "Search for Passport, Aadhaar, Driving License...")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-16 pr-40 h-14 text-lg bg-transparent border-0 focus-visible:ring-0 text-slate-900 dark:text-white placeholder:text-slate-400/70"
-              />
-              <Button
-                type="submit"
-                className="absolute right-2.5 h-12 px-8 rounded-full bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-bold shadow-lg transition-transform active:scale-95"
-              >
-                {t("home.hero.search", "Search")}
+              <div className="text-xs font-semibold uppercase tracking-[0.08em] text-white/80">
+                {t("home.glance", "Today at a glance")}
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {[
+                  { label: t("home.stats.services", "Total Services"), value: "50+" },
+                  { label: t("home.stats.languages", "Languages"), value: "22" },
+                  { label: t("home.stats.uptime", "Platform Uptime"), value: "99.9%" },
+                  { label: t("home.stats.support", "Citizen Support"), value: "24/7" },
+                ].map((stat) => (
+                  <div key={stat.label} className="rounded-[var(--radius-lg)] border border-white/20 bg-white/10 p-3">
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <div className="mt-1 text-xs text-white/75">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+              <Button onClick={() => onNavigate("dashboard")} className="mt-5 h-11 w-full rounded-[var(--radius-lg)] bg-white text-[var(--color-navy)] hover:bg-white/90">
+                {t("home.openDashboard", "Open Citizen Dashboard")}
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            </form>
-          </motion.div>
-        </motion.div>
+            </motion.div>
+          </div>
+        </div>
       </section>
 
-      {/* Services Grid with 3D Interaction */}
-      <section className="py-32 relative z-20 -mt-10 bg-white dark:bg-[#0a0f1c] rounded-t-[3rem] shadow-[0_-20px_40px_rgba(0,0,0,0.1)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-display font-extrabold text-slate-900 dark:text-white mb-6">
-              {t("home.services.title", "Popular Services")}
-            </h2>
-          </motion.div>
+      <section className="border-b border-[var(--border)] bg-[var(--surface-2)] py-12 md:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold tracking-[-0.01em] text-[var(--foreground)] md:text-3xl">{t("home.quickTitle", "Quick Access Services")}</h2>
+          <p className="mt-1.5 text-sm text-[var(--muted-foreground)] md:text-base">{t("home.quickSubtitle", "Start common requests in one tap.")}</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {quickAccessServices.map((service, index) => (
+              <motion.button
+                key={service.id}
+                type="button"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+                whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-120px" }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.2, delay: shouldReduceMotion ? 0 : index * 0.04 }}
+                onClick={() => onNavigate("service-detail", service.id)}
+                className="card-premium rounded-[var(--radius-xl)] p-5 text-left"
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">{service.processingTime}</p>
+                <h3 className="mt-2 text-lg font-semibold text-[var(--foreground)]">{service.name}</h3>
+                <p className="mt-1 line-clamp-2 text-sm text-[var(--muted-foreground)]">{service.description}</p>
+                <span className="mt-3 inline-flex items-center text-sm font-medium text-[var(--color-navy)]">
+                  {t("home.openService", "Open service")}
+                  <ArrowRight className="ml-1.5 h-4 w-4" />
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-[var(--border)] bg-[var(--surface-1)] py-12 md:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold tracking-[-0.01em] text-[var(--foreground)] md:text-3xl">{t("home.popularTitle", "Popular Government Services")}</h2>
+          <p className="mt-1.5 text-sm text-[var(--muted-foreground)] md:text-base">{t("home.popularSubtitle", "Most-used services by citizens this week.")}</p>
+
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featuredServices.map((service, index) => (
               <motion.div
                 key={service.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, delay: index * 0.1, type: "spring", bounce: 0.4 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-90px" }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.24, delay: shouldReduceMotion ? 0 : index * 0.05 }}
               >
                 <ServiceCard3D
                   icon={service.icon}
@@ -176,68 +198,125 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
                   gradient={service.gradient}
                   processingTime={service.processingTime}
                   fee={service.fee}
-                  onClick={() => onNavigate('service-detail', service.id)}
+                  onClick={() => onNavigate("service-detail", service.id)}
                 />
               </motion.div>
             ))}
           </div>
 
-          <div className="text-center">
-            <Button
-              size="lg"
-              className="bg-indigo-950 text-white hover:bg-indigo-900 px-10 h-16 rounded-full text-lg font-bold shadow-xl transition-transform hover:-translate-y-1"
-              onClick={() => onNavigate('services')}
-            >
-              {t("home.services.viewAll", "View All Services")}
-              <ArrowRight className="ml-2 w-5 h-5" />
+          <div className="mt-10 text-center">
+            <Button size="lg" className="cta-primary h-12 rounded-[var(--radius-lg)] px-8" onClick={() => onNavigate("services")}>
+              {t("home.viewAll", "View All Services")}
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Dynamic Features Section */}
-      <section className="py-32 bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
-        <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-700 to-transparent"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-display font-extrabold text-slate-900 dark:text-white">
-              {t("home.features.title", "Why Choose Seva Sindhu")}
-            </h2>
+      <section className="border-b border-[var(--border)] bg-[var(--surface-2)] py-12 md:py-16">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-[1.25fr_0.75fr] lg:px-8">
+          <div className="rounded-[var(--radius-2xl)] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-2)] md:p-8">
+            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+              <User className="h-4 w-4" />
+              {t("home.dashboardPreview", "Citizen Dashboard Preview")}
+            </div>
+            <h2 className="mt-3 text-2xl font-bold text-[var(--foreground)] md:text-3xl">{t("home.trackTitle", "Track every application in one place")}</h2>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {[
+                { label: t("home.inProgress", "In Progress"), value: "03" },
+                { label: t("home.approved", "Approved"), value: "08" },
+                { label: t("home.actionRequired", "Action Required"), value: "01" },
+              ].map((item, index) => (
+                <div key={item.label} className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                  <div className={`text-2xl font-bold ${index === 2 ? "text-[#c86518]" : "text-[var(--color-navy)]"}`}>{item.value}</div>
+                  <div className="mt-1 text-xs text-[var(--muted-foreground)]">{item.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 space-y-3">
+              {[
+                t("home.activity1", "Passport renewal moved to document verification"),
+                t("home.activity2", "Income certificate approved and ready for download"),
+                t("home.activity3", "Scholarship form requires one additional upload"),
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3">
+                  <Clock3 className="mt-0.5 h-4 w-4 text-[var(--color-navy)]" />
+                  <p className="text-sm text-[var(--foreground)]">{item}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button onClick={() => onNavigate("dashboard")} className="cta-primary">{t("home.openDashboardShort", "Open Dashboard")}</Button>
+              <Button variant="outline" className="cta-secondary" onClick={() => onNavigate("tracker")}>{t("home.trackStatus", "Track Status")}</Button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Shield,
-                title: t("home.features.tracking.title", "Secure & Compliant"),
-                desc: t("home.features.tracking.description", "Bank-level encryption and government-grade security protocols"),
-                color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/40"
-              },
-              {
-                icon: Zap,
-                title: t("home.features.services.title", "Lightning Fast"),
-                desc: t("home.features.services.description", "Process applications in minutes, not days"),
-                color: "text-saffron", bg: "bg-orange-100 dark:bg-orange-900/40"
-              },
-              {
-                icon: Globe,
-                title: t("home.features.languages.title", "Multi-Language Support"),
-                desc: t("home.features.languages.description", "Available in 22+ regional Indian languages"),
-                color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/40"
-              }
-            ].map((feat, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ y: -10 }}
-                className="p-8 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700 transition-all duration-300"
-              >
-                <div className={`w-16 h-16 rounded-2xl ${feat.bg} ${feat.color} flex items-center justify-center mb-6`}>
-                  <feat.icon className="w-8 h-8" />
+          <div className="rounded-[var(--radius-2xl)] border border-[var(--border)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-2)]">
+            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+              <Bell className="h-4 w-4" />
+              {t("home.announcementsTitle", "Announcements & Latest Updates")}
+            </div>
+            <div className="mt-4 space-y-3">
+              {announcements.map((item) => (
+                <div key={item} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                  <p className="text-sm text-[var(--foreground)]">{item}</p>
                 </div>
-                <h3 className="text-2xl font-bold font-display text-slate-900 dark:text-white mb-4">{feat.title}</h3>
-                <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-lg">{feat.desc}</p>
-              </motion.div>
-            ))}
+              ))}
+            </div>
+
+            <Button variant="ghost" className="mt-4 h-auto px-0 text-[var(--color-navy)] hover:bg-transparent" onClick={() => onNavigate("faq")}>
+              {t("home.learnMore", "Learn more updates")}
+              <ArrowRight className="ml-1.5 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[var(--surface-1)] py-12 md:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-[var(--radius-2xl)] border border-[#efc9c9] bg-[#fff9f9] p-6 shadow-[var(--shadow-2)] md:p-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 text-sm font-semibold text-red-700">
+                  <Siren className="h-4 w-4" />
+                  {t("home.emergencyTitle", "Emergency Services")}
+                </div>
+                <h3 className="mt-2 text-2xl font-bold text-[var(--foreground)] md:text-3xl">{t("home.emergencySub", "Immediate help and critical citizen support")}</h3>
+                <p className="mt-2 max-w-3xl text-sm text-[var(--muted-foreground)] md:text-base">
+                  {t(
+                    "home.emergencyDesc",
+                    "Use emergency channels for urgent police, ambulance, and fire services. For non-urgent requests, use standard portal workflows.",
+                  )}
+                </p>
+              </div>
+
+              <div className="grid w-full gap-3 sm:grid-cols-3 lg:w-auto">
+                {[
+                  { label: t("home.police", "Police"), value: "100" },
+                  { label: t("home.ambulance", "Ambulance"), value: "108" },
+                  { label: t("home.fire", "Fire"), value: "101" },
+                ].map((item) => (
+                  <div key={item.label} className="min-w-[112px] rounded-[var(--radius-md)] border border-[#efc9c9] bg-white px-4 py-3">
+                    <div className="text-xs text-[var(--muted-foreground)]">{item.label}</div>
+                    <div className="text-2xl font-bold text-red-700">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button className="bg-red-700 text-white hover:bg-red-600">
+                <Phone className="mr-2 h-4 w-4" />
+                {t("home.callEmergency", "Call Emergency")}
+              </Button>
+              <Button variant="outline" className="cta-secondary" onClick={() => onNavigate("about")}>
+                <FileText className="mr-2 h-4 w-4" />
+                {t("home.safetyGuide", "Safety Guidelines")}
+              </Button>
+            </div>
           </div>
         </div>
       </section>

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const API = "https://gov-chatbot.fly.dev"\;
+const API = "https://gov-chatbot.fly.dev";
 
 interface Message { type: "user" | "bot"; text: string; }
 

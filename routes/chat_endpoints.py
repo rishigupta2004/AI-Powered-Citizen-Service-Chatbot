@@ -3,9 +3,12 @@ Chat, STT, and TTS endpoints.
 These integrate with the existing FastAPI app.
 """
 
+import asyncio
 import os
 import logging
 import json
+import re
+import time
 from fastapi import (
     APIRouter,
     Depends,
@@ -27,6 +30,8 @@ from datetime import datetime, timedelta
 from core.database import get_db
 from core.rag import RAGPipeline
 from core.sarvam import sarvam
+from core.cache import chat_cache
+from core.repositories import ContentChunkRepository, FAQRepository, DocumentRepository
 from core.auth_models import User, UserSession, ChatSession
 from routes.auth_endpoints import get_current_user_dependency
 
@@ -73,6 +78,103 @@ SYSTEM_PROMPTS = {
 }
 
 DEFAULT_SYSTEM_PROMPT = SYSTEM_PROMPTS["en"]
+
+SECURITY_PATTERNS = [
+    re.compile(r"ignore\s+previous\s+instructions", re.IGNORECASE),
+    re.compile(r"\bdrop\s+table\b", re.IGNORECASE),
+    re.compile(r"<script", re.IGNORECASE),
+    re.compile(r"union\s+select", re.IGNORECASE),
+]
+
+
+def _is_security_threat(text: str) -> bool:
+    return any(pattern.search(text) for pattern in SECURITY_PATTERNS)
+
+
+def _clean_model_text(text: str) -> str:
+    cleaned = (text or "").strip()
+    if "</think>" in cleaned:
+        cleaned = cleaned.split("</think>")[-1].strip()
+    if "<think>" in cleaned and "</think>" not in cleaned:
+        cleaned = cleaned.split("<think>", 1)[0].strip()
+    return cleaned
+
+
+def _build_rag_fallback(
+    query: str,
+    language: str,
+    context_parts: list[str],
+    user: Optional[User],
+) -> str:
+    if context_parts:
+        context_summary = " ".join(context_parts)[:900]
+        base = f"{context_summary}\n\nFor official steps, use only government portals."
+    else:
+        base = (
+            "I can help with Indian government services like Passport, Aadhaar, PAN, "
+            "EPFO, DigiLocker, voter ID, and driving license. Share your exact query "
+            "and I will provide step-by-step guidance."
+        )
+
+    if language == "hi":
+        base = (
+            "मैं पासपोर्ट, आधार, पैन, ईपीएफओ, डिजिलॉकर और अन्य सरकारी सेवाओं में मदद कर सकता हूँ। "
+            "कृपया अपना सवाल बताएं, मैं चरण-दर-चरण मार्गदर्शन दूंगा।"
+            if not context_parts
+            else base
+        )
+
+    if user and user.first_name:
+        return f"{user.first_name}, {base}"
+    return base
+
+
+def _search_context_fast(
+    db: Session, query: str, limit: int = 5
+) -> tuple[list[str], list[str]]:
+    try:
+        chunk_repo = ContentChunkRepository(db)
+        faq_repo = FAQRepository(db)
+        doc_repo = DocumentRepository(db)
+
+        sources: list[str] = []
+        context_parts: list[str] = []
+
+        chunks = chunk_repo.search_text(query, limit)
+        for chunk in chunks[:limit]:
+            text = (chunk.chunk_text or "").strip()
+            if not text:
+                continue
+            context_parts.append(text[:320])
+            source = f"chunk_{chunk.chunk_id}"
+            if source not in sources:
+                sources.append(source)
+
+        if len(context_parts) < limit:
+            faqs = faq_repo.search_text(query, max(1, limit // 2))
+            for faq in faqs:
+                text = f"Q: {faq.question}\nA: {faq.answer}".strip()
+                context_parts.append(text[:320])
+                source = (faq.question or "faq")[:80]
+                if source and source not in sources:
+                    sources.append(source)
+
+        if len(context_parts) < limit:
+            docs = doc_repo.search_text(query, max(1, limit // 2))
+            for doc in docs:
+                text = (doc.raw_content or doc.name or "").strip()
+                if not text:
+                    continue
+                context_parts.append(text[:320])
+                source = (doc.name or f"doc_{doc.doc_id}")[:80]
+                if source and source not in sources:
+                    sources.append(source)
+
+        return context_parts[:limit], sources[:limit]
+    except Exception as exc:
+        db.rollback()
+        logger.warning("Fast context search unavailable, using empty context: %s", exc)
+        return [], []
 
 
 def detect_language(text: str) -> str:
@@ -123,6 +225,7 @@ class ChatRequest(BaseModel):
     language: Optional[str] = "auto"
     history: Optional[List[ChatMessage]] = []
     service_context: Optional[str] = None
+    response_mode: Optional[str] = "auto"  # auto | rag_only | sarvam
     session_id: Optional[str] = None
     user_id: Optional[int] = None
 
@@ -146,7 +249,8 @@ async def chat(
     user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
-    """Main chat endpoint. Runs RAG → Sarvam-M pipeline."""
+    """Main chat endpoint with fast RAG fallback and latency-aware modes."""
+    started = time.perf_counter()
     query = request.message.strip()
     if not query:
         raise HTTPException(status_code=400, detail="Message cannot be empty")
@@ -155,82 +259,72 @@ async def chat(
     if lang == "auto" or not lang:
         lang = detect_language(query)
 
-    from core.search import SearchEngine
-    search_engine = SearchEngine(db=db)
-    search_results = search_engine.search(query, limit=5)
-    context_results = search_results.get("results", [])
-    print(f"DEBUG keys={list(context_results[0].keys()) if context_results else []}", flush=True)
+    response_mode = (request.response_mode or "auto").strip().lower()
+    if response_mode not in {"auto", "rag_only", "sarvam"}:
+        response_mode = "auto"
 
-    context_parts = []
-    sources = []
-    for chunk in context_results:
-        content = chunk.get("content", "").strip()
-        source_name = chunk.get("source_name", chunk.get("source", ""))
-        if content:
-            context_parts.append(content[:400])
-        if source_name and source_name not in sources:
-            sources.append(source_name)
-
-    context_text = "\n\n".join(context_parts) if context_parts else ""
-
-    system_prompt = SYSTEM_PROMPTS.get(lang, DEFAULT_SYSTEM_PROMPT)
-
-    is_first_message = not request.history
-
-    if user and is_first_message:
-        greeting = f"Hello {user.first_name}! "
-        if lang == "hi":
-            greeting = f"नमस्ते {user.first_name}! "
-        elif lang == "ta":
-            greeting = f"வணக்கம் {user.first_name}! "
-        elif lang == "te":
-            greeting = f"హలో {user.first_name}! "
-        elif lang == "bn":
-            greeting = f"নমস্কার {user.first_name}! "
-        system_prompt = greeting + system_prompt
-
-    if context_text:
-        system_prompt += (
-            f"\n\nRelevant government information:\n{context_text}\n\n"
-            "Use the above information to answer accurately. "
-            "Cite the service name when relevant."
+    if _is_security_threat(query):
+        guarded = (
+            "I can only help with Indian government service information. "
+            "Please ask about Passport, Aadhaar, PAN, EPFO, DigiLocker, voter ID, "
+            "driving license, or related official service steps."
+        )
+        return ChatResponse(
+            response=guarded,
+            language=lang,
+            sources=[],
+            session_id=request.session_id,
         )
 
-    if request.service_context:
-        system_prompt += f"\n\nThe user is asking about: {request.service_context}"
+    cache_key = f"{response_mode}:{query}"
+    if response_mode != "sarvam":
+        cached = chat_cache.get(cache_key, lang)
+        if cached:
+            return ChatResponse(**cached)
 
-    messages = []
-    for msg in (request.history or [])[-6:]:
-        messages.append({"role": msg.role, "content": msg.content})
-    messages.append({"role": "user", "content": query})
+    context_parts, sources = _search_context_fast(db, query, limit=5)
+    context_text = "\n\n".join(context_parts) if context_parts else ""
 
-    response_text = await sarvam.chat(
-        messages=messages,
-        system_prompt=system_prompt,
-        temperature=0.3,
-        max_tokens=500,
-    )
-    if "</think>" in response_text:
-        response_text = response_text.split("</think>")[-1].strip()
-    response_text = response_text.strip()
-    if not response_text:
-        response_text = "I can help you with government services. Please ask about passport, Aadhaar, PAN card, voter ID, driving license, or other services."
+    fallback_response = _build_rag_fallback(query, lang, context_parts, user)
+    response_text = fallback_response
 
-    if "<think>" in response_text and "</think>" in response_text:
-        response_text = response_text.split("</think>", 1)[-1].strip()
-    elif "<think>" in response_text:
-        response_text = response_text.split("<think>", 1)[0].strip()
-    
-    if "<think>" in response_text and "</think>" in response_text:
-        response_text = response_text.split("</think>", 1)[-1].strip()
-    elif "<think>" in response_text:
-        response_text = response_text.split("<think>", 1)[0].strip()
-    
-    if "<think>" in response_text and "</think>" in response_text:
-        response_text = response_text.split("</think>", 1)[-1].strip()
-    elif "<think>" in response_text:
-        response_text = response_text.split("<think>", 1)[0].strip()
-    
+    if response_mode != "rag_only":
+        system_prompt = SYSTEM_PROMPTS.get(lang, DEFAULT_SYSTEM_PROMPT)
+        if context_text:
+            system_prompt += (
+                f"\n\nRelevant government information:\n{context_text}\n\n"
+                "Use the above information to answer accurately."
+            )
+        if request.service_context:
+            system_prompt += f"\n\nThe user is asking about: {request.service_context}"
+
+        messages = []
+        for msg in (request.history or [])[-6:]:
+            messages.append({"role": msg.role, "content": msg.content})
+        messages.append({"role": "user", "content": query})
+
+        timeout_seconds = float(os.getenv("SARVAM_CHAT_TIMEOUT_SEC", "2.0"))
+        try:
+            response_text = await asyncio.wait_for(
+                sarvam.chat(
+                    messages=messages,
+                    system_prompt=system_prompt,
+                    temperature=0.3,
+                    max_tokens=400,
+                ),
+                timeout=timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("Sarvam chat timeout for query fallback: %.80s", query)
+            response_text = fallback_response
+        except Exception as exc:
+            logger.warning("Sarvam chat failed, using fallback: %s", exc)
+            response_text = fallback_response
+
+        response_text = _clean_model_text(response_text)
+        if not response_text or "not configured" in response_text.lower():
+            response_text = fallback_response
+
     if user or request.session_id:
         user_msg = ChatSession(
             user_id=user.id if user else None,
@@ -251,12 +345,26 @@ async def chat(
         db.add(assistant_msg)
         db.commit()
 
-    return ChatResponse(
+    payload = ChatResponse(
         response=response_text,
         language=lang,
         sources=sources,
         session_id=request.session_id,
     )
+
+    if response_mode != "sarvam":
+        chat_cache.set(cache_key, lang, payload.model_dump())
+
+    elapsed_ms = (time.perf_counter() - started) * 1000
+    if elapsed_ms > 1000:
+        logger.info(
+            "Chat latency %.0fms mode=%s query=%.80s",
+            elapsed_ms,
+            response_mode,
+            query,
+        )
+
+    return payload
 
 
 @chat_router.post("/speech-to-text")
@@ -291,7 +399,7 @@ async def speech_to_text(
     )
 
     if "error" in result and not result.get("transcript"):
-        return {"transcript": "", "error": str(result.get("error","STT failed"))}
+        return {"transcript": "", "error": str(result.get("error", "STT failed"))}
 
     return result
 
@@ -312,7 +420,7 @@ async def text_to_speech(request: TTSRequest):
     )
 
     if "error" in result:
-        return {"transcript": "", "error": str(result.get("error","STT failed"))}
+        return {"transcript": "", "error": str(result.get("error", "STT failed"))}
 
     return Response(
         content=result["audio_bytes"],
@@ -377,6 +485,7 @@ async def get_chat_history(
 
     return result
 
+
 # ── Voice Chat (STS Pipeline) ─────────────────────────────────────────────────
 @chat_router.post("/voice-chat")
 async def voice_chat(
@@ -392,23 +501,34 @@ async def voice_chat(
     stt = await sarvam.speech_to_text(audio_bytes, language=language)
     transcript = stt.get("transcript", "")
     if not transcript:
-        return {"transcript": "", "response": "Could not transcribe audio.", "audio_base64": ""}
+        return {
+            "transcript": "",
+            "response": "Could not transcribe audio.",
+            "audio_base64": "",
+        }
     # RAG + LLM
     from core.search import SearchEngine
+
     engine = SearchEngine(db=db)
     results = engine.search(transcript, limit=3)
-    context = "\n".join(c.get("content","")[:300] for c in results.get("results",[])[:3])
+    context = "\n".join(
+        c.get("content", "")[:300] for c in results.get("results", [])[:3]
+    )
     system = f"You are SevaSindhu AI for Indian government services. Answer in {language} language.\nContext:\n{context}"
-    messages = [{"role":"user","content":transcript}]
-    response_text = await sarvam.chat(messages=messages, system_prompt=system, max_tokens=200)
+    messages = [{"role": "user", "content": transcript}]
+    response_text = await sarvam.chat(
+        messages=messages, system_prompt=system, max_tokens=200
+    )
     # TTT if non-English
-    if language not in ("en","en-IN"):
-        response_text = await sarvam.translate(response_text, source_language="en", target_language=language)
+    if language not in ("en", "en-IN"):
+        response_text = await sarvam.translate(
+            response_text, source_language="en", target_language=language
+        )
     # TTS
     tts = await sarvam.text_to_speech(response_text, language=language)
     return {
         "transcript": transcript,
         "response": response_text,
-        "audio_base64": tts.get("audio_base64",""),
+        "audio_base64": tts.get("audio_base64", ""),
         "language": language,
     }

@@ -192,25 +192,20 @@ CREATE TABLE IF NOT EXISTS raw_content (
 );
 
 -- Content Chunks (for vector search)
+-- NOTE: EMBEDDING_DIM must match EMBEDDING_DIM env var (default 384).
+--       Run: ALTER TABLE content_chunks ALTER COLUMN embedding TYPE vector(<dim>);
+--       if you change the dimension after initial creation.
 CREATE TABLE IF NOT EXISTS content_chunks (
-    chunk_id SERIAL PRIMARY KEY,
-    uuid UUID DEFAULT uuid_generate_v4(),
-    content_id INTEGER REFERENCES raw_content(content_id) ON DELETE CASCADE,
-    service_id INTEGER REFERENCES services(service_id) ON DELETE CASCADE,
-    
-    -- Chunk Information
-    chunk_text TEXT NOT NULL,
-    chunk_index INTEGER NOT NULL,
-    chunk_type VARCHAR(50), -- paragraph, section, step, etc.
-    
-    -- Vector Embeddings
-    embedding VECTOR(384),
-    
-    -- Metadata
-    metadata JSONB,
-    
-    -- System Fields
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    chunk_id    SERIAL PRIMARY KEY,
+    uuid        UUID DEFAULT uuid_generate_v4() UNIQUE,
+    content_id  INTEGER REFERENCES raw_content(content_id) ON DELETE CASCADE,
+    service_id  INTEGER REFERENCES services(service_id) ON DELETE CASCADE,
+    chunk_text  TEXT NOT NULL,
+    chunk_index INTEGER,
+    chunk_type  VARCHAR(100),
+    embedding   VECTOR(384),
+    metadata    JSONB,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- =====================================================

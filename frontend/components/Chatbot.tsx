@@ -189,7 +189,7 @@ export function Chatbot() {
             <Button
               onClick={() => setIsOpen(true)}
               size="lg"
-              className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] hover:from-[var(--primary-hover)] hover:to-[var(--primary-active)] shadow-[var(--shadow-12)] hover:shadow-[var(--shadow-24)] transition-all duration-[var(--transition-base)] group relative overflow-hidden"
+              className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] hover:from-[var(--primary-hover)] hover:to-[var(--primary-active)] shadow-[var(--shadow-12)] hover:shadow-[var(--shadow-24)] transition-all duration-[time:var(--transition-base)] group relative overflow-hidden"
               aria-label="Open chat support"
             >
               <motion.div
@@ -448,7 +448,7 @@ export function Chatbot() {
                           onClick={() =>
                             handleSuggestedQuery(query)
                           }
-                          className="text-xs px-3 py-1.5 bg-[var(--muted)] hover:bg-[var(--muted)]/70 text-[var(--foreground)] rounded-full transition-colors duration-[var(--transition-fast)] focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-[var(--focus-ring-color)]"
+                          className="text-xs px-3 py-1.5 bg-[var(--muted)] hover:bg-[var(--muted)]/70 text-[var(--foreground)] rounded-full transition-colors duration-[time:var(--transition-fast)] focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-[var(--focus-ring-color)]"
                         >
                           {query}
                         </button>

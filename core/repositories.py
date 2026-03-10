@@ -36,7 +36,8 @@ class ServiceRepository(BaseRepository):
         super().__init__(db, Service)
 
     def get_by_category(self, category: str) -> List[Service]:
-        return self.db.query(Service).filter(Service.category == category).all()
+        category_col = getattr(Service, "category")
+        return self.db.query(Service).filter(category_col == category).all()
 
     def get_active_services(self) -> List[Service]:
         return self.db.query(Service).filter(Service.is_active == True).all()

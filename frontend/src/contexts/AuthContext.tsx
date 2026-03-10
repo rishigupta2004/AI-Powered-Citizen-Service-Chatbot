@@ -33,6 +33,7 @@ interface AuthContextType {
   logout: () => void;
   refreshToken: () => Promise<void>;
   getCurrentUser: () => Promise<void>;
+  setBackendSession: (accessToken: string, refreshToken: string, user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,6 +63,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('token_expires_in', authResponse.expires_in.toString());
   };
 
+  const setBackendSession = (accessToken: string, refreshToken: string, user: User): void => {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+    setUser(user);
+  };
+
   const clearTokens = (): void => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -85,7 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/auth/me`, {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
@@ -112,7 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/auth/refresh`, {
+      const response = await fetch(`${API_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +142,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (emailOrPhone: string, password: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -154,7 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const loginWithPhoneOTP = async (phone: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/auth/otp/send`, {
+    const response = await fetch(`${API_URL}/api/auth/otp/send`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -169,7 +176,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const verifyPhoneOTP = async (phone: string, otp: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/auth/otp/verify`, {
+    const response = await fetch(`${API_URL}/api/auth/otp/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -188,11 +195,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const loginWithDigilocker = (): void => {
-    window.location.href = `${API_URL}/auth/digilocker`;
+    window.location.href = `${API_URL}/api/auth/digilocker`;
   };
 
   const loginWithGoogle = (): void => {
-    window.location.href = `${API_URL}/auth/google`;
+    window.location.href = `${API_URL}/api/auth/google`;
   };
 
   const logout = (): void => {
@@ -236,6 +243,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     refreshToken,
     getCurrentUser,
+    setBackendSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -248,3 +256,5 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
+export const useAuthContext = useAuth;

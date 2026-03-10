@@ -1,271 +1,196 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Search,
-  Globe,
-  Menu,
-  X,
-  Moon,
-  Sun,
-  Settings as SettingsIcon,
-  Contrast,
-  ChevronDown,
-} from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Contrast, Menu, Moon, Search, Settings as SettingsIcon, Sun, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Logo } from "./Logo";
-import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "./ThemeProvider";
 import { AccessibilitySettings } from "./AccessibilitySettings";
-import { Badge } from "./ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "./ui/popover";
 import { LanguageSwitcher } from "../src/components/LanguageSwitcher";
+import { ClerkAuthButtons } from "../src/components/auth/ClerkAuthButtons";
 
 interface NavigationProps {
   onNavigate: (page: string) => void;
   currentPage: string;
 }
 
-export function Navigation({
-  onNavigate,
-  currentPage,
-}: NavigationProps) {
+export function Navigation({ onNavigate, currentPage }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAccessibilitySettings, setShowAccessibilitySettings] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const { theme, toggleTheme, isHighContrast } = useTheme();
   const { t } = useTranslation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (isMobileMenuOpen) setIsMobileMenuOpen(false);
-        if (showAccessibilitySettings) setShowAccessibilitySettings(false);
+    const onScroll = () => setIsScrolled(window.scrollY > 12);
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+        setShowAccessibilitySettings(false);
       }
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("keydown", handleEscape);
-
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("keydown", onEscape);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("keydown", onEscape);
     };
-  }, [isMobileMenuOpen, showAccessibilitySettings]);
+  }, []);
 
   const navItems = [
-    { id: "home", label: t("navigation.home") },
-    { id: "services", label: t("navigation.services") },
-    { id: "dashboard", label: t("navigation.dashboard") },
-    { id: "about", label: t("navigation.about") },
-    { id: "faq", label: t("navigation.faq") },
+    { id: "home", label: t("navigation.home", "Home") },
+    { id: "services", label: t("navigation.services", "Services") },
+    { id: "dashboard", label: t("navigation.dashboard", "Dashboard") },
+    { id: "about", label: t("navigation.about", "About") },
+    { id: "faq", label: t("navigation.faq", "FAQ") },
   ];
 
-  const handleNavItemClick = (id: string) => {
-    onNavigate(id);
+  const handleNavigate = (page: string) => {
+    onNavigate(page);
     setIsMobileMenuOpen(false);
   };
 
   return (
     <>
-      {/* UX4G Standard Government Top Bar */}
-      <div className={`w-full bg-slate-900 text-white text-[10px] md:text-xs py-1.5 px-4 z-[100] transition-transform duration-300 ${isScrolled ? "-translate-y-full absolute" : "relative"}`}>
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 font-medium tracking-wide">
-              <span className="flex h-3 w-4 flex-col rounded-[1px] overflow-hidden border border-white/20">
-                <span className="h-1 bg-[#FF9933]"></span>
-                <span className="h-1 bg-white"></span>
-                <span className="h-1 bg-[#138808]"></span>
-              </span>
-              Government of India | भारत सरकार
-            </span>
-            <a href="#main-content" className="hidden md:inline-block text-slate-300 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-[#FF9933] outline-none">
-              Skip to main content
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
-             <LanguageSwitcher />
-             <div className="flex items-center border-l border-slate-700 pl-3 gap-2">
-               <button onClick={() => toggleTheme()} className="text-slate-300 hover:text-white focus-visible:ring-2 focus-visible:ring-[#FF9933] outline-none rounded" aria-label="Toggle theme">
-                 {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-               </button>
-               <Popover>
-                 <PopoverTrigger asChild>
-                   <button className="text-slate-300 hover:text-white focus-visible:ring-2 focus-visible:ring-[#FF9933] outline-none rounded" aria-label="Accessibility settings">
-                     <SettingsIcon className="w-3.5 h-3.5" />
-                   </button>
-                 </PopoverTrigger>
-                 <PopoverContent className="w-80 p-0" align="end">
-                   <AccessibilitySettings />
-                 </PopoverContent>
-               </Popover>
-             </div>
-          </div>
-        </div>
-      </div>
-
       <nav
-        className={`fixed top-0 left-0 right-0 z-[var(--z-sticky)] transition-all duration-300 ${
-          isScrolled
-            ? "glass-effect shadow-[var(--shadow-8)]"
-            : "bg-gradient-to-r from-[#000080] to-[#000066] shadow-[var(--shadow-4)]"
+        className={`fixed inset-x-0 top-0 z-[var(--z-sticky)] border-b border-[var(--border)] bg-[var(--surface-1)]/95 backdrop-blur-md transition-shadow duration-200 ${
+          isScrolled ? "shadow-[var(--shadow-8)]" : "shadow-[var(--shadow-2)]"
         }`}
         role="navigation"
-        aria-label="Main navigation"
+        aria-label={t("navigation.ariaMain", "Main navigation")}
       >
-        <div className="max-w-7xl mx-auto px-[var(--space-4)] sm:px-[var(--space-6)] lg:px-[var(--space-8)]">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <button
-              onClick={() => handleNavItemClick("home")}
-              className="flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring-color)] rounded-[var(--radius-md)] p-2 -m-2"
-              aria-label="Go to homepage - Seva Sindhu"
-              tabIndex={0}
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 17,
-                }}
+        <div className="border-b border-[#0a2f73] bg-[#0b3d91] text-white">
+          <div className="mx-auto flex h-8 max-w-7xl items-center justify-between px-4 text-[11px] sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="flex h-3.5 w-5 overflow-hidden rounded-[2px] border border-white/40">
+                <span className="h-full flex-1 bg-[#ff9933]" />
+                <span className="h-full flex-1 bg-white" />
+                <span className="h-full flex-1 bg-[#138808]" />
+              </span>
+              <span className="truncate">{t("navigation.govStrip", "Government of India | Bharat Sarkar")}</span>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <a
+                href="#main-content"
+                className="rounded-sm text-white/90 underline-offset-2 hover:text-white hover:underline focus-visible:ring-2 focus-visible:ring-[#ff9933]"
               >
-                <Logo
-                  size="md"
-                  variant={isScrolled ? "color" : "white"}
-                  showText={true}
-                />
-              </motion.div>
+                {t("navigation.skipMain", "Skip to main content")}
+              </a>
+              <span className="text-white/45">|</span>
+              <button
+                type="button"
+                onClick={() => handleNavigate("faq")}
+                className="rounded-sm text-white/90 underline-offset-2 hover:text-white hover:underline focus-visible:ring-2 focus-visible:ring-[#ff9933]"
+              >
+                {t("common.help", "Help")}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between gap-3">
+            <button
+              onClick={() => handleNavigate("home")}
+              className="rounded-[var(--radius-md)] p-1.5 transition-colors hover:bg-[var(--surface-2)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring-color)]"
+              aria-label={t("navigation.goHome", "Go to homepage")}
+            >
+              <Logo size="md" variant="color" showText={true} />
             </button>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-[var(--space-2)]">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavItemClick(item.id)}
-                  className={`relative px-[var(--space-4)] py-[var(--space-2)] rounded-[var(--radius-md)] transition-all duration-200 font-medium ${
-                    currentPage === item.id
-                      ? isScrolled
-                        ? "text-[#000080] bg-[#000080]/10"
-                        : "text-white bg-white/20"
-                      : isScrolled
-                        ? "text-[var(--foreground)] hover:text-[#000080] hover:bg-[var(--muted)]"
-                        : "text-white/80 hover:text-white hover:bg-white/10"
-                  }`}
-                  aria-current={currentPage === item.id ? "page" : undefined}
-                >
-                  {item.label}
-                  {currentPage === item.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full ${
-                        isScrolled ? "bg-[#000080]" : "bg-white"
-                      }`}
-                      initial={false}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                    />
-                  )}
-                </button>
-              ))}
+            <div className="hidden items-center gap-1.5 lg:flex">
+              {navItems.map((item) => {
+                const active = currentPage === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavigate(item.id)}
+                    aria-current={active ? "page" : undefined}
+                    className={`relative rounded-[var(--radius-md)] px-3 py-2 text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-[var(--surface-2)] text-[var(--color-navy)]"
+                        : "text-[var(--muted-foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
+                    }`}
+                  >
+                    {item.label}
+                    {active && (
+                      <motion.span
+                        layoutId="nav-active"
+                        className="absolute inset-x-2 -bottom-[2px] h-[2px] rounded-full bg-[var(--color-navy)]"
+                        transition={
+                          shouldReduceMotion
+                            ? { duration: 0 }
+                            : { type: "spring", stiffness: 340, damping: 32, mass: 0.85 }
+                        }
+                      />
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center gap-[var(--space-2)]">
-              {/* Search Bar - Desktop */}
-              <div className="hidden md:flex items-center relative">
-                <label htmlFor="search-input" className="sr-only">
-                  Search services
-                </label>
-                <Search
-                  className={`absolute left-3 w-4 h-4 pointer-events-none ${
-                    isScrolled ? "text-[var(--muted-foreground)]" : "text-white/60"
-                  }`}
-                  aria-hidden="true"
-                />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="relative hidden md:block">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]" />
                 <Input
                   id="search-input"
                   type="search"
-                  placeholder="Search services..."
-                  className={`pl-10 w-64 h-10 transition-all duration-300 ${
-                    isScrolled
-                      ? "bg-[var(--input-background)] border-[var(--border)] text-[var(--foreground)]"
-                      : "bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                  }`}
-                  aria-label="Search services"
+                  aria-label={t("navigation.searchAria", "Search services")}
+                  placeholder={t("navigation.searchPlaceholder", "Search services")}
+                  className="h-10 w-60 rounded-[var(--radius-full)] border-[var(--border)] bg-[var(--surface-2)] pl-9 text-sm shadow-none"
                 />
               </div>
 
-              {/* Language Selector */}
-              <div className="flex items-center">
-                <LanguageSwitcher />
+              <LanguageSwitcher />
+
+              <div className="hidden lg:flex items-center gap-2">
+                <ClerkAuthButtons />
               </div>
 
-              {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className={`rounded-full ${
-                  isScrolled ? "text-[var(--foreground)]" : "text-white"
-                }`}
-                aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                aria-label={t("navigation.switchTheme", "Switch theme")}
+                className="h-9 w-9 rounded-full text-[var(--muted-foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
               >
                 {isHighContrast ? (
-                  <Contrast className="w-5 h-5" />
+                  <Contrast className="h-4.5 w-4.5" />
                 ) : theme === "dark" ? (
-                  <Sun className="w-5 h-5" />
+                  <Sun className="h-4.5 w-4.5" />
                 ) : (
-                  <Moon className="w-5 h-5" />
+                  <Moon className="h-4.5 w-4.5" />
                 )}
               </Button>
 
-              {/* Settings Button */}
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowAccessibilitySettings(true)}
-                className={`rounded-full ${
-                  isScrolled ? "text-[var(--foreground)]" : "text-white"
-                }`}
-                aria-label="Accessibility settings"
+                aria-label={t("navigation.accessibility", "Accessibility settings")}
+                className="h-9 w-9 rounded-full text-[var(--muted-foreground)] hover:bg-[var(--surface-2)] hover:text-[var(--foreground)]"
               >
-                <SettingsIcon className="w-5 h-5" />
+                <SettingsIcon className="h-4.5 w-4.5" />
               </Button>
 
-              {/* Mobile Menu Button */}
               <Button
                 variant="ghost"
                 size="icon"
-                className={`lg:hidden rounded-full ${
-                  isScrolled ? "text-[var(--foreground)]" : "text-white"
-                }`}
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                className="h-9 w-9 rounded-full hover:bg-[var(--surface-2)] lg:hidden"
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                aria-label={isMobileMenuOpen ? t("navigation.closeMenu", "Close menu") : t("navigation.openMenu", "Open menu")}
                 aria-expanded={isMobileMenuOpen}
                 aria-controls="mobile-menu"
               >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Mobile Menu */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -273,80 +198,48 @@ export function Navigation({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="lg:hidden bg-[var(--card)] border-t border-[var(--border)] shadow-[var(--shadow-8)]"
+              transition={{ duration: shouldReduceMotion ? 0 : 0.16 }}
+              className="border-t border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-4)] lg:hidden"
             >
-              <div className="px-[var(--space-4)] py-[var(--space-4)] space-y-[var(--space-2)]">
-                {/* Mobile Search */}
-                <div className="relative mb-[var(--space-4)]">
-                  <label htmlFor="mobile-search-input" className="sr-only">
-                    Search services
-                  </label>
-                  <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
+              <div className="space-y-3 px-4 py-4">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted-foreground)]" />
                   <Input
                     id="mobile-search-input"
                     type="search"
-                    placeholder="Search services..."
-                    className="pl-10 w-full bg-[var(--input-background)] text-[var(--foreground)]"
-                    aria-label="Search services"
+                    aria-label={t("navigation.searchAria", "Search services")}
+                    placeholder={t("navigation.searchPlaceholder", "Search services")}
+                    className="h-10 w-full rounded-[var(--radius-full)] bg-[var(--surface-2)] pl-9"
                   />
                 </div>
 
-                {/* Mobile Nav Items */}
-                {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavItemClick(item.id)}
-                    className={`w-full text-left px-[var(--space-4)] py-[var(--space-3)] rounded-[var(--radius-lg)] transition-all duration-200 font-medium ${
-                      currentPage === item.id
-                        ? "bg-[#000080] text-white shadow-[var(--shadow-4)]"
-                        : "text-[var(--foreground)] hover:bg-[var(--muted)]"
-                    }`}
-                    aria-current={currentPage === item.id ? "page" : undefined}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                <div className="space-y-1.5">
+                  {navItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNavigate(item.id)}
+                      aria-current={currentPage === item.id ? "page" : undefined}
+                      className={`block w-full rounded-[var(--radius-md)] px-3 py-2 text-left text-sm font-medium ${
+                        currentPage === item.id
+                          ? "bg-[var(--surface-2)] text-[var(--color-navy)]"
+                          : "text-[var(--foreground)] hover:bg-[var(--surface-2)]"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex justify-center">
+                  <ClerkAuthButtons />
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Government Emblem Bar */}
-        <div className={`border-t ${isScrolled ? "border-[var(--border)]" : "border-white/10"}`}>
-          <div className="max-w-7xl mx-auto px-[var(--space-4)] sm:px-[var(--space-6)] lg:px-[var(--space-8)]">
-            <div className="flex items-center justify-between h-10">
-              <div className="flex items-center gap-2 text-xs">
-                <Badge
-                  variant="outline"
-                  className={`${
-                    isScrolled
-                      ? "border-[var(--border)] text-[var(--muted-foreground)]"
-                      : "border-white/20 text-white/80"
-                  }`}
-                >
-                  🇮🇳 Government of India
-                </Badge>
-                <span className={`hidden sm:inline ${isScrolled ? "text-[var(--muted-foreground)]" : "text-white/60"}`}>
-                  Ministry of Electronics & IT
-                </span>
-              </div>
-              <div className={`text-xs ${isScrolled ? "text-[var(--muted-foreground)]" : "text-white/60"}`}>
-                ISO 27001 Certified
-              </div>
-            </div>
-          </div>
-        </div>
       </nav>
 
-      {/* Accessibility Settings Panel */}
-      <AccessibilitySettings
-        isOpen={showAccessibilitySettings}
-        onClose={() => setShowAccessibilitySettings(false)}
-      />
+      <AccessibilitySettings isOpen={showAccessibilitySettings} onClose={() => setShowAccessibilitySettings(false)} />
     </>
   );
 }

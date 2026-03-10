@@ -14,8 +14,10 @@ import { ApplicationTracker } from "./components/pages/ApplicationTracker";
 import { Toaster } from "./components/ui/sonner";
 import { ArrowUp } from "lucide-react";
 import { Button } from "./components/ui/button";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 function AppContent() {
+  const shouldReduceMotion = useReducedMotion();
   const [currentPage, setCurrentPage] = useState("home");
   const [currentServiceId, setCurrentServiceId] =
     useState<string>("passport");
@@ -116,7 +118,17 @@ function AppContent() {
         className="relative"
         tabIndex={-1}
       >
-        {renderPage()}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${currentPage}-${currentServiceId}`}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {renderPage()}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}

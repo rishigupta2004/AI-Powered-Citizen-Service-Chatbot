@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { LucideIcon, ArrowRight } from 'lucide-react';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
+import React, { useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, Clock3, FileText, IndianRupee, LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
 
 interface ServiceCard3DProps {
   icon: LucideIcon;
@@ -25,154 +26,81 @@ export function ServiceCard3D({
   fee,
   onClick,
 }: ServiceCard3DProps) {
-  const [isHovering, setIsHovering] = useState(false);
+  const { t } = useTranslation();
+  const shouldReduceMotion = useReducedMotion();
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  const documentCue = useMemo(() => {
+    const signal = `${name} ${description} ${processingTime} ${fee}`.toLowerCase();
+    if (signal.includes("same day") || signal.includes("instant")) return t("card.docsFew", "1-2 documents");
+    if (signal.includes("certificate") || signal.includes("verification")) return t("card.docsMany", "3-5 documents");
+    return t("card.docsChecklist", "Checklist after opening");
+  }, [description, fee, name, processingTime, t]);
 
-  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
-  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
-
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['12deg', '-12deg']);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-12deg', '12deg']);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-    x.set(0);
-    y.set(0);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick();
+    }
   };
 
   return (
     <motion.div
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={handleMouseLeave}
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      style={{
-        rotateX,
-        rotateY,
-        transformStyle: 'preserve-3d',
-        perspective: '1000px',
-      }}
-      className="relative cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF9933] focus-visible:ring-offset-2 rounded-[var(--radius-2xl)]" tabIndex={0}
-      whileHover={{ scale: 1.05 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      onKeyDown={handleKeyDown}
+      whileHover={shouldReduceMotion ? undefined : { y: -3 }}
+      transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 250, damping: 24 }}
+      className="group card-premium cursor-pointer overflow-hidden rounded-[var(--radius-xl)]"
+      aria-label={`${t("card.open", "Open")} ${name}`}
     >
-      {/* Glowing shadow */}
-      <motion.div
-        className={`absolute -inset-1 bg-gradient-to-br ${gradient} rounded-[var(--radius-2xl)] blur-xl opacity-0 group-hover:opacity-60 transition-opacity`}
-        style={{
-          transform: 'translateZ(-50px)',
-        }}
-      />
+      <div className="h-[2px] bg-gradient-to-r from-[#ff9933] via-[var(--color-navy)] to-[#138808]" />
 
-      {/* Card container */}
-      <div
-        className="relative bg-[var(--card)] rounded-[var(--radius-2xl)] border-2 border-[var(--card-border)] overflow-hidden shadow-[var(--shadow-8)] group-hover:shadow-[var(--shadow-24)] transition-shadow"
-        style={{
-          transform: 'translateZ(0px)',
-        }}
-      >
-        {/* Header with icon */}
-        <div className="relative p-6 overflow-hidden">
-          {/* Background gradient */}
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-10`}
-            style={{
-              transform: 'translateZ(-10px)',
-            }}
-          />
-
-          {/* Badge */}
-          <div className="absolute top-4 right-4" style={{ transform: 'translateZ(20px)' }}>
-            <Badge className="bg-white text-[var(--primary)] shadow-[var(--shadow-4)]">
-              {badge}
-            </Badge>
+      <div className="flex items-start justify-between gap-3 p-5">
+        <div className="flex items-start gap-3">
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-lg)] bg-gradient-to-br ${gradient} shadow-[var(--shadow-2)]`}>
+            <Icon className="h-5 w-5 text-white" />
           </div>
-
-          {/* 3D Icon */}
-          <motion.div
-            className={`relative w-24 h-24 bg-gradient-to-br ${gradient} rounded-[var(--radius-2xl)] flex items-center justify-center mb-4 shadow-[var(--shadow-8)]`}
-            style={{
-              transform: 'translateZ(30px)',
-            }}
-            animate={{
-              rotateY: isHovering ? [0, 360] : 0,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: 'easeOut',
-            }}
-          >
-            <Icon className="w-12 h-12 text-white" />
-            {/* Icon shadow */}
-            <div className="absolute inset-0 bg-black/20 rounded-[inherit] blur-md" style={{ transform: 'translateZ(-5px)' }} />
-          </motion.div>
-
-          {/* Title */}
-          <h3
-            className="text-xl font-bold text-[var(--foreground)] mb-2"
-            style={{ transform: 'translateZ(10px)' }}
-          >
-            {name}
-          </h3>
+          <div>
+            <h3 className="text-lg font-semibold tracking-[-0.01em] text-[var(--foreground)]">{name}</h3>
+            <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-[var(--muted-foreground)]">{description}</p>
+          </div>
         </div>
+        <Badge className="border-[var(--border)] bg-[var(--surface-2)] text-[var(--muted-foreground)]">{badge}</Badge>
+      </div>
 
-        {/* Content */}
-        <div className="px-6 pb-6 space-y-4">
-          <p
-            className="text-[var(--muted-foreground)] text-sm min-h-[3rem]"
-            style={{ transform: 'translateZ(5px)' }}
-          >
-            {description}
+      <div className="grid grid-cols-1 gap-2.5 px-5 pb-4 sm:grid-cols-3">
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
+          <p className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
+            <Clock3 className="h-3 w-3" />
+            {t("card.processing", "Processing")}
           </p>
-
-          {/* Info */}
-          <div className="space-y-2" style={{ transform: 'translateZ(5px)' }}>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Processing:</span>
-              <span className="font-medium text-[var(--foreground)]">{processingTime}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[var(--muted-foreground)]">Fee:</span>
-              <span className="font-medium text-[var(--foreground)]">{fee}</span>
-            </div>
-          </div>
-
-          {/* CTA Button */}
-          <Button
-            className={`w-full bg-gradient-to-r ${gradient} hover:opacity-90 transition-opacity shadow-[var(--shadow-4)] group/btn`}
-            style={{ transform: 'translateZ(15px)' }}
-          >
-            View Details
-            <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
-          </Button>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{processingTime}</p>
         </div>
 
-        {/* Shine overlay */}
-        <motion.div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: useTransform(
-              [mouseXSpring, mouseYSpring],
-              ([xVal, yVal]) =>
-                `radial-gradient(600px circle at ${(xVal as number + 0.5) * 100}% ${(yVal as number + 0.5) * 100}%, rgba(255,255,255,0.15), transparent 40%)`
-            ),
-            transform: 'translateZ(40px)',
-          }}
-        />
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
+          <p className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
+            <IndianRupee className="h-3 w-3" />
+            {t("card.fee", "Fee")}
+          </p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{fee}</p>
+        </div>
+
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5">
+          <p className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
+            <FileText className="h-3 w-3" />
+            {t("card.documents", "Documents")}
+          </p>
+          <p className="text-sm font-semibold text-[var(--foreground)]">{documentCue}</p>
+        </div>
+      </div>
+
+      <div className="px-5 pb-5">
+        <Button className="cta-primary h-10 w-full rounded-[var(--radius-md)]">
+          {t("card.viewDetails", "View Details")}
+          <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+        </Button>
       </div>
     </motion.div>
   );

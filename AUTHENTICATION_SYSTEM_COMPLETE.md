@@ -18,15 +18,15 @@ A comprehensive multi-method authentication system has been successfully impleme
 - ✅ **LoginAttempt**: Security audit logging
 
 #### Authentication Endpoints (`routes/auth_endpoints.py`)
-- ✅ **POST /auth/register**: User registration with email/password
-- ✅ **POST /auth/login**: Email/password authentication
-- ✅ **POST /auth/otp/send**: Send OTP via SMS or Email
-- ✅ **POST /auth/otp/verify**: Verify OTP and authenticate
-- ✅ **POST /auth/google**: Google OAuth authentication
-- ✅ **POST /auth/aadhaar**: Aadhaar-based authentication
-- ✅ **POST /auth/refresh**: Refresh access tokens
-- ✅ **POST /auth/logout**: Invalidate session
-- ✅ **GET /auth/me**: Get current user profile
+- ✅ **POST /api/auth/register**: User registration with email/password
+- ✅ **POST /api/auth/login**: Email/password authentication
+- ✅ **POST /api/auth/otp/send**: Send OTP via SMS or Email
+- ✅ **POST /api/auth/otp/verify**: Verify OTP and authenticate
+- ✅ **POST /api/auth/google**: Google OAuth authentication
+- ✅ **POST /api/auth/aadhaar**: Aadhaar-based authentication
+- ✅ **POST /api/auth/refresh**: Refresh access tokens
+- ✅ **POST /api/auth/logout**: Invalidate session
+- ✅ **GET /api/auth/me**: Get current user profile
 
 #### Security Features
 - ✅ Password hashing (SHA-256)
@@ -42,13 +42,13 @@ A comprehensive multi-method authentication system has been successfully impleme
 ### 2. **Frontend Authentication System**
 
 #### Authentication Components
-- ✅ **AuthProvider** (`frontend/app/components/auth/AuthProvider.tsx`)
+- ✅ **AuthProvider** (`frontend/src/contexts/AuthContext.tsx`)
   - Global authentication state management
   - User session persistence
   - Automatic token refresh
   - Toast notifications for auth events
 
-- ✅ **LoginForm** (`frontend/app/components/auth/LoginForm.tsx`)
+- ✅ **Login Page** (`frontend/src/pages/Login.tsx`)
   - Email/password login
   - OTP login (SMS/Email)
   - Google OAuth integration
@@ -56,20 +56,20 @@ A comprehensive multi-method authentication system has been successfully impleme
   - Form validation with error messages
   - Password visibility toggle
 
-- ✅ **SignupForm** (`frontend/app/components/auth/SignupForm.tsx`)
+- ✅ **Signup Flow** (`frontend/src/pages/Login.tsx` tabbed flow)
   - User registration with validation
   - Password strength indicator
   - Terms and conditions acceptance
   - Real-time form validation
   - Password confirmation
 
-- ✅ **AuthPage** (`frontend/app/components/auth/AuthPage.tsx`)
+- ✅ **Auth Provider** (`frontend/src/contexts/AuthContext.tsx`)
   - Beautiful full-page authentication UI
   - Feature highlights
   - Smooth transitions between login/signup
   - Responsive design
 
-#### API Client (`frontend/app/lib/auth.ts`)
+#### API Client (`frontend/src/lib/api.ts`)
 - ✅ Comprehensive authentication API client
 - ✅ Token management (localStorage)
 - ✅ Automatic token injection
@@ -188,7 +188,7 @@ npm run dev
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
-- **Auth Endpoints**: http://localhost:8000/auth/*
+- **Auth Endpoints**: http://localhost:8000/api/auth/*
 
 ---
 
@@ -196,7 +196,7 @@ npm run dev
 
 ### 1. **Test User Registration**
 ```bash
-curl -X POST http://localhost:8000/auth/register \
+curl -X POST http://localhost:8000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -208,7 +208,7 @@ curl -X POST http://localhost:8000/auth/register \
 
 ### 2. **Test Login**
 ```bash
-curl -X POST http://localhost:8000/auth/login \
+curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -219,7 +219,7 @@ curl -X POST http://localhost:8000/auth/login \
 ### 3. **Test OTP Flow**
 ```bash
 # Send OTP
-curl -X POST http://localhost:8000/auth/otp/send \
+curl -X POST http://localhost:8000/api/auth/otp/send \
   -H "Content-Type: application/json" \
   -d '{
     "contact": "test@example.com",
@@ -227,7 +227,7 @@ curl -X POST http://localhost:8000/auth/otp/send \
   }'
 
 # Verify OTP (use OTP from response)
-curl -X POST http://localhost:8000/auth/otp/verify \
+curl -X POST http://localhost:8000/api/auth/otp/verify \
   -H "Content-Type: application/json" \
   -d '{
     "contact": "test@example.com",
@@ -238,7 +238,7 @@ curl -X POST http://localhost:8000/auth/otp/verify \
 
 ### 4. **Test Authenticated Endpoint**
 ```bash
-curl -X GET http://localhost:8000/auth/me \
+curl -X GET http://localhost:8000/api/auth/me \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
@@ -299,7 +299,7 @@ curl -X GET http://localhost:8000/auth/me \
 
 #### Register
 ```http
-POST /auth/register
+POST /api/auth/register
 Content-Type: application/json
 
 {
@@ -321,7 +321,7 @@ Response: 200 OK
 
 #### Login
 ```http
-POST /auth/login
+POST /api/auth/login
 Content-Type: application/json
 
 {
@@ -341,7 +341,7 @@ Response: 200 OK
 
 #### Send OTP
 ```http
-POST /auth/otp/send
+POST /api/auth/otp/send
 Content-Type: application/json
 
 {
@@ -360,7 +360,7 @@ Response: 200 OK
 
 #### Verify OTP
 ```http
-POST /auth/otp/verify
+POST /api/auth/otp/verify
 Content-Type: application/json
 
 {
@@ -381,7 +381,7 @@ Response: 200 OK
 
 #### Get Current User
 ```http
-GET /auth/me
+GET /api/auth/me
 Authorization: Bearer YOUR_ACCESS_TOKEN
 
 Response: 200 OK
@@ -400,7 +400,7 @@ Response: 200 OK
 
 #### Logout
 ```http
-POST /auth/logout
+POST /api/auth/logout
 Authorization: Bearer YOUR_ACCESS_TOKEN
 
 Response: 200 OK
@@ -442,10 +442,10 @@ Response: 200 OK
 
 ### Frontend
 - ✅ `frontend/app/lib/auth.ts` - Auth API client
-- ✅ `frontend/app/components/auth/AuthProvider.tsx` - Auth context
-- ✅ `frontend/app/components/auth/LoginForm.tsx` - Login UI
-- ✅ `frontend/app/components/auth/SignupForm.tsx` - Signup UI
-- ✅ `frontend/app/components/auth/AuthPage.tsx` - Auth page
+- ✅ `frontend/src/contexts/AuthContext.tsx` - Auth context
+- ✅ `frontend/src/pages/Login.tsx` - Login UI and OTP flow
+- ✅ `frontend/src/lib/api.ts` - Canonical frontend API client
+- ✅ `frontend/src/components/auth/ClerkAuthButtons.tsx` - Clerk UI and bridge
 - ✅ `frontend/app/components/Navigation.tsx` - Updated navigation
 - ✅ `frontend/app/App.tsx` - Integrated auth system
 

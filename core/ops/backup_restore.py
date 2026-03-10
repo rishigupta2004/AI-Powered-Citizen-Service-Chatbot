@@ -64,22 +64,36 @@ def backup_database(session: Session, output_dir: str) -> Dict[str, Any]:
             # Fallback to raw SQL when model mapping doesn't match actual columns
             if model is ContentChunk:
                 stmt = sa.text(
-                    "SELECT chunk_id, uuid, chunk_text, service_id, embedding, created_at FROM content_chunks"
+                    "SELECT chunk_id, uuid, content_id, service_id, chunk_text, "
+                    "chunk_index, chunk_type, embedding, metadata, created_at "
+                    "FROM content_chunks"
                 )
                 raw_rows = session.execute(stmt).mappings().all()
-                entities[name] = [{k: _to_json_safe(v) for k, v in dict(r).items()} for r in raw_rows]
+                entities[name] = [
+                    {k: _to_json_safe(v) for k, v in dict(r).items()} for r in raw_rows
+                ]
             else:
                 try:
                     stmt = sa.text(f"SELECT * FROM {model.__tablename__}")
                     raw_rows = session.execute(stmt).mappings().all()
-                    entities[name] = [{k: _to_json_safe(v) for k, v in dict(r).items()} for r in raw_rows]
+                    entities[name] = [
+                        {k: _to_json_safe(v) for k, v in dict(r).items()}
+                        for r in raw_rows
+                    ]
                 except Exception:
                     # Table may not exist yet; record empty dataset
                     entities[name] = []
 
     manifest_path = os.path.join(output_dir, "manifest.json")
     with open(manifest_path, "w", encoding="utf-8") as f:
-        json.dump({"snapshot_time": snapshot_time, "counts": {k: len(v) for k, v in entities.items()}}, f, indent=2)
+        json.dump(
+            {
+                "snapshot_time": snapshot_time,
+                "counts": {k: len(v) for k, v in entities.items()},
+            },
+            f,
+            indent=2,
+        )
 
     for name, rows in entities.items():
         path = os.path.join(output_dir, f"{name}.json")

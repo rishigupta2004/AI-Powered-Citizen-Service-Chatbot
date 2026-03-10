@@ -3,9 +3,11 @@
 Process pending raw_content entries: extract normalized text, persist documents/chunks,
 and mark as completed or log per-item failure reasons.
 """
+
 import argparse
 import os
 import sys
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 if ROOT not in sys.path:
@@ -24,7 +26,7 @@ def chunk_text(text: str, max_len: int = 800) -> list[str]:
     chunks = []
     start = 0
     while start < len(text):
-        chunks.append(text[start:start + max_len])
+        chunks.append(text[start : start + max_len])
         start += max_len
     return chunks
 
@@ -41,6 +43,7 @@ CATEGORY_TO_SERVICE = {
     "rbi": "RBI Services",
 }
 
+
 def resolve_service_id(db: Session, category: str | None, title: str | None) -> int:
     """Map category/name to an existing Service, or create a General fallback."""
     target = None
@@ -50,7 +53,12 @@ def resolve_service_id(db: Session, category: str | None, title: str | None) -> 
     # Try by category exact match first
     svc = None
     if category:
-        svc = db.query(Service).filter(Service.category.ilike(f"%{category}%")).first()
+        service_category_col = getattr(Service, "category")
+        svc = (
+            db.query(Service)
+            .filter(service_category_col.ilike(f"%{category}%"))
+            .first()
+        )
     # Try by mapped service name
     if not svc and target:
         svc = db.query(Service).filter(Service.name.ilike(f"%{target}%")).first()
@@ -59,7 +67,9 @@ def resolve_service_id(db: Session, category: str | None, title: str | None) -> 
     if not svc:
         for key, svcname in CATEGORY_TO_SERVICE.items():
             if key in name_lc or svcname.split()[0].lower() in name_lc:
-                svc = db.query(Service).filter(Service.name.ilike(f"%{svcname}%")).first()
+                svc = (
+                    db.query(Service).filter(Service.name.ilike(f"%{svcname}%")).first()
+                )
                 if svc:
                     break
     if svc:
@@ -67,14 +77,24 @@ def resolve_service_id(db: Session, category: str | None, title: str | None) -> 
     # Fallback: create General service once
     general = db.query(Service).filter(Service.name == "General").first()
     if not general:
-        general = Service(name="General", category="general", description="Catch-all for unclassified content", ministry=None, is_active=True)
+        general = Service(
+            name="General",
+            category="general",
+            description="Catch-all for unclassified content",
+            ministry=None,
+            is_active=True,
+        )
         db.add(general)
         db.commit()
         db.refresh(general)
     return general.service_id
 
 
-def process_pending(db: Session, resume: bool = True, failures_csv: str = "artifacts/processing_failures.csv") -> dict:
+def process_pending(
+    db: Session,
+    resume: bool = True,
+    failures_csv: str = "artifacts/processing_failures.csv",
+) -> dict:
     nlp = NLPToolkit()
     parser = DocumentParser()
     q = db.query(RawContent).filter(RawContent.is_processed == False)
@@ -118,11 +138,13 @@ def process_pending(db: Session, resume: bool = True, failures_csv: str = "artif
 
             # Create content chunks
             for ch in chunk_text(normalized):
-                db.add(ContentChunk(
-                    service_id=None,
-                    chunk_text=ch,
-                    category=category,
-                ))
+                db.add(
+                    ContentChunk(
+                        service_id=None,
+                        chunk_text=ch,
+                        category=category,
+                    )
+                )
 
             # Mark RC as processed
             rc.is_processed = True
@@ -135,13 +157,15 @@ def process_pending(db: Session, resume: bool = True, failures_csv: str = "artif
             rc.processing_errors = str(e)
             db.commit()
             summary["errors"] += 1
-            failures_w.writerow([
-                rc.content_id,
-                rc.source_type,
-                rc.source_url or "",
-                rc.processing_status,
-                str(e)
-            ])
+            failures_w.writerow(
+                [
+                    rc.content_id,
+                    rc.source_type,
+                    rc.source_url or "",
+                    rc.processing_status,
+                    str(e),
+                ]
+            )
 
     failures_f.close()
 
@@ -162,5 +186,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

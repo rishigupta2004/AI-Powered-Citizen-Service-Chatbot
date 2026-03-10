@@ -4,20 +4,26 @@ Writes compact JSON and manifest.
 
 Run: python scripts/export_rag_corpus.py --out data/exports/rag_corpus.json
 """
+
 import sys, json, argparse
 from pathlib import Path
+
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from core.database import SessionLocal
 from core.models import Document, ContentChunk, Service
 
+
 def normalize(text: str) -> str:
-    return ' '.join((text or '').split())
+    return " ".join((text or "").split())
+
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--out', default=str(project_root / 'data' / 'exports' / 'rag_corpus.json'))
+    ap.add_argument(
+        "--out", default=str(project_root / "data" / "exports" / "rag_corpus.json")
+    )
     args = ap.parse_args()
 
     out_path = Path(args.out)
@@ -32,9 +38,13 @@ def main():
             "documents": [
                 {
                     "doc_id": d.doc_id,
-                    "service": services.get(d.service_id).name if d.service_id in services else None,
+                    "service": services.get(d.service_id).name
+                    if d.service_id in services
+                    else None,
                     "name": d.name,
-                    "content": (normalize(d.raw_content)[:4000] if d.raw_content else None),
+                    "content": (
+                        normalize(d.raw_content)[:4000] if d.raw_content else None
+                    ),
                     "type": d.document_type,
                 }
                 for d in docs
@@ -42,19 +52,22 @@ def main():
             "chunks": [
                 {
                     "chunk_id": c.chunk_id,
-                    "service": services.get(c.service_id).name if c.service_id in services else None,
-                    "category": c.category,
+                    "service": services.get(c.service_id).name
+                    if c.service_id in services
+                    else None,
+                    "chunk_type": c.chunk_type,
                     "text": normalize(c.chunk_text)[:1200],
                 }
-                for c in chunks if (c.chunk_text and len(c.chunk_text) > 60)
+                for c in chunks
+                if (c.chunk_text and len(c.chunk_text) > 60)
             ],
         }
-        with out_path.open('w', encoding='utf-8') as f:
+        with out_path.open("w", encoding="utf-8") as f:
             json.dump(corpus, f, ensure_ascii=False)
         print(f"Wrote {out_path}")
     finally:
         db.close()
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()

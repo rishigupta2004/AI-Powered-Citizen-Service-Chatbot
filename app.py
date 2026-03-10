@@ -9,6 +9,7 @@ from typing import Optional
 import time
 
 from core.database import get_db
+from core.config import FRONTEND_URL
 
 # Models imported lazily by repositories/endpoints; keep app surface minimal
 from core.repositories import ServiceRepository, DocumentRepository, FAQRepository
@@ -16,7 +17,11 @@ from core.search import SearchEngine
 from routes.api_endpoints import router as api_router
 from routes.v1_endpoints import router as v1_router
 from routes.graphql_schema import get_graphql_router
-from routes.auth_endpoints import router as auth_router
+from routes.auth_endpoints import (
+    router as auth_router,
+    _legacy_router as auth_legacy_router,
+)
+from routes.clerk_sync import router as clerk_router
 from routes.middleware import (
     register_middlewares,
     register_exception_handlers,
@@ -30,9 +35,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
+_cors_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:4173",
+]
+if FRONTEND_URL:
+    _cors_origins.append(FRONTEND_URL)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://seva-sindu-portal.vercel.app", "https://gov-chatbot.fly.dev", "http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,6 +55,8 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(v1_router)
 app.include_router(auth_router)
+app.include_router(auth_legacy_router)
+app.include_router(clerk_router)
 app.include_router(chat_router)
 
 # Mount GraphQL router if available (optional dependency)

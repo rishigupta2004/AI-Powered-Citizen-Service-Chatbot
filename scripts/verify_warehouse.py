@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Export warehouse verification CSVs and print counts."""
+
 import argparse
 import csv
 import os
 import sys
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 if ROOT not in sys.path:
@@ -33,21 +35,29 @@ def main():
         chunks = db.query(ContentChunk).all()
         raw = db.query(RawContent).all()
 
-        write_csv(f"{args.export_dir}/table_sizes.csv", [
-            ("services", len(services)),
-            ("documents", len(documents)),
-            ("faqs", len(faqs)),
-            ("content_chunks", len(chunks)),
-            ("raw_content", len(raw)),
-        ], ["table", "records"])
+        write_csv(
+            f"{args.export_dir}/table_sizes.csv",
+            [
+                ("services", len(services)),
+                ("documents", len(documents)),
+                ("faqs", len(faqs)),
+                ("content_chunks", len(chunks)),
+                ("raw_content", len(raw)),
+            ],
+            ["table", "records"],
+        )
 
-        write_csv(f"{args.export_dir}/records_counts.csv", [
-            ("services", len(services)),
-            ("documents", len(documents)),
-            ("faqs", len(faqs)),
-            ("content_chunks", len(chunks)),
-            ("raw_content", len(raw)),
-        ], ["table", "count"])
+        write_csv(
+            f"{args.export_dir}/records_counts.csv",
+            [
+                ("services", len(services)),
+                ("documents", len(documents)),
+                ("faqs", len(faqs)),
+                ("content_chunks", len(chunks)),
+                ("raw_content", len(raw)),
+            ],
+            ["table", "count"],
+        )
 
         # docs by service (best-effort)
         svc_map = {s.service_id: s.name for s in services}
@@ -55,19 +65,37 @@ def main():
         for d in documents:
             by_service.setdefault(svc_map.get(d.service_id, "Unknown"), 0)
             by_service[svc_map.get(d.service_id, "Unknown")] += 1
-        write_csv(f"{args.export_dir}/docs_by_service.csv", sorted(by_service.items()), ["service", "documents"])
+        write_csv(
+            f"{args.export_dir}/docs_by_service.csv",
+            sorted(by_service.items()),
+            ["service", "documents"],
+        )
 
-        # chunks by category
+        # chunks by type
         by_cat = {}
         for c in chunks:
-            by_cat.setdefault(c.category or "None", 0)
-            by_cat[c.category or "None"] += 1
-        write_csv(f"{args.export_dir}/chunks_by_category.csv", sorted(by_cat.items()), ["category", "chunks"])
+            by_cat.setdefault(c.chunk_type or "None", 0)
+            by_cat[c.chunk_type or "None"] += 1
+        write_csv(
+            f"{args.export_dir}/chunks_by_type.csv",
+            sorted(by_cat.items()),
+            ["chunk_type", "chunks"],
+        )
 
         # sample faqs
-        write_csv(f"{args.export_dir}/faqs_sample.csv", [
-            (f.faq_id, f.service_id, (f.question or "")[:120], (f.answer or "")[:120]) for f in faqs[:50]
-        ], ["faq_id", "service_id", "question", "answer"])
+        write_csv(
+            f"{args.export_dir}/faqs_sample.csv",
+            [
+                (
+                    f.faq_id,
+                    f.service_id,
+                    (f.question or "")[:120],
+                    (f.answer or "")[:120],
+                )
+                for f in faqs[:50]
+            ],
+            ["faq_id", "service_id", "question", "answer"],
+        )
 
         print("Exported warehouse verification CSVs to:", args.export_dir)
     finally:
@@ -76,5 +104,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

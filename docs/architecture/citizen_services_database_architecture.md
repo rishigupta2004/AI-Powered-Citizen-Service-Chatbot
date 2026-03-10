@@ -1,5 +1,20 @@
 # 🏛️ Citizen Services Database - System Architecture & Implementation Plan
 
+## ⚠️ Current Reality vs Documented (as of repair pass, March 2025)
+
+| Claimed Status | Actual Status | Action Required |
+|---|---|---|
+| Alembic migrations ✅ | ❌ Not configured | Using `init_db.py` scripts; add Alembic in Phase 5 |
+| Kafka Streams ✅ | ❌ Not implemented | Direct DB writes only; Kafka is aspirational |
+| Apache Airflow ✅ | ❌ DAGs defined, not deployed | Local dev only; deploy in production phase |
+| Docker prod ✅ | ⚠️ Partial | Dockerfiles exist; not tested in CI pipeline |
+| Vector search ✅ | ✅ Operational | pgvector + fallback text search in `core/search.py` |
+| RAG pipeline ✅ | ✅ Operational | Full pipeline in `core/search.py` |
+| Auth system ✅ | ✅ Operational | Canonical prefix: `/api/auth/*`; Clerk sync: `/api/auth/clerk/sync` |
+| Clerk integration | ✅ Added in repair pass | Clerk React in Vite frontend; `routes/clerk_sync.py` backend |
+| content_chunks schema | ✅ Fixed in repair pass | Columns: chunk_text, chunk_type, chunk_index, metadata (was drifted) |
+| EMBEDDING_DIM config | ✅ Fixed in repair pass | `core/config.py` -> `EMBEDDING_DIM` env var |
+
 ## 🏗️ High-Level Architecture (Updated with Data Warehouse)
 
 ```

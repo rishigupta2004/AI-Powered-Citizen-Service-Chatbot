@@ -82,7 +82,8 @@ FROM faqs
 ORDER BY faq_id DESC LIMIT 10;
 
 -- CONTENT_CHUNKS
-SELECT chunk_id, service_id, category, created_at, LEFT(content_text, 300) AS preview
+SELECT chunk_id, service_id, chunk_type, chunk_index, created_at,
+       LEFT(chunk_text, 300) AS preview
 FROM content_chunks
 ORDER BY chunk_id DESC LIMIT 10;
 

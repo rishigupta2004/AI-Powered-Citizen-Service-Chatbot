@@ -95,6 +95,9 @@
   --foreground: #0f172a;
   --background-secondary: #f8fafc;
   --background-tertiary: #f1f5f9;
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #eef2f7;
 
   --card: #ffffff;
   --card-foreground: #0f172a;
@@ -238,6 +241,9 @@
   --foreground: #f8fafc;
   --background-secondary: #1e293b;
   --background-tertiary: #334155;
+  --surface-1: #1e293b;
+  --surface-2: #24344a;
+  --surface-3: #2d3f57;
 
   --card: #1e293b;
   --card-foreground: #f8fafc;
@@ -306,6 +312,9 @@
   --foreground: #ffffff;
   --background-secondary: #1a1a1a;
   --background-tertiary: #262626;
+  --surface-1: #1a1a1a;
+  --surface-2: #242424;
+  --surface-3: #2d2d2d;
 
   --card: #1a1a1a;
   --card-foreground: #ffffff;
@@ -635,6 +644,80 @@
   backdrop-filter: blur(var(--blur-md));
   -webkit-backdrop-filter: blur(var(--blur-md));
   border: 1px solid var(--glass-border);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.page-shell {
+  background: linear-gradient(180deg, #f8f9fd 0%, var(--background) 25%, var(--background) 100%);
+}
+
+.page-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-navy);
+}
+
+.card-premium {
+  border: 1px solid var(--card-border);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-2);
+  transition:
+    transform var(--transition-base) var(--ease-out),
+    box-shadow var(--transition-base) var(--ease-out),
+    border-color var(--transition-fast) var(--ease-in-out);
+}
+
+.card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-8);
+  border-color: var(--border-strong);
+}
+
+.cta-primary {
+  border: 1px solid transparent;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+  transition:
+    background var(--transition-base) var(--ease-out),
+    box-shadow var(--transition-base) var(--ease-out),
+    transform var(--transition-fast) var(--ease-out);
+}
+
+.cta-primary:hover {
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-4);
+}
+
+.cta-secondary {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 600;
+  transition:
+    background var(--transition-base) var(--ease-out),
+    border-color var(--transition-base) var(--ease-out),
+    transform var(--transition-fast) var(--ease-out);
+}
+
+.cta-secondary:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
 }
 
 /* Gradient Overlays */

@@ -1,36 +1,22 @@
 """
-Idempotent migration: add `category` column to `content_chunks` if missing.
+Legacy migration placeholder.
 
-Usage:
-  python3 scripts/apply_migration.py
+NOTE: The `content_chunks.category` column was renamed to `content_chunks.chunk_type`
+in the repair pass (March 2025).
+
+This script is intentionally a no-op on updated databases and is kept only as
+historical reference.
+
+Current migration source of truth:
+  - database/enhanced_schema.sql
+  - scripts/sql_runtime_alignment.sql
 """
-import sys
-from sqlalchemy import create_engine, text
-import os
 
 
-def main():
-    try:
-        from core.database import DATABASE_URL
-    except Exception:
-        DATABASE_URL = os.getenv("DATABASE_URL")
-        if not DATABASE_URL:
-            print("❌ DATABASE_URL not set and core.database unavailable")
-            sys.exit(1)
-
-    engine = create_engine(DATABASE_URL)
-    with engine.connect() as conn:
-        try:
-            # Add column if it does not exist
-            conn.execute(text("ALTER TABLE IF EXISTS content_chunks ADD COLUMN IF NOT EXISTS category VARCHAR(100);"))
-            # Optional helpful index
-            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_chunks_category ON content_chunks(category);"))
-            conn.commit()
-            print("✅ Migration applied: content_chunks.category added (if missing)")
-        except Exception as e:
-            print("❌ Migration failed:", e)
-            conn.rollback()
-            sys.exit(1)
+def main() -> None:
+    print("ℹ️ No migration executed.")
+    print("   `category` has been replaced by `chunk_type`.")
+    print("   Use scripts/sql_runtime_alignment.sql for DB alignment SQL.")
 
 
 if __name__ == "__main__":

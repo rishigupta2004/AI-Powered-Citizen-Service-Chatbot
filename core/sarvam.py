@@ -4,15 +4,27 @@ Docs: https://docs.sarvam.ai
 """
 
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 import httpx
 import base64
 import logging
 from typing import Optional
 
+# Load .env relative to project root (robust to any CWD).
+load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=False)
+
 logger = logging.getLogger(__name__)
 
 SARVAM_API_BASE = "https://api.sarvam.ai"
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "")
+
+if not SARVAM_API_KEY:
+    logger.warning(
+        "SARVAM_API_KEY not set. Indian language features (Sarvam AI) are disabled. "
+        "Set SARVAM_API_KEY in .env - get your key at https://dashboard.sarvam.ai"
+    )
 
 LANG_CODES = {
     "hi": "hi-IN",

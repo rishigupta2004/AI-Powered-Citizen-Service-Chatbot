@@ -87,18 +87,18 @@ FROM raw_content
 GROUP BY source_type
 ORDER BY count DESC;
 
--- 6. Content Chunks by Category
+-- 6. Content Chunks by Type
 \echo ''
-\echo '6. CONTENT CHUNKS BY CATEGORY'
+\echo '6. CONTENT CHUNKS BY TYPE'
 \echo '----------------------------------------------'
 
 SELECT 
-    category,
+    chunk_type,
     COUNT(*) as chunks,
     COUNT(embedding) as with_embeddings,
     COUNT(*) - COUNT(embedding) as without_embeddings
 FROM content_chunks
-GROUP BY category
+GROUP BY chunk_type
 ORDER BY chunks DESC;
 
 -- 7. Document Processing Status
@@ -180,4 +180,3 @@ SELECT content_id, source_type, source_name, processing_status FROM raw_content 
 \echo '=============================================='
 \echo 'VALIDATION COMPLETE'
 \echo '=============================================='
-

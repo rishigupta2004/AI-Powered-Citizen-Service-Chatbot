@@ -38,7 +38,10 @@ from core.auth_models import (
 security = HTTPBearer()
 
 # Router
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+# -- Backward-compatible aliases (deprecated, remove after migration) ----------
+_legacy_router = APIRouter(prefix="/auth", tags=["Authentication [DEPRECATED]"])
 
 
 # Pydantic models for requests/responses
@@ -1097,3 +1100,17 @@ async def get_current_user_dependency(
         )
 
     return user
+
+
+# Wire legacy aliases for every route defined above
+from fastapi import routing as _fr
+
+for _route in router.routes:
+    if isinstance(_route, _fr.APIRoute):
+        _legacy_router.add_api_route(
+            _route.path.removeprefix("/api/auth"),
+            _route.endpoint,
+            methods=list(_route.methods or ["GET"]),
+            response_model=_route.response_model,
+            tags=["Authentication [DEPRECATED]"],
+        )
