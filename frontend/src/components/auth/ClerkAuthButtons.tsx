@@ -11,7 +11,13 @@ import {
 import { useAuthContext } from '../../contexts/AuthContext'
 import { API_BASE_URL } from '../../lib/api'
 
+const HAS_CLERK_KEY = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)
+
 export function ClerkAuthButtons() {
+  if (!HAS_CLERK_KEY) {
+    return null
+  }
+
   return (
     <>
       <SignedOut>
