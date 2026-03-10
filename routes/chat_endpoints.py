@@ -106,8 +106,6 @@ def _build_rag_fallback(
     context_parts: list[str],
     user: Optional[User],
 ) -> str:
-    query_l = (query or "").lower()
-    instant = _instant_service_template(query, language)
     localized_generic = {
         "hi": "मैं पासपोर्ट, आधार, पैन, ईपीएफओ, डिजिलॉकर और अन्य सरकारी सेवाओं में मदद कर सकता हूँ। कृपया अपना सवाल बताएं, मैं चरण-दर-चरण मार्गदर्शन दूंगा।",
         "ta": "பாஸ்போர்ட், ஆதார், பான், EPFO, DigiLocker மற்றும் பிற அரசு சேவைகளில் உதவ முடியும். உங்கள் கேள்வியை எழுதுங்கள்; படிப்படியாக வழிகாட்டுவேன்.",
@@ -120,27 +118,8 @@ def _build_rag_fallback(
         "pa": "ਪਾਸਪੋਰਟ, ਆਧਾਰ, ਪੈਨ, EPFO, DigiLocker ਅਤੇ ਹੋਰ ਸਰਕਾਰੀ ਸੇਵਾਵਾਂ ਵਿੱਚ ਮੈਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ। ਆਪਣਾ ਸਵਾਲ ਲਿਖੋ; ਮੈਂ ਕਦਮ-ਦਰ-ਕਦਮ ਗਾਈਡ ਕਰਾਂਗਾ।",
     }
 
-    if instant:
-        base = instant
-    elif context_parts:
+    if context_parts:
         base = _summarize_context_locally(context_parts)
-    elif "passport" in query_l:
-        base = (
-            "For Passport service, start on Passport Seva portal.\n"
-            "1. Register/Login and choose fresh/renewal service.\n"
-            "2. Fill application, upload details, and submit.\n"
-            "3. Pay fee and book PSK/POPSK appointment.\n"
-            "4. Carry ID/address/DOB proof and appointment receipt.\n"
-            "5. Track file number for police verification and dispatch updates."
-        )
-    elif "aadhaar" in query_l:
-        base = (
-            "For Aadhaar update, use the UIDAI official portal.\n"
-            "1. Select update type (address, name, DOB, mobile).\n"
-            "2. Upload supporting document as per UIDAI list.\n"
-            "3. Pay update fee and submit request.\n"
-            "4. Save URN and track status on UIDAI portal."
-        )
     else:
         base = localized_generic.get(
             language,
@@ -148,9 +127,6 @@ def _build_rag_fallback(
             "EPFO, DigiLocker, voter ID, and driving license. Share your exact query "
             "and I will provide step-by-step guidance.",
         )
-
-    if language == "hi":
-        base = localized_generic["hi"] if not context_parts else base
 
     first_name = str(getattr(user, "first_name", "") or "") if user else ""
     if first_name:
@@ -670,26 +646,6 @@ async def chat(
             return ChatResponse(**cached)
     response.headers["X-Cache-Hit"] = "0"
 
-    if response_mode in {"auto", "rag_only"}:
-        instant = _instant_service_template(query, lang)
-        if instant:
-            payload = ChatResponse(
-                response=instant,
-                language=lang,
-                speak_text=_compress_for_voice(instant, max_chars=180),
-                actions=_build_guided_actions(query, lang),
-                sources=[],
-                session_id=request.session_id,
-            )
-            chat_cache.set(cache_key, lang, payload.model_dump())
-            response.headers["X-Route-Mode"] = "instant_template"
-            response.headers["X-Latency-Search-MS"] = "0"
-            response.headers["X-Latency-LLM-MS"] = "0"
-            response.headers["X-Latency-Total-MS"] = str(
-                int((time.perf_counter() - started) * 1000)
-            )
-            return payload
-
     search_started = time.perf_counter()
     context_parts, sources = _search_context_fast(db, query, limit=3)
     search_elapsed_ms = int((time.perf_counter() - search_started) * 1000)
@@ -984,10 +940,7 @@ async def voice_chat(
         language if language and language != "auto" else detected_lang
     )
     if fast_mode:
-        instant = _instant_service_template(transcript, target_lang)
-        if instant:
-            response_text = instant
-        elif context:
+        if context:
             context_parts = [
                 c.get("content", "") for c in results.get("results", [])[:3]
             ]
