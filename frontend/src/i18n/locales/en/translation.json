@@ -78,8 +78,8 @@
     "selectLanguage": "Select language",
     "enableAutoSpeak": "Enable auto-speak",
     "disableAutoSpeak": "Disable auto-speak",
-    "voiceModeOn": "Voice chat mode ON",
-    "voiceModeOff": "Voice chat mode OFF",
+    "voiceModeOn": "Voice conversation ON",
+    "voiceModeOff": "Voice conversation OFF",
     "slowResponse": "Still working... fetching verified service details.",
     "quick": {
       "checkStatus": "Check Application Status",
@@ -216,6 +216,7 @@
     "documents": "Required Documents",
     "fees": "Fees",
     "timeline": "Processing Time"
+    ,"categoryLabel": "Categories"
   },
   "serviceDetail": {
     "backToServices": "Back to Services",

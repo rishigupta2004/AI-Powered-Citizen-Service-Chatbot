@@ -46,7 +46,7 @@ export interface ServiceData {
   documents: Array<{ name: string; required: boolean }>;
   steps: Array<{ number: number; title: string; description: string }>;
   faqs: Array<{ question: string; answer: string }>;
-  downloads: Array<{ name: string; size: string; format: string }>;
+  downloads: Array<{ name: string; size: string; format: string; url?: string; source?: string }>;
 }
 
 type ServiceSeed = {
@@ -200,10 +200,10 @@ function defaultFaqs(seed: ServiceSeed): Array<{ question: string; answer: strin
   ];
 }
 
-function defaultDownloads(seed: ServiceSeed): Array<{ name: string; size: string; format: string }> {
+function defaultDownloads(seed: ServiceSeed): Array<{ name: string; size: string; format: string; url?: string; source?: string }> {
   return [
-    { name: `${seed.name} official guideline`, size: "Web", format: "URL" },
-    { name: `${seed.name} help/document checklist`, size: "Web", format: "URL" },
+    { name: `${seed.name} official guideline`, size: "Web", format: "URL", url: seed.officialUrl, source: "official_portal" },
+    { name: `${seed.name} help/document checklist`, size: "Web", format: "URL", url: seed.officialUrl, source: "official_portal" },
   ];
 }
 

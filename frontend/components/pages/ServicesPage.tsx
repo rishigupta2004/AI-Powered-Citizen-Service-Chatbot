@@ -146,7 +146,7 @@ export function ServicesPage({ onNavigate }: ServicesPageProps) {
                 {allServices.length} {t("services.services", "Services")}
               </Badge>
               <Badge variant="outline" className="border-white/30 bg-white/10 text-white">
-                {categories.length - 1} {t("services.categories", "Categories")}
+                {categories.length - 1} {t("services.categoryLabel", "Categories")}
               </Badge>
               <Badge variant="outline" className="border-white/30 bg-white/10 text-white">
                 <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />

@@ -74,9 +74,20 @@ export interface ChatMessage {
 
 export type ResponseMode = 'auto' | 'rag_only' | 'sarvam'
 
+export interface ChatAction {
+  id: string
+  label: string
+  type: 'url' | 'navigate'
+  url?: string
+  page?: string
+  service_id?: string
+}
+
 export interface ChatResponse {
   response: string
   language: string
+  speak_text?: string
+  actions?: ChatAction[]
   sources?: string[]
   session_id?: string | null
 }
@@ -145,7 +156,7 @@ export async function speechToText(audio: Blob, language = 'auto'): Promise<Spee
   return readJsonResponse<SpeechToTextResponse>(response)
 }
 
-export async function textToSpeech(text: string, language = 'hi') {
+async function textToSpeechRequest(text: string, language: string) {
   const response = await fetchWithTimeout(`${API_BASE_URL}/api/v1/text-to-speech`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -163,6 +174,17 @@ export async function textToSpeech(text: string, language = 'hi') {
   }
 
   return response.arrayBuffer()
+}
+
+export async function textToSpeech(text: string, language = 'hi') {
+  try {
+    return await textToSpeechRequest(text, language)
+  } catch (error) {
+    if (language !== 'en') {
+      return textToSpeechRequest(text, 'en')
+    }
+    throw error
+  }
 }
 
 export function playAudioBlob(audioData: ArrayBuffer) {

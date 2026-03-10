@@ -3,12 +3,15 @@ Streamlined FastAPI Application - Essential endpoints only
 """
 
 from fastapi import FastAPI, Depends, HTTPException, Query, Request, Response
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from typing import Optional
 import time
 import asyncio
 import logging
 import re
+from pathlib import Path
+from urllib.parse import quote
 
 from core.database import get_db
 from core.config import FRONTEND_URL, CORS_ORIGINS, CORS_ORIGIN_REGEX
@@ -39,6 +42,9 @@ app = FastAPI(
     description="Streamlined API for Government Services Data Warehouse",
     version="1.0.0",
 )
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+DOCS_DIR = PROJECT_ROOT / "data" / "docs"
 
 _cors_origins = [
     "http://localhost:3000",
@@ -94,6 +100,82 @@ except Exception:
 
 register_middlewares(app)
 register_exception_handlers(app)
+
+if DOCS_DIR.exists():
+    app.mount("/public/docs", StaticFiles(directory=DOCS_DIR), name="public-docs")
+
+
+def _candidate_doc_folders(service_slug: str) -> list[str]:
+    slug = (service_slug or "").lower()
+    if not slug:
+        return []
+    mapping: list[tuple[str, str]] = [
+        ("aadhaar", "aadhaar"),
+        ("myaadhaar", "aadhaar"),
+        ("passport", "passport"),
+        ("pan", "pan"),
+        ("epfo", "epfo"),
+        ("parivahan", "parivahan"),
+        ("sarathi", "parivahan"),
+        ("vahan", "parivahan"),
+        ("rail", "railways"),
+        ("rbi", "rbi"),
+        ("scholar", "education"),
+        ("swayam", "education"),
+        ("diksha", "education"),
+        ("education", "education"),
+    ]
+    matched: list[str] = []
+    for token, folder in mapping:
+        if token in slug and folder not in matched:
+            matched.append(folder)
+    return matched
+
+
+@app.get("/api/v1/service-docs/{service_slug}")
+async def get_service_docs(service_slug: str):
+    if not DOCS_DIR.exists():
+        return {"service_slug": service_slug, "documents": []}
+
+    docs: list[dict[str, object]] = []
+    seen_paths: set[str] = set()
+
+    folders = _candidate_doc_folders(service_slug)
+    profile_path = DOCS_DIR / "national_profiles" / f"{service_slug}.md"
+    if profile_path.exists():
+        rel = profile_path.relative_to(DOCS_DIR).as_posix()
+        docs.append(
+            {
+                "name": f"{service_slug.replace('_', ' ').title()} profile",
+                "format": "MD",
+                "size": f"{max(1, int(profile_path.stat().st_size / 1024))} KB",
+                "url": f"/public/docs/{quote(rel)}",
+                "source": "national_profiles",
+            }
+        )
+        seen_paths.add(rel)
+
+    for folder in folders:
+        folder_path = DOCS_DIR / folder
+        if not folder_path.exists() or not folder_path.is_dir():
+            continue
+
+        for file_path in sorted(folder_path.glob("*.pdf")):
+            rel = file_path.relative_to(DOCS_DIR).as_posix()
+            if rel in seen_paths:
+                continue
+            docs.append(
+                {
+                    "name": file_path.stem.replace("-", " ").replace("_", " ").strip(),
+                    "format": "PDF",
+                    "size": f"{max(1, int(file_path.stat().st_size / 1024))} KB",
+                    "url": f"/public/docs/{quote(rel)}",
+                    "source": folder,
+                }
+            )
+            seen_paths.add(rel)
+
+    return {"service_slug": service_slug, "documents": docs}
 
 
 @app.middleware("http")

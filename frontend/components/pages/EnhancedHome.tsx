@@ -99,7 +99,20 @@ export function EnhancedHome({ onNavigate }: EnhancedHomeProps) {
                   <button
                     key={index}
                     type="button"
-                    onClick={index === 3 ? () => onNavigate("faq") : undefined}
+                    onClick={
+                      index === 3
+                        ? () => onNavigate("faq")
+                        : index === 2
+                          ? () =>
+                              window.dispatchEvent(
+                                new CustomEvent("seva:open-chat", {
+                                  detail: {
+                                    message: t("chatbot.welcome", "Namaste! Welcome to Seva Sindhu AI Assistant 🇮🇳"),
+                                  },
+                                }),
+                              )
+                          : undefined
+                    }
                     className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90 transition-colors hover:bg-white/15"
                   >
                     <Icon className="h-3.5 w-3.5" />

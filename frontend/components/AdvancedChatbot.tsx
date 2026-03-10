@@ -40,6 +40,7 @@ import {
   textToSpeech,
   playAudioBlob,
   ChatMessage as APIChatMessage,
+  ChatAction as APIChatAction,
   ApiError,
 } from "../src/lib/api";
 
@@ -53,6 +54,8 @@ interface Message {
   isTyping?: boolean;
   language?: string;
 }
+
+interface GuidedAction extends APIChatAction {}
 
 interface QuickAction {
   id: string;
@@ -100,6 +103,7 @@ export function AdvancedChatbot({
   // New state for Sarvam integration
   const [language, setLanguage] = useState("auto");
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState<"idle" | "recording" | "transcribing" | "speaking">("idle");
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const [voiceChatEnabled, setVoiceChatEnabled] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -247,9 +251,13 @@ export function AdvancedChatbot({
 
       addBotMessage(response.response, "text", undefined, response.language);
 
+      if (response.actions && response.actions.length) {
+        addBotMessage("", "form", { actions: response.actions });
+      }
+
       if (ttsEnabled && response.response) {
         const responseLang = response.language || language || "en";
-        await speakText(response.response, responseLang);
+        await speakText(response.speak_text || response.response, responseLang);
       }
     } catch (error) {
       if (error instanceof ApiError && error.message.includes("timed out")) {
@@ -282,6 +290,13 @@ export function AdvancedChatbot({
   };
 
   // SPEECH TO TEXT
+  const normalizeLang = (value?: string): string => {
+    const v = (value || "").toLowerCase();
+    if (!v) return "en";
+    if (v.includes("-")) return v.split("-")[0];
+    return v;
+  };
+
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -302,29 +317,39 @@ export function AdvancedChatbot({
         stream.getTracks().forEach((t) => t.stop()); // Release mic
 
         setIsTyping(true);
+        setVoiceStatus("transcribing");
         try {
           if (voiceChatEnabled) {
             const sttResult = await speechToText(audioBlob, language);
             const transcript = sttResult.transcript?.trim() || "";
+            const detectedLang = normalizeLang(sttResult.language_code || language);
             if (!transcript) {
               toast.error(t("chatbot.errors.transcriptionFailed", "Could not transcribe audio. Please try again."));
+              setVoiceStatus("idle");
               return;
             }
 
             addUserMessage(transcript);
+            if (language === "auto" && detectedLang) {
+              setLanguage(detectedLang);
+            }
 
             const chatResult = await sendChatMessage(
               transcript,
               getHistory(),
-              language,
+              detectedLang,
               currentService,
               "auto"
             );
             const assistantText = chatResult.response || "";
-            addBotMessage(assistantText, "text", undefined, chatResult.language || language);
+            addBotMessage(assistantText, "text", undefined, chatResult.language || detectedLang);
+            if (chatResult.actions && chatResult.actions.length) {
+              addBotMessage("", "form", { actions: chatResult.actions });
+            }
 
             if (assistantText) {
-              const audioBlobResponse = await textToSpeech(assistantText, chatResult.language || language || "en");
+              setVoiceStatus("speaking");
+              const audioBlobResponse = await textToSpeech(chatResult.speak_text || assistantText, chatResult.language || detectedLang || "en");
               const audio = playAudioBlob(audioBlobResponse);
               currentAudioRef.current = audio;
                 try {
@@ -334,6 +359,9 @@ export function AdvancedChatbot({
                     t("chatbot.errors.audioBlockedRetry", "Audio playback blocked by browser. Tap speaker again.")
                   );
                 }
+                audio.onended = () => {
+                  setVoiceStatus("idle");
+                };
               }
             } else {
               const result = await speechToText(audioBlob, language);
@@ -347,6 +375,7 @@ export function AdvancedChatbot({
               } else {
                 toast.error(t("chatbot.errors.transcriptionFailed", "Could not transcribe audio. Please try again."));
               }
+              setVoiceStatus("idle");
             }
           } catch (err) {
             if (err instanceof ApiError) {
@@ -354,6 +383,7 @@ export function AdvancedChatbot({
             } else {
               toast.error(t("chatbot.errors.speechWorkflowFailed", "Speech workflow failed"));
             }
+            setVoiceStatus("idle");
           } finally {
             setIsTyping(false);
         }
@@ -361,16 +391,19 @@ export function AdvancedChatbot({
 
       mediaRecorder.start();
       setIsRecording(true);
+      setVoiceStatus("recording");
         toast.info(t("chatbot.voice.recording", "Recording... tap mic again to stop"));
     } catch (err) {
       toast.error(t("chatbot.voice.micDenied", "Microphone access denied. Please allow mic permissions."));
+      setVoiceStatus("idle");
     }
-  }, [language, voiceChatEnabled, t]);
+  }, [language, voiceChatEnabled, t, currentService, getHistory]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setVoiceStatus("transcribing");
     }
   }, [isRecording]);
 
@@ -389,6 +422,7 @@ export function AdvancedChatbot({
       }
 
       setIsSpeaking(true);
+      setVoiceStatus("speaking");
       try {
         const audioBlob = await textToSpeech(text, lang);
         const audio = playAudioBlob(audioBlob);
@@ -404,11 +438,13 @@ export function AdvancedChatbot({
         }
         audio.onended = () => {
           setIsSpeaking(false);
+          setVoiceStatus("idle");
           currentAudioRef.current = null;
         };
       } catch (err) {
         toast.error(t("chatbot.errors.ttsFailed", "Text-to-speech failed"));
         setIsSpeaking(false);
+        setVoiceStatus("idle");
       }
     },
     [t]
@@ -487,6 +523,30 @@ export function AdvancedChatbot({
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  const handleGuidedAction = (action: GuidedAction) => {
+    if (action.type === "url" && action.url) {
+      window.open(action.url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (action.type === "navigate" && action.page && onNavigate) {
+      onNavigate(action.page, action.service_id);
+    }
+  };
+
+  useEffect(() => {
+    const onOpenChat = (evt: Event) => {
+      const custom = evt as CustomEvent<{ message?: string }>;
+      setIsOpen(true);
+      if (custom.detail?.message) {
+        setInputValue(custom.detail.message);
+      }
+    };
+    window.addEventListener("seva:open-chat", onOpenChat as EventListener);
+    return () => {
+      window.removeEventListener("seva:open-chat", onOpenChat as EventListener);
+    };
+  }, []);
+
   return (
     <>
       {/* Chat Bubble */}
@@ -518,7 +578,7 @@ export function AdvancedChatbot({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-md md:bottom-6 md:right-6"
+            className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-xl md:bottom-6 md:right-6"
           >
             <div className="flex h-[min(82vh,760px)] flex-col overflow-hidden rounded-[var(--radius-2xl)] border-2 border-[var(--card-border)] bg-[var(--card)] shadow-[var(--shadow-24)]">
               {/* Header */}
@@ -572,7 +632,7 @@ export function AdvancedChatbot({
                     )}
                   </Button>
 
-                  {/* STS Toggle */}
+                  {/* Voice Conversation Toggle */}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -580,8 +640,8 @@ export function AdvancedChatbot({
                     onClick={() => setVoiceChatEnabled((v) => !v)}
                     title={
                       voiceChatEnabled
-                        ? t("chatbot.voiceModeOn", "Voice chat mode ON")
-                        : t("chatbot.voiceModeOff", "Voice chat mode OFF")
+                        ? t("chatbot.voiceModeOn", "Voice conversation ON")
+                        : t("chatbot.voiceModeOff", "Voice conversation OFF")
                     }
                   >
                     <Phone className={cn("w-4 h-4", voiceChatEnabled ? "text-green-300" : "opacity-70")} />
@@ -653,6 +713,20 @@ export function AdvancedChatbot({
                               ))}
                             </div>
                           </div>
+                        ) : message.type === "form" && message.data?.actions ? (
+                          <div className="space-y-2">
+                            {message.data.actions.map((action: GuidedAction) => (
+                              <Button
+                                key={action.id}
+                                variant="outline"
+                                className="w-full justify-start"
+                                onClick={() => handleGuidedAction(action)}
+                              >
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                {action.label}
+                              </Button>
+                            ))}
+                          </div>
                         ) : (
                           <div>
                             <p className="leading-relaxed whitespace-pre-wrap">
@@ -674,11 +748,8 @@ export function AdvancedChatbot({
                               {message.sender === "bot" && (
                                 <button
                                   onClick={() =>
-                                    speakText(
-                                      message.text,
-                                      message.language || language || "en"
-                                    )
-                                  }
+                                     speakText(_compressForSpeak(message.text), message.language || language || "en")
+                                   }
                                   className="p-1 rounded hover:bg-white/10"
                                   title={t("chatbot.listen", "Listen")}
                                 >
@@ -735,6 +806,15 @@ export function AdvancedChatbot({
 
               {/* Input Area */}
               <div className="relative z-10 shrink-0 border-t-2 border-[var(--border)] bg-[var(--card)] p-4">
+                {voiceStatus !== "idle" && (
+                  <div className="mb-2 rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
+                    {voiceStatus === "recording"
+                      ? t("chatbot.voice.recording", "Recording... tap mic again to stop")
+                      : voiceStatus === "transcribing"
+                        ? t("chatbot.listening", "Listening...")
+                        : t("chatbot.thinking", "Thinking...")}
+                  </div>
+                )}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -810,4 +890,13 @@ export function AdvancedChatbot({
       </AnimatePresence>
     </>
   );
+}
+
+function _compressForSpeak(text: string, maxChars = 220): string {
+  const cleaned = (text || "").replace(/\s+/g, " ").trim();
+  if (cleaned.length <= maxChars) {
+    return cleaned;
+  }
+  const clipped = cleaned.slice(0, maxChars).replace(/\s+\S*$/, "").trim();
+  return `${clipped}.`;
 }

@@ -22,7 +22,7 @@ from fastapi import (
 from fastapi.responses import Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from langdetect import detect, LangDetectException
 from datetime import datetime, timedelta
@@ -175,18 +175,27 @@ def _summarize_context_locally(context_parts: list[str]) -> str:
             break
 
     if not unique_points:
-        return "1. Share the exact service name and I will provide eligibility, documents, fees, and processing steps."
+        return (
+            "What to do:\n"
+            "- Share the exact service name and I will provide eligibility, documents, fees, and processing steps.\n\n"
+            "Official portal:\n"
+            "- Please use only official government portals for final submission and payments."
+        )
 
-    bullets: list[str] = []
-    for idx, point in enumerate(unique_points):
-        short = point[:220]
-        short = re.sub(r"\s+", " ", short).strip(" .")
-        bullets.append(f"{idx + 1}. Key point: {short}.")
+    cleaned_points: list[str] = []
+    for point in unique_points:
+        short = re.sub(r"\s+", " ", point[:220]).strip(" .")
+        cleaned_points.append(short)
 
-    bullets.append(
-        f"{len(bullets) + 1}. Recommended action: verify latest details on the official service portal before submission."
+    step_lines = "\n".join(f"- {item}" for item in cleaned_points[:3])
+    return (
+        "What to do:\n"
+        f"{step_lines}\n\n"
+        "Documents / details to keep ready:\n"
+        "- Identity proof, address proof, and service-specific documents as listed on official portal.\n\n"
+        "Official portal:\n"
+        "- Verify latest process and fees on the official service website before submitting."
     )
-    return "\n".join(bullets)
 
 
 def _build_context_synthesis_instructions(context_text: str) -> str:
@@ -281,6 +290,98 @@ def _compress_for_voice(text: str, max_chars: int = 140) -> str:
     if not clipped:
         clipped = cleaned[:max_chars].strip()
     return f"{clipped}."
+
+
+def _normalize_chat_language(language: str | None) -> str:
+    raw = (language or "").strip().lower()
+    if not raw or raw == "auto":
+        return "en"
+    if "-" in raw:
+        raw = raw.split("-", 1)[0]
+    if raw == "od":
+        return "or"
+    return raw if raw in SYSTEM_PROMPTS else "en"
+
+
+def _build_guided_actions(query: str, language: str) -> list[dict]:
+    q = (query or "").lower()
+    is_hi = language == "hi"
+
+    if any(token in q for token in ["aadhaar", "aadhar"]):
+        return [
+            {
+                "id": "open_uidai",
+                "label": "UIDAI portal खोलें" if is_hi else "Open UIDAI portal",
+                "type": "url",
+                "url": "https://uidai.gov.in/",
+            },
+            {
+                "id": "open_myaadhaar",
+                "label": "myAadhaar self-service खोलें"
+                if is_hi
+                else "Open myAadhaar self-service",
+                "type": "url",
+                "url": "https://myaadhaar.uidai.gov.in/",
+            },
+            {
+                "id": "open_services",
+                "label": "आधार सेवा गाइड देखें" if is_hi else "Open Aadhaar service guide",
+                "type": "navigate",
+                "page": "service-detail",
+                "service_id": "uidai_aadhaar_services",
+            },
+        ]
+
+    if any(token in q for token in ["driving", "licence", "license", "sarathi", "dl"]):
+        return [
+            {
+                "id": "open_sarathi",
+                "label": "Sarathi portal खोलें" if is_hi else "Open Sarathi portal",
+                "type": "url",
+                "url": "https://sarathi.parivahan.gov.in/",
+            },
+            {
+                "id": "open_dl_service",
+                "label": "Driving Licence सेवा पेज"
+                if is_hi
+                else "Open driving licence service page",
+                "type": "navigate",
+                "page": "service-detail",
+                "service_id": "sarathi_driving_licence_services",
+            },
+        ]
+
+    if "passport" in q:
+        return [
+            {
+                "id": "open_passport_portal",
+                "label": "Passport portal खोलें" if is_hi else "Open Passport portal",
+                "type": "url",
+                "url": "https://www.passportindia.gov.in/",
+            },
+            {
+                "id": "open_passport_service",
+                "label": "Passport सेवा पेज" if is_hi else "Open Passport service page",
+                "type": "navigate",
+                "page": "service-detail",
+                "service_id": "passport_seva",
+            },
+        ]
+
+    return [
+        {
+            "id": "browse_services",
+            "label": "सभी सेवाएं देखें" if is_hi else "Browse all services",
+            "type": "navigate",
+            "page": "services",
+        },
+        {
+            "id": "open_faq",
+            "label": "FAQ खोलें" if is_hi else "Open FAQ",
+            "type": "navigate",
+            "page": "faq",
+        },
+    ]
 
 
 def _search_context_fast(
@@ -407,7 +508,9 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     language: str
-    sources: List[str] = []
+    speak_text: Optional[str] = None
+    actions: List[dict] = Field(default_factory=list)
+    sources: List[str] = Field(default_factory=list)
     session_id: Optional[str] = None
 
 
@@ -433,6 +536,7 @@ async def chat(
     lang = request.language
     if lang == "auto" or not lang:
         lang = detect_language(query)
+    lang = _normalize_chat_language(lang)
 
     response_mode = (request.response_mode or "auto").strip().lower()
     if response_mode not in {"auto", "rag_only", "sarvam"}:
@@ -451,6 +555,8 @@ async def chat(
         return ChatResponse(
             response=guarded,
             language=lang,
+            speak_text=_compress_for_voice(guarded, max_chars=180),
+            actions=_build_guided_actions(query, lang),
             sources=[],
             session_id=request.session_id,
         )
@@ -473,6 +579,8 @@ async def chat(
             payload = ChatResponse(
                 response=instant,
                 language=lang,
+                speak_text=_compress_for_voice(instant, max_chars=180),
+                actions=_build_guided_actions(query, lang),
                 sources=[],
                 session_id=request.session_id,
             )
@@ -570,6 +678,8 @@ async def chat(
     payload = ChatResponse(
         response=response_text,
         language=lang,
+        speak_text=_compress_for_voice(response_text, max_chars=180),
+        actions=_build_guided_actions(query, lang),
         sources=sources,
         session_id=request.session_id,
     )
@@ -638,14 +748,27 @@ async def text_to_speech(request: TTSRequest):
     if not request.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
 
+    language = _normalize_chat_language(request.language or "hi")
     result = await sarvam.text_to_speech(
         text=request.text,
-        language=request.language or "hi",
+        language=language,
         speed=request.speed or 1.0,
     )
 
     if "error" in result:
-        return {"transcript": "", "error": str(result.get("error", "STT failed"))}
+        if language != "en":
+            fallback = await sarvam.text_to_speech(
+                text=request.text,
+                language="en",
+                speed=request.speed or 1.0,
+            )
+            if "error" not in fallback:
+                return Response(
+                    content=fallback["audio_bytes"],
+                    media_type="audio/wav",
+                    headers={"Content-Disposition": "inline; filename=response.wav"},
+                )
+        return {"transcript": "", "error": str(result.get("error", "TTS failed"))}
 
     return Response(
         content=result["audio_bytes"],
@@ -755,7 +878,10 @@ async def voice_chat(
     context = "\n".join(
         c.get("content", "")[:300] for c in results.get("results", [])[:3]
     )
-    target_lang = language if language and language != "auto" else "hi"
+    detected_lang = _normalize_chat_language(stt.get("language_code") or language)
+    target_lang = _normalize_chat_language(
+        language if language and language != "auto" else detected_lang
+    )
     if fast_mode:
         instant = _instant_service_template(transcript, target_lang)
         if instant:

@@ -162,6 +162,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const loginWithPhoneOTP = async (phone: string): Promise<void> => {
+    const hasClerk = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+    if (hasClerk) {
+      throw new Error('Phone OTP is managed by Clerk. Please use Sign In.');
+    }
     const response = await fetch(`${API_URL}/api/auth/otp/send`, {
       method: 'POST',
       headers: {
@@ -177,6 +181,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const verifyPhoneOTP = async (phone: string, otp: string): Promise<void> => {
+    const hasClerk = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+    if (hasClerk) {
+      throw new Error('Phone OTP is managed by Clerk. Please use Sign In.');
+    }
     const response = await fetch(`${API_URL}/api/auth/otp/verify`, {
       method: 'POST',
       headers: {
@@ -200,6 +208,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const loginWithGoogle = (): void => {
+    const clerk = (window as Window & { Clerk?: { openSignIn?: (opts?: { redirectUrl?: string }) => void } }).Clerk;
+    if (clerk?.openSignIn) {
+      clerk.openSignIn({ redirectUrl: window.location.href });
+      return;
+    }
     window.location.href = `${API_URL}/api/auth/google`;
   };
 

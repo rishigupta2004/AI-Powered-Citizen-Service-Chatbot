@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '../ui/breadcrumb';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { API_BASE_URL } from '../../src/lib/api';
 
 interface ServiceDetailProps {
   onNavigate: (page: string, serviceId?: string) => void;
@@ -34,6 +35,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
   const { t } = useTranslation();
   const [activeStep, setActiveStep] = useState(1);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-0');
+  const [liveDownloads, setLiveDownloads] = useState<Array<{ name: string; size: string; format: string; url?: string; source?: string }>>([]);
 
   const service = useMemo(() => getServiceById(serviceId) || getServiceById('passport_seva')!, [serviceId]);
   const allServices = useMemo(() => getAllServices(), []);
@@ -43,6 +45,32 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
   );
 
   const ServiceIcon = service.icon;
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadDocs = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/service-docs/${service.id}`);
+        const payload = await response.json();
+        if (!cancelled && Array.isArray(payload?.documents)) {
+          setLiveDownloads(payload.documents);
+        }
+      } catch {
+        if (!cancelled) {
+          setLiveDownloads([]);
+        }
+      }
+    };
+    loadDocs();
+    return () => {
+      cancelled = true;
+    };
+  }, [service.id]);
+
+  const combinedDownloads = useMemo(
+    () => [...liveDownloads, ...service.downloads],
+    [liveDownloads, service.downloads]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[var(--background)] to-[var(--background-secondary)] pt-32 pb-20">
@@ -261,7 +289,11 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
             >
               <h2 className="text-2xl font-bold text-[var(--foreground)] mb-6">{t('serviceDetail.downloadableResources', 'Downloadable Resources')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {service.downloads.map((doc, index) => (
+                {combinedDownloads.map((doc, index) => {
+                  const docHref = doc.url
+                    ? (doc.url.startsWith('http') ? doc.url : `${API_BASE_URL}${doc.url}`)
+                    : service.officialUrl;
+                  return (
                   <div
                     key={index}
                     className="border-2 border-[var(--border)] rounded-[var(--radius-lg)] p-4 hover:border-[var(--primary)] hover:shadow-[var(--shadow-4)] transition-all cursor-pointer group"
@@ -278,12 +310,14 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                           <span>{doc.format}</span>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white">
-                            <Download className="w-3 h-3 mr-1" />
-                            {t('serviceDetail.download', 'Download')}
+                          <Button size="sm" variant="outline" className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white" asChild>
+                            <a href={docHref} target="_blank" rel="noreferrer" download>
+                              <Download className="w-3 h-3 mr-1" />
+                              {t('serviceDetail.download', 'Download')}
+                            </a>
                           </Button>
                           <Button size="sm" variant="ghost" asChild>
-                            <a href={service.officialUrl} target="_blank" rel="noreferrer" className="inline-flex items-center">
+                            <a href={docHref} target="_blank" rel="noreferrer" className="inline-flex items-center">
                               <ExternalLink className="w-3 h-3 mr-1" />
                               {t('common.view', 'View')}
                             </a>
@@ -292,7 +326,8 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
 
@@ -426,7 +461,18 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
               <MessageCircle className="w-12 h-12 mx-auto mb-3" />
               <h3 className="font-bold mb-2">{t('serviceDetail.liveChatSupport', 'Live Chat Support')}</h3>
               <p className="text-sm mb-4 text-white/90">{t('serviceDetail.instantHelp', 'Get instant help from our support team')}</p>
-              <Button className="w-full bg-white text-[var(--secondary)] hover:bg-white/90 shadow-[var(--shadow-4)]">
+              <Button
+                className="w-full bg-[var(--card)] text-[var(--color-navy)] hover:bg-[var(--surface-2)] shadow-[var(--shadow-4)]"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent('seva:open-chat', {
+                      detail: {
+                        message: `${service.name}: ${t('serviceDetail.instantHelp', 'Get instant help from our support team')}`,
+                      },
+                    })
+                  );
+                }}
+              >
                 {t('serviceDetail.startChat', 'Start Chat')}
               </Button>
             </motion.div>
