@@ -180,16 +180,19 @@ def log_login_attempt(
     failure_reason: Optional[str] = None,
 ):
     """Log login attempt for security"""
-    attempt = LoginAttempt(
-        email=email,
-        phone=phone,
-        ip_address=get_client_ip(request),
-        user_agent=request.headers.get("User-Agent"),
-        success=success,
-        failure_reason=failure_reason,
-    )
-    db.add(attempt)
-    db.commit()
+    try:
+        attempt = LoginAttempt(
+            email=email,
+            phone=phone,
+            ip_address=get_client_ip(request),
+            user_agent=request.headers.get("User-Agent"),
+            success=success,
+            failure_reason=failure_reason,
+        )
+        db.add(attempt)
+        db.commit()
+    except Exception:
+        db.rollback()
 
 
 # Authentication endpoints
