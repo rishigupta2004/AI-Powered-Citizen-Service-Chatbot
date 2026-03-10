@@ -136,16 +136,48 @@ def _build_rag_fallback(
 
 def _summarize_context_locally(context_parts: list[str]) -> str:
     """Fast local summarizer for RAG-only mode; avoids raw chunk dumps."""
+
+    def _clean_point(raw: str) -> str:
+        text = " ".join((raw or "").replace("\n", " ").split()).strip()
+        if not text:
+            return ""
+
+        lower = text.lower()
+        if re.search(
+            r"\b(refer rules|annexure|signature/thumb impression|space for|form of application)\b",
+            lower,
+        ):
+            return ""
+
+        if "q:" in lower and "a:" in lower:
+            try:
+                answer = text.split("A:", 1)[1].strip()
+                text = answer or text
+            except Exception:
+                pass
+
+        text = re.sub(r"\s+", " ", text).strip(" .")
+        if len(text) > 220:
+            text = text[:220].rsplit(" ", 1)[0].strip()
+
+        if (
+            "form" in lower
+            and len(text) > 140
+            and not any(
+                k in lower
+                for k in ["apply", "portal", "status", "document", "fee", "track"]
+            )
+        ):
+            return ""
+
+        return text
+
     unique_points: list[str] = []
     for raw in context_parts:
-        cleaned = " ".join((raw or "").replace("\n", " ").split())
+        cleaned = _clean_point(raw)
         if not cleaned:
             continue
         lowered = cleaned.lower()
-        if re.search(r"\b(refer rules|annexure|signature/thumb impression)\b", lowered):
-            continue
-        if "form" in lowered and len(cleaned) > 140:
-            continue
         if any(lowered == p.lower() for p in unique_points):
             continue
         unique_points.append(cleaned)

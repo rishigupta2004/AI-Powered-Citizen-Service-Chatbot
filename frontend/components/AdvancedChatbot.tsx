@@ -265,15 +265,12 @@ export function AdvancedChatbot({
           t("chatbot.errors.slowTimeout", "This is taking longer than expected. Please try again.")
         );
       } else {
-        toast.error(t("chatbot.errors.responseFailed", "Failed to get response. Please try again."));
+        toast.error(
+          error instanceof ApiError
+            ? error.message
+            : t("chatbot.errors.responseFailed", "Failed to get response. Please try again.")
+        );
       }
-      addBotMessage(
-        t(
-          "chatbot.errors.connectionTrouble",
-          "I apologize, but I'm having trouble connecting to the service. Please try again later."
-        ),
-        "text"
-      );
     } finally {
       setIsTyping(false);
     }
