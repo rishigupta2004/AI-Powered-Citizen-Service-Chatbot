@@ -206,6 +206,23 @@ def _should_use_rag_fast_path(query: str, context_parts: list[str]) -> bool:
     """Prefer low-latency RAG synthesis when context looks strong enough."""
     if not context_parts:
         return False
+    query_l = query.lower()
+    quick_terms = [
+        "passport",
+        "aadhaar",
+        "aadhar",
+        "pan",
+        "epfo",
+        "document",
+        "fee",
+        "status",
+        "track",
+        "renew",
+        "appointment",
+        "apply",
+    ]
+    if any(term in query_l for term in quick_terms):
+        return True
     if len(context_parts) >= 2:
         return True
 
@@ -218,13 +235,42 @@ def _should_use_rag_fast_path(query: str, context_parts: list[str]) -> bool:
     return overlap >= 2
 
 
+def _instant_service_template(query: str, language: str) -> Optional[str]:
+    q = (query or "").lower()
+    if "passport" in q:
+        return (
+            "For Passport service, follow this fast checklist:\n"
+            "1. Register/login on Passport Seva portal.\n"
+            "2. Fill fresh/renewal form and submit.\n"
+            "3. Pay fee and book PSK/POPSK appointment.\n"
+            "4. Carry identity, address, and DOB proofs to appointment.\n"
+            "5. Track file number for police verification and dispatch."
+        )
+    if "aadhaar" in q or "aadhar" in q:
+        return (
+            "For Aadhaar update, use UIDAI official portal:\n"
+            "1. Choose update type (address/name/DOB/mobile).\n"
+            "2. Upload supporting document from UIDAI list.\n"
+            "3. Pay update fee and submit.\n"
+            "4. Save URN and track status online."
+        )
+    if "pan" in q:
+        return (
+            "For PAN services:\n"
+            "1. Use NSDL/UTI official PAN service page.\n"
+            "2. Select new PAN or correction.\n"
+            "3. Fill form, upload proof, and pay fee.\n"
+            "4. Track acknowledgement number for status."
+        )
+    return None
+
+
 def _search_context_fast(
     db: Session, query: str, limit: int = 5
 ) -> tuple[list[str], list[str]]:
     try:
         chunk_repo = ContentChunkRepository(db)
         faq_repo = FAQRepository(db)
-        doc_repo = DocumentRepository(db)
 
         sources: list[str] = []
         context_parts: list[str] = []
@@ -248,16 +294,7 @@ def _search_context_fast(
                 if source and source not in sources:
                     sources.append(source)
 
-        if len(context_parts) < limit:
-            docs = doc_repo.search_text(query, max(1, limit // 2))
-            for doc in docs:
-                text = (doc.raw_content or doc.name or "").strip()
-                if not text:
-                    continue
-                context_parts.append(text[:320])
-                source = (doc.name or f"doc_{doc.doc_id}")[:80]
-                if source and source not in sources:
-                    sources.append(source)
+        # Skip document-wide text scan on hot path to keep latency predictable.
 
         return context_parts[:limit], sources[:limit]
     except Exception as exc:
@@ -335,6 +372,7 @@ class TTSRequest(BaseModel):
 @chat_router.post("/chat", response_model=ChatResponse)
 async def chat(
     request: ChatRequest,
+    response: Response,
     user: Optional[User] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
@@ -358,6 +396,10 @@ async def chat(
             "Please ask about Passport, Aadhaar, PAN, EPFO, DigiLocker, voter ID, "
             "driving license, or related official service steps."
         )
+        response.headers["X-Route-Mode"] = "security_guard"
+        response.headers["X-Latency-Total-MS"] = str(
+            int((time.perf_counter() - started) * 1000)
+        )
         return ChatResponse(
             response=guarded,
             language=lang,
@@ -369,9 +411,36 @@ async def chat(
     if response_mode != "sarvam":
         cached = chat_cache.get(cache_key, lang)
         if cached:
+            response.headers["X-Cache-Hit"] = "1"
+            response.headers["X-Route-Mode"] = "cache"
+            response.headers["X-Latency-Total-MS"] = str(
+                int((time.perf_counter() - started) * 1000)
+            )
             return ChatResponse(**cached)
+    response.headers["X-Cache-Hit"] = "0"
 
-    context_parts, sources = _search_context_fast(db, query, limit=5)
+    if response_mode == "auto" and not request.history:
+        instant = _instant_service_template(query, lang)
+        if instant:
+            payload = ChatResponse(
+                response=instant,
+                language=lang,
+                sources=[],
+                session_id=request.session_id,
+            )
+            chat_cache.set(cache_key, lang, payload.model_dump())
+            response.headers["X-Route-Mode"] = "instant_template"
+            response.headers["X-Latency-Search-MS"] = "0"
+            response.headers["X-Latency-LLM-MS"] = "0"
+            response.headers["X-Latency-Total-MS"] = str(
+                int((time.perf_counter() - started) * 1000)
+            )
+            return payload
+
+    search_started = time.perf_counter()
+    context_parts, sources = _search_context_fast(db, query, limit=3)
+    search_elapsed_ms = int((time.perf_counter() - search_started) * 1000)
+    response.headers["X-Latency-Search-MS"] = str(search_elapsed_ms)
     context_text = "\n\n".join(context_parts) if context_parts else ""
 
     fallback_response = _build_rag_fallback(query, lang, context_parts, user)
@@ -382,7 +451,11 @@ async def chat(
         response_mode == "auto" and not prefer_rag_fast_path
     )
 
+    llm_elapsed_ms = 0
+    route_mode_used = "rag_fast"
     if use_sarvam:
+        route_mode_used = "sarvam"
+        llm_started = time.perf_counter()
         system_prompt = SYSTEM_PROMPTS.get(lang, DEFAULT_SYSTEM_PROMPT)
         system_prompt += (
             "\n\nWhen using retrieved context, synthesize and summarize it in clean citizen-friendly steps. "
@@ -417,10 +490,14 @@ async def chat(
         except Exception as exc:
             logger.warning("Sarvam chat failed, using fallback: %s", exc)
             response_text = fallback_response
+            route_mode_used = "sarvam_fallback"
+
+        llm_elapsed_ms = int((time.perf_counter() - llm_started) * 1000)
 
         response_text = _clean_model_text(response_text)
         if not response_text or "not configured" in response_text.lower():
             response_text = fallback_response
+            route_mode_used = "rag_fallback"
 
     if user or request.session_id:
         user_msg = ChatSession(
@@ -453,6 +530,9 @@ async def chat(
         chat_cache.set(cache_key, lang, payload.model_dump())
 
     elapsed_ms = (time.perf_counter() - started) * 1000
+    response.headers["X-Route-Mode"] = route_mode_used
+    response.headers["X-Latency-LLM-MS"] = str(llm_elapsed_ms)
+    response.headers["X-Latency-Total-MS"] = str(int(elapsed_ms))
     if elapsed_ms > 1000:
         logger.info(
             "Chat latency %.0fms mode=%s query=%.80s",
@@ -588,6 +668,7 @@ async def get_chat_history(
 async def voice_chat(
     audio: UploadFile = File(...),
     language: str = "hi",
+    fast_mode: bool = True,
     db: Session = Depends(get_db),
 ):
     """Full Speech-to-Speech: STT → RAG/LLM → TTT → TTS."""
@@ -626,15 +707,21 @@ async def voice_chat(
         c.get("content", "")[:300] for c in results.get("results", [])[:3]
     )
     target_lang = language if language and language != "auto" else "hi"
-    system = (
-        "You are SevaSindhu AI for Indian government services. "
-        f"Answer only in {target_lang} language in concise, citizen-friendly steps.\n"
-        f"Context:\n{context}"
-    )
-    messages = [{"role": "user", "content": transcript}]
-    response_text = await sarvam.chat(
-        messages=messages, system_prompt=system, max_tokens=200
-    )
+    if fast_mode and context:
+        context_parts = [c.get("content", "") for c in results.get("results", [])[:3]]
+        response_text = _build_rag_fallback(
+            transcript, target_lang, context_parts, None
+        )
+    else:
+        system = (
+            "You are SevaSindhu AI for Indian government services. "
+            f"Answer only in {target_lang} language in concise, citizen-friendly steps.\n"
+            f"Context:\n{context}"
+        )
+        messages = [{"role": "user", "content": transcript}]
+        response_text = await sarvam.chat(
+            messages=messages, system_prompt=system, max_tokens=120
+        )
     # TTS
     tts = await sarvam.text_to_speech(response_text, language=target_lang)
     return {

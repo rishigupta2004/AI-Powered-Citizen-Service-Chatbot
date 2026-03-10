@@ -28,10 +28,16 @@ if (!PUBLISHABLE_KEY) {
 
 root.render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY ?? ''}>
+    {PUBLISHABLE_KEY ? (
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ClerkProvider>
+    ) : (
       <AuthProvider>
         <App />
       </AuthProvider>
-    </ClerkProvider>
+    )}
   </React.StrictMode>
 )
