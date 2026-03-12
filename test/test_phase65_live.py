@@ -22,7 +22,7 @@ from typing import Any
 
 import requests
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000").rstrip("/")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://gov-chatbot.fly.dev").rstrip("/")
 IS_LOCAL = API_BASE_URL.startswith("http://localhost") or API_BASE_URL.startswith(
     "http://127.0.0.1"
 )
@@ -383,8 +383,10 @@ def main() -> int:
         "results": results,
     }
 
-    os.makedirs("test/scripts", exist_ok=True)
-    with open("test/scripts/test_results_phase65.json", "w", encoding="utf-8") as f:
+    output_dir = os.path.join(os.path.dirname(__file__), "scripts")
+    os.makedirs(output_dir, exist_ok=True)
+    report_path = os.path.join(output_dir, "test_results_phase65.json")
+    with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     print("Report saved -> test/scripts/test_results_phase65.json")
 

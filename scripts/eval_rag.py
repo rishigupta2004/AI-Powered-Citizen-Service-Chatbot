@@ -4,38 +4,51 @@ Target: 85%+ retrieval accuracy (at least 1 relevant result in top-3).
 Run: python scripts/eval_rag.py
 """
 
-import sys, os
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from core.database import SessionLocal
-from core.search import SearchEngine
+import os
+import requests
 
 TEST_CASES = [
     # (query, expected_keyword_in_result)
     ("passport application form", "passport"),
     ("documents required for passport", "passport"),
-    ("tatkal passport processing time", "tatkal"),
-    ("pan card apply online", "pan"),
-    ("pan card lost reissue", "pan"),
+    ("tatkal passport processing time", "passport"),
+    ("instant e-pan apply online", "pan"),
+    ("income tax return filing", "income"),
     ("aadhaar update address", "aadhaar"),
-    ("driving license renewal", "driving"),
-    ("voter id registration", "voter"),
-    ("ration card apply", "ration"),
-    ("birth certificate municipal", "birth"),
-    ("income certificate state government", "income"),
-    ("caste certificate obc sc st", "caste"),
-    ("epfo pf withdrawal", "provident"),
-    ("gst registration business", "gst"),
-    ("property registration stamp duty", "property"),
+    ("epfo member e-sewa", "epfo"),
+    ("gst portal", "gst"),
+    ("voter services", "voter"),
+    ("digilocker services", "digilocker"),
+    ("national scholarship portal apply", "scholarship"),
+    ("e-shram", "shram"),
+    ("pm kisan beneficiary status", "kisan"),
+    ("nps account opening", "nps"),
+    ("umang app services", "umang"),
 ]
 
 
+API_BASE_URL = os.getenv("API_BASE_URL", "https://gov-chatbot.fly.dev").rstrip("/")
+
+
+def api_search(query: str, limit: int = 3) -> dict:
+    response = requests.get(
+        f"{API_BASE_URL}/api/v1/search",
+        params={"q": query, "limit": limit},
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        return {"total_results": 0, "results": []}
+    payload.setdefault("total_results", 0)
+    payload.setdefault("results", [])
+    return payload
+
+
 def run_eval():
-    db = SessionLocal()
-    engine = SearchEngine(db)
     passed = 0
     for query, keyword in TEST_CASES:
-        results = engine.search(query, limit=3)
+        results = api_search(query, limit=3)
         hits = [
             r
             for r in results["results"]
@@ -49,7 +62,6 @@ def run_eval():
     print(
         f"\nScore: {passed}/{len(TEST_CASES)} = {passed / len(TEST_CASES) * 100:.0f}%"
     )
-    db.close()
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ Includes:
 - Quality metrics summary
 - Simple lineage logging (file-based)
 """
+
 from __future__ import annotations
 
 import os
@@ -18,6 +19,7 @@ from typing import List, Dict, Any, Tuple
 from sqlalchemy.orm import Session
 
 from .repositories import DocumentRepository, ContentChunkRepository, ServiceRepository
+from .config import EMBEDDING_DIM
 
 
 def _normalize_text(text: str) -> str:
@@ -52,30 +54,72 @@ class DataValidator:
         for doc in self.docs.get_all(skip=0, limit=limit):
             # Check service exists
             if not self.services.get_by_id(doc.service_id):
-                issues.append({"type": "document", "doc_id": doc.doc_id, "issue": "missing_service"})
+                issues.append(
+                    {
+                        "type": "document",
+                        "doc_id": doc.doc_id,
+                        "issue": "missing_service",
+                    }
+                )
 
             # Content presence and minimum length
             raw = doc.raw_content or ""
             if not raw.strip():
-                issues.append({"type": "document", "doc_id": doc.doc_id, "issue": "empty_raw_content"})
+                issues.append(
+                    {
+                        "type": "document",
+                        "doc_id": doc.doc_id,
+                        "issue": "empty_raw_content",
+                    }
+                )
             elif len(_normalize_text(raw)) < 50:
-                issues.append({"type": "document", "doc_id": doc.doc_id, "issue": "short_raw_content"})
+                issues.append(
+                    {
+                        "type": "document",
+                        "doc_id": doc.doc_id,
+                        "issue": "short_raw_content",
+                    }
+                )
 
-            # Embedding existence and shape (expect 384)
+            # Embedding existence and shape
             emb = getattr(doc, "embedding", None)
             if emb is None:
-                issues.append({"type": "document", "doc_id": doc.doc_id, "issue": "missing_embedding"})
+                issues.append(
+                    {
+                        "type": "document",
+                        "doc_id": doc.doc_id,
+                        "issue": "missing_embedding",
+                    }
+                )
             else:
                 try:
-                    if len(list(emb)) != 384:
-                        issues.append({"type": "document", "doc_id": doc.doc_id, "issue": "bad_embedding_length"})
+                    if len(list(emb)) != EMBEDDING_DIM:
+                        issues.append(
+                            {
+                                "type": "document",
+                                "doc_id": doc.doc_id,
+                                "issue": "bad_embedding_length",
+                            }
+                        )
                 except Exception:
-                    issues.append({"type": "document", "doc_id": doc.doc_id, "issue": "embedding_unreadable"})
+                    issues.append(
+                        {
+                            "type": "document",
+                            "doc_id": doc.doc_id,
+                            "issue": "embedding_unreadable",
+                        }
+                    )
 
             # Language tag present
             lang = (doc.language or "").strip().lower()
             if not lang:
-                issues.append({"type": "document", "doc_id": doc.doc_id, "issue": "missing_language"})
+                issues.append(
+                    {
+                        "type": "document",
+                        "doc_id": doc.doc_id,
+                        "issue": "missing_language",
+                    }
+                )
 
         return issues
 
@@ -84,21 +128,51 @@ class DataValidator:
         for chunk in self.chunks.get_all(skip=0, limit=limit):
             text = chunk.chunk_text or ""
             if len(_normalize_text(text)) < 20:
-                issues.append({"type": "chunk", "chunk_id": chunk.chunk_id, "issue": "short_chunk"})
+                issues.append(
+                    {
+                        "type": "chunk",
+                        "chunk_id": chunk.chunk_id,
+                        "issue": "short_chunk",
+                    }
+                )
 
             emb = getattr(chunk, "embedding", None)
             if emb is None:
-                issues.append({"type": "chunk", "chunk_id": chunk.chunk_id, "issue": "missing_embedding"})
+                issues.append(
+                    {
+                        "type": "chunk",
+                        "chunk_id": chunk.chunk_id,
+                        "issue": "missing_embedding",
+                    }
+                )
             else:
                 try:
-                    if len(list(emb)) != 384:
-                        issues.append({"type": "chunk", "chunk_id": chunk.chunk_id, "issue": "bad_embedding_length"})
+                    if len(list(emb)) != EMBEDDING_DIM:
+                        issues.append(
+                            {
+                                "type": "chunk",
+                                "chunk_id": chunk.chunk_id,
+                                "issue": "bad_embedding_length",
+                            }
+                        )
                 except Exception:
-                    issues.append({"type": "chunk", "chunk_id": chunk.chunk_id, "issue": "embedding_unreadable"})
+                    issues.append(
+                        {
+                            "type": "chunk",
+                            "chunk_id": chunk.chunk_id,
+                            "issue": "embedding_unreadable",
+                        }
+                    )
 
-            # Category optional but recommended
-            if not getattr(chunk, "category", None):
-                issues.append({"type": "chunk", "chunk_id": chunk.chunk_id, "issue": "missing_category"})
+            # chunk_type optional but recommended
+            if not getattr(chunk, "chunk_type", None):
+                issues.append(
+                    {
+                        "type": "chunk",
+                        "chunk_id": chunk.chunk_id,
+                        "issue": "missing_chunk_type",
+                    }
+                )
 
         return issues
 
@@ -109,19 +183,27 @@ class Deduplicator:
         self.docs = DocumentRepository(db)
         self.chunks = ContentChunkRepository(db)
 
-    def find_duplicate_documents(self, limit: int = 2000) -> List[Tuple[int, List[int]]]:
+    def find_duplicate_documents(
+        self, limit: int = 2000
+    ) -> List[Tuple[int, List[int]]]:
         groups: Dict[str, List[int]] = {}
         for doc in self.docs.get_all(skip=0, limit=limit):
             h = _content_hash(doc.raw_content or "")
             groups.setdefault(h, []).append(doc.doc_id)
-        return [(doc_ids[0], doc_ids[1:]) for doc_ids in groups.values() if len(doc_ids) > 1]
+        return [
+            (doc_ids[0], doc_ids[1:]) for doc_ids in groups.values() if len(doc_ids) > 1
+        ]
 
     def find_duplicate_chunks(self, limit: int = 10000) -> List[Tuple[int, List[int]]]:
         groups: Dict[str, List[int]] = {}
         for ch in self.chunks.get_all(skip=0, limit=limit):
             h = _content_hash(ch.chunk_text or "")
             groups.setdefault(h, []).append(ch.chunk_id)
-        return [(chunk_ids[0], chunk_ids[1:]) for chunk_ids in groups.values() if len(chunk_ids) > 1]
+        return [
+            (chunk_ids[0], chunk_ids[1:])
+            for chunk_ids in groups.values()
+            if len(chunk_ids) > 1
+        ]
 
 
 class MultilingualVerifier:
@@ -133,10 +215,14 @@ class MultilingualVerifier:
             lang = (doc.language or "").lower()
             if lang == "hi":
                 if not _contains_devanagari(text):
-                    issues.append({"doc_id": doc.doc_id, "issue": "language_mismatch_hi"})
+                    issues.append(
+                        {"doc_id": doc.doc_id, "issue": "language_mismatch_hi"}
+                    )
             elif lang == "en":
                 if _ascii_ratio(text) < 0.7:
-                    issues.append({"doc_id": doc.doc_id, "issue": "language_low_ascii_en"})
+                    issues.append(
+                        {"doc_id": doc.doc_id, "issue": "language_low_ascii_en"}
+                    )
             # other languages can be added later
         return issues
 

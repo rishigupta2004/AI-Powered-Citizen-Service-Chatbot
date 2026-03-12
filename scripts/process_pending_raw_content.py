@@ -17,6 +17,7 @@ import csv
 from core.database import SessionLocal
 from core.models import RawContent, Document, ContentChunk, Service
 from core.nlp import NLPToolkit
+from core.embeddings import get_embedding_engine
 from data.processing.document_parser import DocumentParser
 
 
@@ -73,7 +74,7 @@ def resolve_service_id(db: Session, category: str | None, title: str | None) -> 
                 if svc:
                     break
     if svc:
-        return svc.service_id
+        return int(svc.service_id)
     # Fallback: create General service once
     general = db.query(Service).filter(Service.name == "General").first()
     if not general:
@@ -87,7 +88,7 @@ def resolve_service_id(db: Session, category: str | None, title: str | None) -> 
         db.add(general)
         db.commit()
         db.refresh(general)
-    return general.service_id
+    return int(general.service_id)
 
 
 def process_pending(
@@ -97,6 +98,7 @@ def process_pending(
 ) -> dict:
     nlp = NLPToolkit()
     parser = DocumentParser()
+    emb_engine = get_embedding_engine()
     q = db.query(RawContent).filter(RawContent.is_processed == False)
     pending = q.all()
     summary = {"pending": len(pending), "processed": 0, "errors": 0}
@@ -110,9 +112,11 @@ def process_pending(
     for rc in pending:
         try:
             # Normalize text; if HTML/JSON etc., use parser.normalize
-            normalized = rc.content
-            if rc.content_type in ("html", "json") or (not normalized):
-                normalized = parser.normalize(rc.content or "")
+            raw_content = str(getattr(rc, "content", "") or "")
+            content_type = str(getattr(rc, "content_type", "") or "")
+            normalized = raw_content
+            if content_type in ("html", "json") or (not normalized):
+                normalized = parser.normalize(raw_content)
 
             # Derive simple tags
             lang = nlp.language_detection(normalized or "")
@@ -120,18 +124,33 @@ def process_pending(
             category = ents[0] if ents else None
 
             # Resolve service id
-            svc_id = resolve_service_id(db, category, rc.title or rc.source_name)
+            svc_id = resolve_service_id(
+                db,
+                category,
+                str(getattr(rc, "title", "") or getattr(rc, "source_name", "") or ""),
+            )
 
             # Create document record
             doc = Document(
                 service_id=svc_id,
-                name=rc.title or rc.source_name or (rc.source_url or "raw-content"),
-                description=rc.source_url or rc.source_name,
-                document_type=rc.content_type,
+                name=str(
+                    getattr(rc, "title", "")
+                    or getattr(rc, "source_name", "")
+                    or (getattr(rc, "source_url", "") or "raw-content")
+                ),
+                description=str(
+                    getattr(rc, "source_url", "")
+                    or getattr(rc, "source_name", "")
+                    or ""
+                ),
+                document_type=content_type,
                 is_mandatory=False,
                 language=lang,
                 is_processed=True,
                 raw_content=normalized,
+                embedding=emb_engine.embed_text(
+                    (normalized or "")[:1200], is_query=False
+                ),
             )
             db.add(doc)
             db.flush()
@@ -140,21 +159,22 @@ def process_pending(
             for ch in chunk_text(normalized):
                 db.add(
                     ContentChunk(
-                        service_id=None,
+                        service_id=svc_id,
                         chunk_text=ch,
-                        category=category,
+                        chunk_type=category or "general",
+                        embedding=emb_engine.embed_text(ch[:900], is_query=False),
                     )
                 )
 
             # Mark RC as processed
-            rc.is_processed = True
-            rc.processing_status = "completed"
+            setattr(rc, "is_processed", True)
+            setattr(rc, "processing_status", "completed")
             db.commit()
             summary["processed"] += 1
         except Exception as e:
             db.rollback()
-            rc.processing_status = "error"
-            rc.processing_errors = str(e)
+            setattr(rc, "processing_status", "error")
+            setattr(rc, "processing_errors", str(e))
             db.commit()
             summary["errors"] += 1
             failures_w.writerow(

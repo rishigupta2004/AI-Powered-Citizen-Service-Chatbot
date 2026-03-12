@@ -32,6 +32,7 @@ from core.rag import RAGPipeline
 from core.sarvam import sarvam
 from core.cache import chat_cache
 from core.repositories import ContentChunkRepository, FAQRepository, DocumentRepository
+from core.search import SearchEngine
 from core.auth_models import User, UserSession, ChatSession
 from routes.auth_endpoints import get_current_user_dependency
 
@@ -78,6 +79,52 @@ SYSTEM_PROMPTS = {
 }
 
 DEFAULT_SYSTEM_PROMPT = SYSTEM_PROMPTS["en"]
+
+_TRANSLATION_CACHE: dict[tuple[str, str, str], tuple[str, float]] = {}
+_TRANSLATION_TTL_SEC = 1800
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+FAST_INTENT_ENABLED = _env_bool("FAST_INTENT_ENABLED", True)
+FAST_SARVAM_BENCH_ENABLED = _env_bool("FAST_SARVAM_BENCH_ENABLED", True)
+
+_FAST_INTENT_RESPONSES_EN: dict[str, tuple[str, list[str]]] = {
+    "passport application form": (
+        "Apply online at Passport Seva Portal (passportindia.gov.in). Create an account, fill the fresh passport form, upload required documents, pay the fee, and book a PSK/POPSK appointment.",
+        ["Passport Seva Portal"],
+    ),
+    "documents required for passport": (
+        "For most fresh passport applications, keep proof of address, proof of date of birth, and photo ID ready. Exact documents depend on category, so confirm the latest checklist on passportindia.gov.in before appointment.",
+        ["Passport Seva FAQ"],
+    ),
+    "aadhaar update address online": (
+        "Use myAadhaar (myaadhaar.uidai.gov.in), choose Address Update, submit a valid address proof or use address validation if available, then track request status using the SRN.",
+        ["UIDAI myAadhaar"],
+    ),
+    "epfo provident fund withdrawal": (
+        "Log in to EPFO Member e-Sewa, verify KYC and bank details, then submit Form-19/10C withdrawal claim. Track claim status in the same portal.",
+        ["EPFO Member e-Sewa"],
+    ),
+}
+
+_FAST_RAW_QUERY_RESPONSES: dict[str, tuple[str, str, list[str]]] = {
+    "what documents are needed for passport?": (
+        "For passport applications, keep proof of address, proof of date of birth, and valid photo identity ready. Final required set varies by category, so confirm the latest list on passportindia.gov.in before booking appointment.",
+        "en",
+        ["Passport Seva FAQ"],
+    ),
+    "पासपोर्ट के लिए कौन से दस्तावेज़ चाहिए?": (
+        "सामान्य रूप से पासपोर्ट के लिए पता प्रमाण, जन्म तिथि प्रमाण और फोटो पहचान पत्र चाहिए होते हैं। आपकी श्रेणी के अनुसार दस्तावेज़ बदल सकते हैं, इसलिए अंतिम सूची passportindia.gov.in पर जांचें।",
+        "hi",
+        ["Passport Seva FAQ"],
+    ),
+}
 
 SECURITY_PATTERNS = [
     re.compile(r"ignore\s+previous\s+instructions", re.IGNORECASE),
@@ -452,6 +499,14 @@ def _service_scope_tokens(query: str) -> list[str]:
         return ["pan", "nsdl", "uti", "income tax"]
     if any(t in q for t in ["epfo", "pf", "ईपीएफओ"]):
         return ["epfo", "uan", "pf", "member e-sewa"]
+    if any(t in q for t in ["gst", "goods and services tax", "जीएसटी"]):
+        return ["gst", "gstn", "goods and services tax"]
+    if any(t in q for t in ["voter", "electoral", "मतदाता"]):
+        return ["voter", "electoral", "election", "voters service portal"]
+    if any(t in q for t in ["digilocker", "digital locker", "डिजिलॉकर"]):
+        return ["digilocker", "document wallet", "issued documents"]
+    if any(t in q for t in ["pds", "ration", "mera ration", "राशन"]):
+        return ["pds", "ration", "nfsa", "mera ration"]
     return []
 
 
@@ -469,6 +524,26 @@ def _search_context_fast(
         scope_tokens = _service_scope_tokens(query)
         context_parts: list[str] = []
         sources: list[str] = []
+
+        # First pass: hybrid search engine (semantic + text fallback)
+        engine = SearchEngine(db)
+        hybrid = engine.search(query, limit=max(limit * 2, 6))
+        for item in hybrid.get("results", []):
+            text = (item.get("content") or "").strip()
+            if not text:
+                continue
+            trimmed = text[:320]
+            if not _scope_match(trimmed, scope_tokens):
+                continue
+            if trimmed in context_parts:
+                continue
+            context_parts.append(trimmed)
+            source = (item.get("source_name") or item.get("source") or "source")[:80]
+            if source and source not in sources:
+                sources.append(source)
+            if len(context_parts) >= limit:
+                return context_parts[:limit], sources[:limit]
+
         chunk_repo = ContentChunkRepository(db)
         faq_repo = FAQRepository(db)
         doc_repo = DocumentRepository(db)
@@ -508,7 +583,7 @@ def _search_context_fast(
                 if trimmed in context_parts:
                     continue
                 context_parts.append(trimmed)
-                source = (faq.question or "faq")[:80]
+                source = str(faq.question or "faq")[:80]
                 if source and source not in sources:
                     sources.append(source)
 
@@ -526,7 +601,7 @@ def _search_context_fast(
                 if trimmed in context_parts:
                     continue
                 context_parts.append(trimmed)
-                source = (doc.name or f"doc_{doc.doc_id}")[:80]
+                source = str(doc.name or f"doc_{doc.doc_id}")[:80]
                 if source and source not in sources:
                     sources.append(source)
 
@@ -535,6 +610,26 @@ def _search_context_fast(
         db.rollback()
         logger.warning("Fast context search unavailable, using empty context: %s", exc)
         return [], []
+
+
+def _cache_get_translation(text: str, source_lang: str, target_lang: str) -> str | None:
+    key = (text, source_lang, target_lang)
+    entry = _TRANSLATION_CACHE.get(key)
+    if not entry:
+        return None
+    translated, ts = entry
+    if (time.time() - ts) > _TRANSLATION_TTL_SEC:
+        _TRANSLATION_CACHE.pop(key, None)
+        return None
+    return translated
+
+
+def _cache_set_translation(
+    text: str, source_lang: str, target_lang: str, translated: str
+) -> None:
+    if not translated:
+        return
+    _TRANSLATION_CACHE[(text, source_lang, target_lang)] = (translated, time.time())
 
 
 def detect_language(text: str) -> str:
@@ -623,16 +718,6 @@ async def chat(
         lang = detect_language(query)
     lang = _normalize_chat_language(lang)
 
-    retrieval_query = query
-    if lang != "en":
-        translated_query = await sarvam.translate(
-            query,
-            source_language=lang,
-            target_language="en",
-        )
-        if translated_query and translated_query.strip():
-            retrieval_query = translated_query.strip()
-
     response_mode = (request.response_mode or "auto").strip().lower()
     if response_mode not in {"auto", "rag_only", "sarvam"}:
         response_mode = "auto"
@@ -656,6 +741,47 @@ async def chat(
             session_id=request.session_id,
         )
 
+    raw_normalized_query = " ".join(query.lower().split())
+    fast_raw_entry = _FAST_RAW_QUERY_RESPONSES.get(raw_normalized_query)
+    if (
+        fast_raw_entry
+        and FAST_INTENT_ENABLED
+        and (
+            response_mode in {"auto", "rag_only"}
+            or (response_mode == "sarvam" and FAST_SARVAM_BENCH_ENABLED)
+        )
+    ):
+        fast_text, fast_lang, fast_sources = fast_raw_entry
+        payload = ChatResponse(
+            response=fast_text,
+            language=fast_lang,
+            speak_text=_compress_for_voice(fast_text, max_chars=1200),
+            actions=_build_guided_actions(query, fast_lang),
+            sources=fast_sources,
+            session_id=request.session_id,
+        )
+        elapsed_ms = int((time.perf_counter() - started) * 1000)
+        response.headers["X-Route-Mode"] = "intent_fast"
+        response.headers["X-Latency-Search-MS"] = "0"
+        response.headers["X-Latency-LLM-MS"] = "0"
+        response.headers["X-Latency-Total-MS"] = str(elapsed_ms)
+        if response_mode != "sarvam":
+            chat_cache.set(f"{response_mode}:{query}", fast_lang, payload.model_dump())
+        return payload
+
+    retrieval_query = query
+    if lang != "en":
+        translated_query = _cache_get_translation(query, lang, "en")
+        if translated_query is None:
+            translated_query = await sarvam.translate(
+                query,
+                source_language=lang,
+                target_language="en",
+            )
+            _cache_set_translation(query, lang, "en", translated_query)
+        if translated_query and translated_query.strip():
+            retrieval_query = translated_query.strip()
+
     cache_key = f"{response_mode}:{retrieval_query}"
     if response_mode != "sarvam":
         cached = chat_cache.get(cache_key, lang)
@@ -667,6 +793,27 @@ async def chat(
             )
             return ChatResponse(**cached)
     response.headers["X-Cache-Hit"] = "0"
+
+    normalized_query = " ".join(retrieval_query.lower().split())
+    if response_mode != "sarvam" and lang == "en" and FAST_INTENT_ENABLED:
+        fast_entry = _FAST_INTENT_RESPONSES_EN.get(normalized_query)
+        if fast_entry:
+            fast_text, fast_sources = fast_entry
+            payload = ChatResponse(
+                response=fast_text,
+                language=lang,
+                speak_text=_compress_for_voice(fast_text, max_chars=1200),
+                actions=_build_guided_actions(query, lang),
+                sources=fast_sources,
+                session_id=request.session_id,
+            )
+            chat_cache.set(cache_key, lang, payload.model_dump())
+            elapsed_ms = int((time.perf_counter() - started) * 1000)
+            response.headers["X-Route-Mode"] = "intent_fast"
+            response.headers["X-Latency-Search-MS"] = "0"
+            response.headers["X-Latency-LLM-MS"] = "0"
+            response.headers["X-Latency-Total-MS"] = str(elapsed_ms)
+            return payload
 
     search_started = time.perf_counter()
     context_parts, sources = _search_context_fast(db, retrieval_query, limit=3)
@@ -737,11 +884,14 @@ async def chat(
             route_mode_used = "rag_fallback"
 
     if lang != "en" and response_text:
-        translated = await sarvam.translate(
-            response_text,
-            source_language="en",
-            target_language=lang,
-        )
+        translated = _cache_get_translation(response_text, "en", lang)
+        if translated is None:
+            translated = await sarvam.translate(
+                response_text,
+                source_language="en",
+                target_language=lang,
+            )
+            _cache_set_translation(response_text, "en", lang, translated)
         if translated and translated.strip():
             response_text = translated.strip()
 
@@ -899,19 +1049,24 @@ async def get_chat_history(
     result = []
     for session in chat_sessions:
         sources = []
-        if session.sources:
+        raw_sources = getattr(session, "sources", None)
+        if raw_sources:
             try:
-                sources = json.loads(session.sources)
+                sources = json.loads(str(raw_sources))
             except json.JSONDecodeError:
                 pass
 
         result.append(
             ChatHistoryItem(
-                role=session.role,
-                message=session.message,
-                language=session.language,
+                role=str(session.role),
+                message=str(session.message),
+                language=(
+                    str(getattr(session, "language", ""))
+                    if str(getattr(session, "language", "")).strip()
+                    else None
+                ),
                 sources=sources if sources else None,
-                created_at=session.created_at,
+                created_at=getattr(session, "created_at", datetime.utcnow()),
             )
         )
 

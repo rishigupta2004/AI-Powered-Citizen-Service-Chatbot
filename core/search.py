@@ -32,6 +32,11 @@ class SearchEngine:
             "yes",
         )
         self.embedding_model = None
+        self.rerank_enabled = os.getenv("RERANK_ENABLED", "false").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
         self.service_repo = ServiceRepository(db)
         self.document_repo = DocumentRepository(db)
         self.faq_repo = FAQRepository(db)
@@ -52,24 +57,8 @@ class SearchEngine:
 
             # Expand query for multilingual recall
             expanded_queries = self._expand_query(query)
+            lookup_queries = list(dict.fromkeys([query] + expanded_queries))
             results = []
-            if len(expanded_queries) > 1:
-                extra_chunks = self.chunk_repo.search_text(
-                    expanded_queries[1], limit // 2
-                )
-                existing_ids = {r.get("service_id") for r in results}
-                for chunk in extra_chunks:
-                    if chunk.service_id not in existing_ids:
-                        results.append(
-                            {
-                                "type": "content_chunk",
-                                "content": chunk.chunk_text,
-                                "similarity": 0.4,
-                                "service_id": chunk.service_id,
-                                "source": "content_chunk",
-                                "source_name": f"chunk_{chunk.chunk_id}",
-                            }
-                        )
 
             # ── Documents ────────────────────────────────────────────────
             docs = []
@@ -80,19 +69,25 @@ class SearchEngine:
                     docs = []
             if not docs:
                 # Text fallback
-                docs = self.document_repo.search_text(query, limit)
+                for lookup_q in lookup_queries[:2]:
+                    docs.extend(self.document_repo.search_text(lookup_q, limit))
 
             for doc in docs:
                 if not service_id or doc.service_id == service_id:
+                    base_similarity = (
+                        self._calculate_similarity(query_embedding, doc.embedding)
+                        if query_embedding
+                        else 0.45
+                    )
+                    keyword_boost = self._keyword_overlap_score(
+                        query,
+                        f"{doc.name or ''} {doc.description or ''} {doc.raw_content or ''}",
+                    )
                     results.append(
                         {
                             "type": "document",
                             "content": doc.raw_content or doc.name,
-                            "similarity": self._calculate_similarity(
-                                query_embedding, doc.embedding
-                            )
-                            if query_embedding
-                            else 0.5,
+                            "similarity": min(1.0, base_similarity + keyword_boost),
                             "service_id": doc.service_id,
                             "source": "document",
                             "source_name": doc.name,
@@ -107,19 +102,26 @@ class SearchEngine:
                 except Exception:
                     faqs = []
             if not faqs:
-                faqs = self.faq_repo.search_text(query, limit)
+                for lookup_q in lookup_queries[:2]:
+                    faqs.extend(self.faq_repo.search_text(lookup_q, limit))
 
             for faq in faqs:
                 if not service_id or faq.service_id == service_id:
+                    base_similarity = (
+                        self._calculate_similarity(
+                            query_embedding, faq.question_embedding
+                        )
+                        if query_embedding
+                        else 0.5
+                    )
+                    keyword_boost = self._keyword_overlap_score(
+                        query, f"{faq.question or ''} {faq.answer or ''}"
+                    )
                     results.append(
                         {
                             "type": "faq",
                             "content": f"Q: {faq.question}\nA: {faq.answer}",
-                            "similarity": self._calculate_similarity(
-                                query_embedding, faq.question_embedding
-                            )
-                            if query_embedding
-                            else 0.5,
+                            "similarity": min(1.0, base_similarity + keyword_boost),
                             "service_id": faq.service_id,
                             "source": "faq",
                             "source_name": faq.question[:80] if faq.question else "",
@@ -135,30 +137,46 @@ class SearchEngine:
                     chunks = []
             if not chunks:
                 # Text fallback — always returns results if data exists
-                chunks = self.chunk_repo.search_text(query, limit)
+                for lookup_q in lookup_queries[:2]:
+                    chunks.extend(self.chunk_repo.search_text(lookup_q, limit))
 
             for chunk in chunks:
                 if not service_id or chunk.service_id == service_id:
+                    base_similarity = (
+                        self._calculate_similarity(query_embedding, chunk.embedding)
+                        if query_embedding
+                        else 0.45
+                    )
+                    keyword_boost = self._keyword_overlap_score(
+                        query, chunk.chunk_text or ""
+                    )
                     results.append(
                         {
                             "type": "content_chunk",
                             "content": chunk.chunk_text,
-                            "similarity": self._calculate_similarity(
-                                query_embedding, chunk.embedding
-                            )
-                            if query_embedding
-                            else 0.5,
+                            "similarity": min(1.0, base_similarity + keyword_boost),
                             "service_id": chunk.service_id,
                             "source": "content_chunk",
                             "source_name": f"chunk_{chunk.chunk_id}",
                         }
                     )
 
+            # De-duplicate near-identical content snippets.
+            deduped: list[dict[str, Any]] = []
+            seen_fingerprints: set[str] = set()
+            for item in results:
+                fp = self._fingerprint(item.get("content", ""))
+                if fp in seen_fingerprints:
+                    continue
+                seen_fingerprints.add(fp)
+                deduped.append(item)
+            results = deduped
+
             # Sort by similarity score descending
             results.sort(key=lambda x: x.get("similarity", 0), reverse=True)
 
             # Async reranking — only if we have semantic results
-            if query_embedding and results:
+            if self.rerank_enabled and query_embedding and results:
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
@@ -251,6 +269,19 @@ class SearchEngine:
         except Exception:
             pass
         return queries
+
+    def _fingerprint(self, text: str) -> str:
+        return " ".join((text or "").lower().split())[:240]
+
+    def _keyword_overlap_score(self, query: str, text: str) -> float:
+        q_tokens = {tok for tok in query.lower().split() if len(tok) >= 3}
+        if not q_tokens:
+            return 0.0
+        lowered = (text or "").lower()
+        overlap = sum(1 for tok in q_tokens if tok in lowered)
+        if overlap <= 0:
+            return 0.0
+        return min(0.25, overlap * 0.05)
 
     async def _rerank_via_hf(self, query: str, results: list, top_k: int = 5) -> list:
         """Rerank results using HF cross-encoder. Falls back to original order if API fails."""
