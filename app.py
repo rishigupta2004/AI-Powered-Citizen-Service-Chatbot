@@ -10,6 +10,7 @@ import time
 import asyncio
 import logging
 import re
+import os
 from pathlib import Path
 from urllib.parse import quote
 
@@ -223,6 +224,10 @@ def _run_embedding_warmup() -> None:
 @app.on_event("startup")
 async def warmup_embeddings() -> None:
     """Warm embedding path to reduce first-request latency."""
+    # Skip warmup if no HF token - avoids hanging on unauthenticated API calls
+    if not os.getenv("HF_TOKEN"):
+        logger.info("Skipping embedding warm-up (no HF_TOKEN)")
+        return
     try:
         await asyncio.wait_for(asyncio.to_thread(_run_embedding_warmup), timeout=4.0)
         logger.info("Embedding warm-up completed")
@@ -236,6 +241,12 @@ async def warmup_embeddings() -> None:
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": time.time()}
+
+
+# Simple ping that returns immediately without any dependencies
+@app.get("/ping")
+async def ping():
+    return "pong"
 
 
 @app.get("/metrics")

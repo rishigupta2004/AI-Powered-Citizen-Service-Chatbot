@@ -123,16 +123,10 @@ class EmbeddingEngine:
             return []
 
         try:
-            try:
-                loop = asyncio.get_running_loop()
-                # Inside FastAPI event loop — offload to thread pool
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    future = pool.submit(asyncio.run, _embed_via_hf_api(text, is_query))
-                    return future.result(timeout=35)
-            except RuntimeError:
-                # No running loop — call directly
-                return asyncio.run(_embed_via_hf_api(text, is_query))
-
+            # Run in thread pool to avoid blocking the event loop
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(asyncio.run, _embed_via_hf_api(text, is_query))
+                return future.result(timeout=30)
         except Exception as e:
             print(f"⚠️  embed_text error: {e}")
             return []

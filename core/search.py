@@ -50,10 +50,19 @@ class SearchEngine:
         Tries vector search first; falls back to text search if embedding is empty.
         """
         try:
-            # Generate query embedding (returns [] if HF API unavailable)
-            query_embedding = (
-                self._generate_embedding(query) if self.embeddings_enabled else []
-            )
+            # Generate query embedding with timeout protection
+            query_embedding = []
+            if self.embeddings_enabled:
+                try:
+                    import concurrent.futures
+
+                    with concurrent.futures.ThreadPoolExecutor(
+                        max_workers=1
+                    ) as executor:
+                        future = executor.submit(self._generate_embedding, query)
+                        query_embedding = future.result(timeout=10)
+                except Exception:
+                    query_embedding = []
 
             # Expand query for multilingual recall
             expanded_queries = self._expand_query(query)

@@ -1,3 +1,13 @@
+---
+title: Seva Sindu Gov Chatbot
+emoji: "🧭"
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 8000
+pinned: false
+---
+
 # Seva Sindu Gov Chatbot
 
 AI-powered Indian Government Citizen Services assistant (Seva Sindhu style) built for multilingual text and voice support.

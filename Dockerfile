@@ -22,4 +22,5 @@ COPY --from=builder --chown=user /app/.venv .venv/
 COPY --chown=user . .
 
 # HF Spaces uses port 7860
-CMD ["./.venv/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+# Use `python -m uvicorn` to avoid broken shebang paths in copied virtualenv scripts.
+CMD ["./.venv/bin/python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
