@@ -7,8 +7,8 @@ function resolveApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
     if (host.includes('vercel.app') || host.includes('seva-sindu-portal')) {
-      // Use Hugging Face Space for production
-      return 'https://thinkingeverytime-seva-sindhu.hf.space'
+      // Primary: Modal serverless backend (fast, $30/mo free tier)
+      return 'https://rishigupta-rg007--seva-sindhu-backend-fastapi-entrypoint.modal.run'
     }
   }
 
@@ -18,6 +18,9 @@ function resolveApiBaseUrl(): string {
 export const API_BASE_URL = resolveApiBaseUrl()
 
 const DEFAULT_TIMEOUT_MS = 30000
+
+// HF Spaces can take 60+ seconds to cold-start; give chat requests generous room
+const CHAT_TIMEOUT_MS = 90000
 
 export class ApiError extends Error {
   status?: number
@@ -154,7 +157,7 @@ export async function sendChat(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...payload, response_mode: mode }),
-    }, mode === 'rag_only' ? 30000 : DEFAULT_TIMEOUT_MS)
+    }, CHAT_TIMEOUT_MS)
     return readJsonResponse<ChatResponse>(response)
   }
 
@@ -225,8 +228,22 @@ export function playBase64Audio(base64Audio: string, mimeType = 'audio/wav') {
 }
 
 export async function getHealth() {
-  const response = await fetchWithTimeout(`${API_BASE_URL}/health`, {}, 8000)
+  const response = await fetchWithTimeout(`${API_BASE_URL}/health`, {}, 15000)
   return readJsonResponse<Record<string, unknown>>(response)
+}
+
+/**
+ * Fire-and-forget ping to wake the HF Space backend.
+ * Call this when the chat widget opens so the Space starts booting
+ * before the user actually sends a message.
+ */
+let _warmUpPromise: Promise<void> | null = null
+export function warmUpBackend(): void {
+  if (_warmUpPromise) return
+  _warmUpPromise = fetch(`${API_BASE_URL}/health`, { method: 'GET' })
+    .then(() => { /* Space is awake */ })
+    .catch(() => { /* ignore – best effort */ })
+    .finally(() => { _warmUpPromise = null })
 }
 
 // ── Form Help API ──────────────────────────────────────────────────────────────

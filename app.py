@@ -52,6 +52,7 @@ _cors_origins = [
     "http://localhost:4173",
     "https://seva-sindu-portal.vercel.app",
     "https://gov-chatbot.fly.dev",
+    "https://rishigupta-rg007--seva-sindhu-backend-fastapi-entrypoint.modal.run",
 ]
 if FRONTEND_URL:
     _cors_origins.append(FRONTEND_URL.rstrip("/"))

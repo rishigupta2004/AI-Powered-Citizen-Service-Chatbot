@@ -42,6 +42,7 @@ import {
   ChatMessage as APIChatMessage,
   ChatAction as APIChatAction,
   ApiError,
+  warmUpBackend,
 } from "../src/lib/api";
 
 interface Message {
@@ -124,6 +125,8 @@ export function AdvancedChatbot({
   // Welcome message with quick actions - context aware
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      // Wake up HF Space backend early so it's ready when user types
+      warmUpBackend();
       setTimeout(() => {
         let welcomeMessage = `${t("chatbot.welcome", "Namaste! Welcome to Seva Sindhu AI Assistant 🇮🇳")}\n\n`;
 
@@ -238,7 +241,7 @@ export function AdvancedChatbot({
     return newMessage.id;
   };
 
-  const requestAssistantReply = async (userText: string, preferredLanguage?: string) => {
+  const requestAssistantReply = async (userText: string, preferredLanguage?: string, _isRetry = false) => {
     setIsTyping(true);
     try {
       const response = await sendChatMessage(
@@ -262,8 +265,16 @@ export function AdvancedChatbot({
     } catch (error: any) {
       console.error("Chat error:", error);
       if (error?.message?.includes("timed out")) {
+        if (!_isRetry) {
+          // First timeout: likely HF Space cold start. Retry once automatically.
+          toast.info(
+            t("chatbot.errors.backendWaking", "Backend is waking up… retrying automatically.")
+          );
+          await requestAssistantReply(userText, preferredLanguage, true);
+          return;
+        }
         toast.error(
-          t("chatbot.errors.slowTimeout", "This is taking longer than expected. Please try again.")
+          t("chatbot.errors.slowTimeout", "The server is still starting up. Please wait a moment and try again.")
         );
       } else {
         const errorMsg = error?.message || t("chatbot.errors.responseFailed", "Failed to get response. Please try again.");
