@@ -5,7 +5,7 @@
   "passed": 48,
   "total": 48,
   "live_lm_score": "15/15",
-  "avg_chat_latency_ms": 3472,
+  "avg_chat_latency_ms": 2289,
   "status": "PASS",
   "live_results": [
     {
@@ -14,8 +14,8 @@
       "script": "Latin",
       "rtl": false,
       "pass": true,
-      "latency_ms": 2740,
-      "response_len": 902,
+      "latency_ms": 1509,
+      "response_len": 467,
       "detected_lang": "en"
     },
     {
@@ -24,8 +24,8 @@
       "script": "Devanagari",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3479,
-      "response_len": 710,
+      "latency_ms": 2346,
+      "response_len": 492,
       "detected_lang": "hi"
     },
     {
@@ -34,8 +34,8 @@
       "script": "Bengali",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3801,
-      "response_len": 705,
+      "latency_ms": 2417,
+      "response_len": 516,
       "detected_lang": "bn"
     },
     {
@@ -44,8 +44,8 @@
       "script": "Telugu",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3297,
-      "response_len": 690,
+      "latency_ms": 2264,
+      "response_len": 392,
       "detected_lang": "te"
     },
     {
@@ -54,8 +54,8 @@
       "script": "Devanagari",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3238,
-      "response_len": 682,
+      "latency_ms": 2426,
+      "response_len": 486,
       "detected_lang": "mr"
     },
     {
@@ -64,8 +64,8 @@
       "script": "Tamil",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3399,
-      "response_len": 937,
+      "latency_ms": 2280,
+      "response_len": 616,
       "detected_lang": "ta"
     },
     {
@@ -74,8 +74,8 @@
       "script": "Gujarati",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3139,
-      "response_len": 605,
+      "latency_ms": 2374,
+      "response_len": 473,
       "detected_lang": "gu"
     },
     {
@@ -84,8 +84,8 @@
       "script": "Kannada",
       "rtl": false,
       "pass": true,
-      "latency_ms": 6022,
-      "response_len": 780,
+      "latency_ms": 2431,
+      "response_len": 582,
       "detected_lang": "kn"
     },
     {
@@ -94,8 +94,8 @@
       "script": "Malayalam",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3492,
-      "response_len": 855,
+      "latency_ms": 2510,
+      "response_len": 549,
       "detected_lang": "ml"
     },
     {
@@ -104,8 +104,8 @@
       "script": "Gurmukhi",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3429,
-      "response_len": 718,
+      "latency_ms": 2190,
+      "response_len": 443,
       "detected_lang": "pa"
     },
     {
@@ -114,8 +114,8 @@
       "script": "Odia",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3760,
-      "response_len": 768,
+      "latency_ms": 2053,
+      "response_len": 537,
       "detected_lang": "or"
     },
     {
@@ -124,8 +124,8 @@
       "script": "Bengali",
       "rtl": false,
       "pass": true,
-      "latency_ms": 2726,
-      "response_len": 185,
+      "latency_ms": 2420,
+      "response_len": 398,
       "detected_lang": "as"
     },
     {
@@ -134,8 +134,8 @@
       "script": "Arabic",
       "rtl": true,
       "pass": true,
-      "latency_ms": 2673,
-      "response_len": 185,
+      "latency_ms": 1765,
+      "response_len": 537,
       "detected_lang": "ur"
     },
     {
@@ -144,8 +144,8 @@
       "script": "Arabic",
       "rtl": true,
       "pass": true,
-      "latency_ms": 3609,
-      "response_len": 205,
+      "latency_ms": 2316,
+      "response_len": 512,
       "detected_lang": "ks"
     },
     {
@@ -154,8 +154,8 @@
       "script": "Devanagari",
       "rtl": false,
       "pass": true,
-      "latency_ms": 3270,
-      "response_len": 712,
+      "latency_ms": 3027,
+      "response_len": 507,
       "detected_lang": "ne"
     }
   ],

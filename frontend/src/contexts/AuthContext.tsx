@@ -35,6 +35,8 @@ interface AuthContextType {
   refreshToken: () => Promise<void>;
   getCurrentUser: () => Promise<void>;
   setBackendSession: (accessToken: string, refreshToken: string, user: User) => void;
+  /** Called by ClerkAuthButtons the moment Clerk confirms sign-in (before backend sync). */
+  setClerkSignedIn: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,14 +50,16 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  /**
+   * clerkSignedIn is set to true as soon as Clerk confirms the user is signed in,
+   * even before the backend /clerk/sync call completes. This ensures that
+   * isAuthenticated is true immediately so protected pages (Dashboard) are
+   * accessible without waiting on the backend.
+   */
+  const [clerkSignedIn, setClerkSignedIn] = useState(false);
 
-  const getAccessToken = (): string | null => {
-    return localStorage.getItem('access_token');
-  };
-
-  const getRefreshToken = (): string | null => {
-    return localStorage.getItem('refresh_token');
-  };
+  const getAccessToken = (): string | null => localStorage.getItem('access_token');
+  const getRefreshToken = (): string | null => localStorage.getItem('refresh_token');
 
   const setTokens = (authResponse: AuthResponse): void => {
     localStorage.setItem('access_token', authResponse.access_token);
@@ -91,13 +95,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
       return;
     }
-
     try {
       const response = await fetch(`${API_URL}/api/auth/me`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
-
       if (response.ok) {
         const data = await response.json();
         setUser(data);
@@ -115,23 +117,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshToken = useCallback(async (): Promise<void> => {
     const refresh = getRefreshToken();
-    if (!refresh) {
-      throw new Error('No refresh token available');
-    }
-
+    if (!refresh) throw new Error('No refresh token available');
     try {
       const response = await fetch(`${API_URL}/api/auth/refresh`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refresh_token: refresh }),
       });
-
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
+      if (!response.ok) throw new Error('Token refresh failed');
       const data: AuthResponse = await response.json();
       setTokens(data);
       setUser(data.user);
@@ -145,41 +138,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (emailOrPhone: string, password: string): Promise<void> => {
     const normalized = emailOrPhone.trim();
     const looksLikePhone = /^\+?[1-9]\d{6,14}$/.test(normalized);
-    const payload = looksLikePhone
-      ? { phone: normalized, password }
-      : { email: normalized, password };
-
+    const payload = looksLikePhone ? { phone: normalized, password } : { email: normalized, password };
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
-
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Login failed');
     }
-
     const data: AuthResponse = await response.json();
     setTokens(data);
     setUser(data.user);
   };
 
   const loginWithPhoneOTP = async (phone: string): Promise<void> => {
-    const hasClerk = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-    if (hasClerk) {
+    if (Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)) {
       throw new Error('Phone OTP is managed by Clerk. Please use Sign In.');
     }
     const response = await fetch(`${API_URL}/api/auth/otp/send`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact: phone, contact_type: 'otp_sms' }),
     });
-
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Failed to send OTP');
@@ -187,23 +169,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const verifyPhoneOTP = async (phone: string, otp: string): Promise<void> => {
-    const hasClerk = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-    if (hasClerk) {
+    if (Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY)) {
       throw new Error('Phone OTP is managed by Clerk. Please use Sign In.');
     }
     const response = await fetch(`${API_URL}/api/auth/otp/verify`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact: phone, otp_code: otp, contact_type: 'otp_sms' }),
     });
-
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'OTP verification failed');
     }
-
     const data: AuthResponse = await response.json();
     setTokens(data);
     setUser(data.user);
@@ -225,35 +202,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = (): void => {
     clearTokens();
     setUser(null);
+    setClerkSignedIn(false);
     window.location.href = '/';
   };
 
-  useEffect(() => {
-    getCurrentUser();
-  }, [getCurrentUser]);
+  useEffect(() => { getCurrentUser(); }, [getCurrentUser]);
 
   useEffect(() => {
     const token = getAccessToken();
-    if (!token) {
-      return;
-    }
-
+    if (!token) return;
     const expiresIn = localStorage.getItem('token_expires_in');
     if (expiresIn) {
-      const expiryTime = parseInt(expiresIn, 10) * 1000;
-      const refreshTime = expiryTime - 5 * 60 * 1000;
-
-      const timer = setTimeout(() => {
-        refreshToken();
-      }, refreshTime);
-
+      const refreshTime = parseInt(expiresIn, 10) * 1000 - 5 * 60 * 1000;
+      const timer = setTimeout(() => { refreshToken(); }, refreshTime);
       return () => clearTimeout(timer);
     }
   }, [refreshToken]);
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user,
+    /**
+     * True when the backend session exists OR Clerk has confirmed sign-in.
+     * This is the key fix: previously only !!user was checked, so any backend
+     * sync hiccup left authenticated Clerk users unable to open the Dashboard.
+     */
+    isAuthenticated: !!user || clerkSignedIn,
     isLoading,
     login,
     loginWithPhoneOTP,
@@ -264,6 +237,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshToken,
     getCurrentUser,
     setBackendSession,
+    setClerkSignedIn,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -271,9 +245,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 

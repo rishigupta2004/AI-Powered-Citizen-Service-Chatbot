@@ -202,3 +202,32 @@ export async function getHealth() {
   const response = await fetchWithTimeout(`${API_BASE_URL}/health`, {}, 8000)
   return readJsonResponse<Record<string, unknown>>(response)
 }
+
+// ── Form Help API ──────────────────────────────────────────────────────────────
+// Powers the ?/HELP button in ServiceDetail. Independent from the chat API.
+
+export interface FormHelpRequest {
+  service_id: string
+  service_name: string
+  document_name: string
+  language?: string
+}
+
+export interface FormHelpResponse {
+  help_text: string
+  language: string
+  sources?: string[]
+}
+
+export async function getFormHelp(req: FormHelpRequest): Promise<FormHelpResponse> {
+  const response = await fetchWithTimeout(
+    `${API_BASE_URL}/api/v1/form-help`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    },
+    30000,
+  )
+  return readJsonResponse<FormHelpResponse>(response)
+}

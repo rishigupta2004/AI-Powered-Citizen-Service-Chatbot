@@ -1,0 +1,121 @@
+{
+  "phase": 1,
+  "label": "RAG Quality",
+  "score_pct": 100,
+  "passed": 15,
+  "total": 15,
+  "avg_latency_ms": 1466,
+  "max_latency_ms": 1707,
+  "search_modes": {
+    "semantic": 15
+  },
+  "indic_score": "6/6",
+  "status": "PASS",
+  "details": [
+    {
+      "query": "passport application form",
+      "pass": true,
+      "latency_ms": 1488,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "documents required for passport",
+      "pass": true,
+      "latency_ms": 1397,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "passport fees charges payment",
+      "pass": true,
+      "latency_ms": 1320,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "instant e-pan apply online",
+      "pass": true,
+      "latency_ms": 1490,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "income tax return filing",
+      "pass": true,
+      "latency_ms": 1387,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "aadhaar update address online",
+      "pass": true,
+      "latency_ms": 1520,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "epfo member e-sewa",
+      "pass": true,
+      "latency_ms": 1364,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "gst portal",
+      "pass": true,
+      "latency_ms": 1385,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "voter services",
+      "pass": true,
+      "latency_ms": 1359,
+      "mode": "semantic",
+      "total_results": 9
+    },
+    {
+      "query": "digilocker services",
+      "pass": true,
+      "latency_ms": 1619,
+      "mode": "semantic",
+      "total_results": 9
+    },
+    {
+      "query": "national scholarship portal apply",
+      "pass": true,
+      "latency_ms": 1491,
+      "mode": "semantic",
+      "total_results": 8
+    },
+    {
+      "query": "e-shram",
+      "pass": true,
+      "latency_ms": 1361,
+      "mode": "semantic",
+      "total_results": 9
+    },
+    {
+      "query": "pm kisan beneficiary status",
+      "pass": true,
+      "latency_ms": 1453,
+      "mode": "semantic",
+      "total_results": 8
+    },
+    {
+      "query": "nps account opening",
+      "pass": true,
+      "latency_ms": 1707,
+      "mode": "semantic",
+      "total_results": 7
+    },
+    {
+      "query": "umang app services",
+      "pass": true,
+      "latency_ms": 1643,
+      "mode": "semantic",
+      "total_results": 9
+    }
+  ]
+}

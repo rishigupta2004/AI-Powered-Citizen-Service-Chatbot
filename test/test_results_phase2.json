@@ -54,32 +54,32 @@
     {
       "label": "GET /health",
       "pass": true,
-      "detail": "HTTP 200 \u2014 Health check \u2014 1888ms"
+      "detail": "HTTP 200 \u2014 Health check \u2014 125ms"
     },
     {
       "label": "GET /api/auth/me",
       "pass": true,
-      "detail": "HTTP 403 \u2014 Requires auth \u2014 401 expected \u2014 153ms"
+      "detail": "HTTP 403 \u2014 Requires auth \u2014 401 expected \u2014 113ms"
     },
     {
       "label": "POST /api/auth/otp/send",
       "pass": true,
-      "detail": "HTTP 422 \u2014 OTP send (422=validation OK) \u2014 223ms"
+      "detail": "HTTP 422 \u2014 OTP send (422=validation OK) \u2014 117ms"
     },
     {
       "label": "POST /api/auth/otp/verify",
       "pass": true,
-      "detail": "HTTP 422 \u2014 OTP verify (422=validation OK) \u2014 2432ms"
+      "detail": "HTTP 422 \u2014 OTP verify (422=validation OK) \u2014 119ms"
     },
     {
       "label": "GET /api/auth/digilocker",
       "pass": true,
-      "detail": "HTTP 503 \u2014 DigiLocker redirect (503/500 acceptable when OAuth is not configured) \u2014 257ms"
+      "detail": "HTTP 503 \u2014 DigiLocker redirect (503/500 acceptable when OAuth is not configured) \u2014 105ms"
     },
     {
       "label": "POST /api/auth/logout",
       "pass": true,
-      "detail": "HTTP 403 \u2014 Logout \u2014 259ms"
+      "detail": "HTTP 403 \u2014 Logout \u2014 168ms"
     },
     {
       "label": "JWT encode/decode",

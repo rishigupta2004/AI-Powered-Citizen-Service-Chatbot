@@ -1190,3 +1190,228 @@ async def voice_chat(
             "language": _normalize_chat_language(language),
             "error": str(exc),
         }
+
+
+# ── Form Help Endpoint ─────────────────────────────────────────────────────────
+# Completely isolated from the main chatbot. Powers the "?/HELP" button
+# that appears next to each PDF download in ServiceDetail.
+#
+# Unlike the first version, this now fetches RAG context from the database
+# so the help content is grounded in real, factual document information
+# rather than relying purely on the LLM's parametric knowledge.
+# ─────────────────────────────────────────────────────────────────────────────
+
+class FormHelpRequest(BaseModel):
+    service_id: str
+    service_name: str
+    document_name: str
+    language: Optional[str] = "en"
+
+
+class FormHelpResponse(BaseModel):
+    help_text: str
+    language: str
+    sources: List[str] = Field(default_factory=list)
+
+
+_FORM_HELP_SYSTEM_PROMPT = (
+    "You are a helpful Indian government document assistant. "
+    "A citizen needs help understanding a specific government form or PDF. "
+    "You have been given RETRIEVED CONTEXT from official government sources below. "
+    "Use this context to provide FACTUAL, ACCURATE answers.\n\n"
+    "Structure your response as:\n"
+    "1. **Why this document is needed** — explain its legal/procedural purpose using the retrieved context (2-3 sentences).\n"
+    "2. **How to fill it** — provide clear numbered steps. Reference specific fields, sections, or annexures mentioned in the context.\n"
+    "3. **Common mistakes to avoid** — list 2-3 real mistakes based on the context.\n"
+    "4. **Where to submit** — tell the user the exact submission method from the context.\n\n"
+    "RULES:\n"
+    "- ONLY use information from the retrieved context. Do NOT invent field names or procedures.\n"
+    "- If the context doesn't cover something, say 'Please check the official portal for this detail.'\n"
+    "- Keep the response concise, friendly, and in simple language.\n"
+    "- Always respond in the language specified by the user."
+)
+
+_FORM_HELP_SYSTEM_PROMPT_NO_CONTEXT = (
+    "You are a helpful Indian government document assistant. "
+    "A citizen needs help understanding a specific government form or PDF. "
+    "No specific retrieved context is available, so provide general but accurate guidance.\n\n"
+    "Structure your response as:\n"
+    "1. **Why this document is needed** — explain its general procedural purpose (2-3 sentences).\n"
+    "2. **How to fill it** — provide general best-practice steps for filling government forms.\n"
+    "3. **Common mistakes to avoid** — list 2-3 common mistakes.\n"
+    "4. **Where to submit** — advise checking the official portal.\n\n"
+    "RULES:\n"
+    "- Do NOT make up specific field names or procedures.\n"
+    "- Always recommend verifying on the official portal.\n"
+    "- Keep the response concise and friendly.\n"
+    "- Always respond in the language specified by the user."
+)
+
+_FORM_HELP_FALLBACK = (
+    "**Why this document is needed**\n"
+    "This document is required to verify your eligibility and identity for the service. "
+    "It is part of the standard application process mandated by the government authority.\n\n"
+    "**How to fill it**\n"
+    "1. Read all instructions on the form carefully before filling.\n"
+    "2. Use capital letters for name and address fields.\n"
+    "3. Fill all mandatory fields marked with * or 'Required'.\n"
+    "4. Attach self-attested copies of all supporting documents.\n"
+    "5. Sign/thumb-impression only where indicated.\n\n"
+    "**Common mistakes to avoid**\n"
+    "- Leaving mandatory fields blank.\n"
+    "- Using nicknames instead of full legal name.\n"
+    "- Submitting photocopies without self-attestation.\n\n"
+    "**Where to submit**\n"
+    "Submit at the designated counter of the relevant government office, "
+    "or upload via the official online portal."
+)
+
+
+def _build_form_help_rag_query(service_name: str, document_name: str) -> str:
+    """Build a focused search query to find relevant RAG context for the form."""
+    return f"{service_name} {document_name} form fill instructions documents required procedure"
+
+
+@chat_router.post("/form-help", response_model=FormHelpResponse)
+async def form_help(
+    request: FormHelpRequest,
+    db: Session = Depends(get_db),
+) -> FormHelpResponse:
+    """
+    Generate contextual help for a specific government form/PDF.
+    Explains WHY the document is needed and HOW to fill it.
+
+    Enhanced with RAG: searches the database for real, factual context
+    about the document before generating help content. This ensures
+    the response is grounded in actual official information.
+
+    This endpoint is fully isolated from the main chatbot pipeline.
+    """
+    lang = _normalize_chat_language(request.language)
+    sources: list[str] = []
+
+    # ── Step 1: Search RAG database for factual context about this form ─────
+    rag_query = _build_form_help_rag_query(request.service_name, request.document_name)
+    context_parts, rag_sources = _search_context_fast(db, rag_query, limit=6)
+
+    # Also search specifically for the document name
+    if len(context_parts) < 3:
+        extra_parts, extra_sources = _search_context_fast(db, request.document_name, limit=4)
+        for part in extra_parts:
+            if part not in context_parts:
+                context_parts.append(part)
+        for src in extra_sources:
+            if src not in rag_sources:
+                rag_sources.append(src)
+
+    sources = rag_sources[:5]
+    has_context = bool(context_parts)
+
+    # ── Step 2: Build the prompt with RAG context ───────────────────────────
+    if has_context:
+        context_text = "\n---\n".join(context_parts[:6])
+        system_prompt = (
+            _FORM_HELP_SYSTEM_PROMPT
+            + f"\n\n--- RETRIEVED CONTEXT ---\n{context_text}\n--- END CONTEXT ---"
+        )
+    else:
+        system_prompt = _FORM_HELP_SYSTEM_PROMPT_NO_CONTEXT
+
+    lang_instruction = (
+        "Hindi" if lang == "hi"
+        else "English" if lang == "en"
+        else f"the language with code '{lang}'"
+    )
+
+    user_prompt = (
+        f"Service: {request.service_name}\n"
+        f"Document / Form: {request.document_name}\n\n"
+        f"Using the retrieved context above, explain why this document is needed "
+        f"for '{request.service_name}' and provide step-by-step guidance on how "
+        f"to fill it correctly. Include specific field names, sections, or procedures "
+        f"from the context where available.\n"
+        f"Respond in {lang_instruction}."
+    )
+
+    # ── Step 3: Generate help via Sarvam (with RAG-grounded context) ────────
+    try:
+        raw_help = await sarvam.chat(
+            messages=[{"role": "user", "content": user_prompt}],
+            system_prompt=system_prompt,
+            temperature=0.3,  # Lower temp for factual accuracy
+            max_tokens=800,
+        )
+        help_text = _clean_model_text(raw_help)
+        if not help_text or _looks_like_upstream_error(help_text):
+            # Fall back to local summarization if we have RAG context
+            if has_context:
+                help_text = _build_form_help_from_context(
+                    request.service_name, request.document_name, context_parts
+                )
+            else:
+                help_text = _FORM_HELP_FALLBACK
+    except Exception as exc:
+        logger.warning("form_help LLM generation failed: %s", exc)
+        # Fall back to local summarization if we have RAG context
+        if has_context:
+            help_text = _build_form_help_from_context(
+                request.service_name, request.document_name, context_parts
+            )
+        else:
+            help_text = _FORM_HELP_FALLBACK
+
+    # ── Step 4: Translate if non-English language requested ──────────────────
+    if lang not in ("en",) and sarvam.is_available():
+        try:
+            translated = await sarvam.translate(
+                help_text, source_language="en", target_language=lang
+            )
+            if translated and not _looks_like_upstream_error(translated):
+                help_text = translated
+        except Exception as exc:
+            logger.warning("form_help translation failed: %s", exc)
+
+    return FormHelpResponse(help_text=help_text, language=lang, sources=sources)
+
+
+def _build_form_help_from_context(
+    service_name: str,
+    document_name: str,
+    context_parts: list[str],
+) -> str:
+    """
+    Build a structured help response directly from RAG context
+    when the LLM is unavailable. This is the offline fallback.
+    """
+    # Clean and deduplicate context
+    cleaned: list[str] = []
+    for part in context_parts[:5]:
+        text = re.sub(r"\s+", " ", (part or "").strip())
+        if len(text) > 30 and text not in cleaned:
+            cleaned.append(text[:300])
+
+    if not cleaned:
+        return _FORM_HELP_FALLBACK
+
+    context_bullets = "\n".join(f"- {item}" for item in cleaned[:4])
+
+    return (
+        f"**Why this document is needed**\n"
+        f"The '{document_name}' is required as part of the '{service_name}' application process. "
+        f"Below is information retrieved from official sources:\n\n"
+        f"**Official information**\n"
+        f"{context_bullets}\n\n"
+        f"**How to fill it**\n"
+        f"1. Download the form from the official portal.\n"
+        f"2. Read all instructions carefully before filling.\n"
+        f"3. Fill all mandatory fields using capital letters.\n"
+        f"4. Attach self-attested copies of supporting documents.\n"
+        f"5. Verify all details match your identity documents exactly.\n\n"
+        f"**Common mistakes to avoid**\n"
+        f"- Leaving mandatory fields blank.\n"
+        f"- Name mismatch between form and identity documents.\n"
+        f"- Submitting without required supporting documents.\n\n"
+        f"**Where to submit**\n"
+        f"Please check the official portal for the latest submission process and center locations."
+    )
+

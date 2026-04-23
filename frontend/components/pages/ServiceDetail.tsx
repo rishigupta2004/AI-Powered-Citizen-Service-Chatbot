@@ -16,6 +16,7 @@ import {
   Calendar,
   Shield,
   Globe,
+  HelpCircle,
 } from 'lucide-react';
 import { getServiceById, getAllServices } from '../../data/servicesData';
 import { Button } from '../ui/button';
@@ -25,6 +26,7 @@ import { Separator } from '../ui/separator';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '../ui/breadcrumb';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { API_BASE_URL } from '../../src/lib/api';
+import { FormHelpModal } from '../FormHelpModal';
 
 interface ServiceDetailProps {
   onNavigate: (page: string, serviceId?: string) => void;
@@ -32,8 +34,10 @@ interface ServiceDetailProps {
 }
 
 export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: ServiceDetailProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeStep, setActiveStep] = useState(1);
+  // FormHelpModal state — null = closed, object = open with that doc's details
+  const [helpDoc, setHelpDoc] = useState<{ name: string } | null>(null);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-0');
   const [liveDownloads, setLiveDownloads] = useState<Array<{ name: string; size: string; format: string; url?: string; source?: string }>>([]);
 
@@ -67,13 +71,22 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
     };
   }, [service.id]);
 
-  const combinedDownloads = useMemo(
-    () => liveDownloads.filter((doc) => (doc.format || '').toUpperCase() === 'PDF'),
-    [liveDownloads]
-  );
+  const combinedDownloads = useMemo(() => {
+    // Show live-fetched docs if available; otherwise fall back to static service.downloads
+    const live = liveDownloads.length > 0 ? liveDownloads : [];
+    // Merge live + static, deduplicate by name
+    const allDocs = [...live];
+    for (const d of service.downloads) {
+      if (!allDocs.some((existing) => existing.name === d.name)) {
+        allDocs.push(d);
+      }
+    }
+    return allDocs;
+  }, [liveDownloads, service.downloads]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--background)] to-[var(--background-secondary)] pt-32 pb-20">
+    <>
+      <div className="min-h-screen bg-gradient-to-b from-[var(--background)] to-[var(--background-secondary)] pt-32 pb-20">
       <div className="max-w-7xl mx-auto px-[var(--space-4)] sm:px-[var(--space-6)] lg:px-[var(--space-8)]">
         {/* Back Button */}
         <Button
@@ -314,7 +327,7 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                           <span>•</span>
                           <span>{doc.format}</span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button size="sm" variant="outline" className="border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white" asChild>
                             <a href={docHref} target="_blank" rel="noreferrer" download>
                               <Download className="w-3 h-3 mr-1" />
@@ -327,6 +340,16 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
                               {t('common.view', 'View')}
                             </a>
                           </Button>
+                          <Button
+                             size="sm"
+                             variant="ghost"
+                             onClick={() => setHelpDoc({ name: doc.name })}
+                             className="gap-1 text-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10"
+                             title={t('serviceDetail.helpButtonTitle', 'Why is this needed? How to fill it?')}
+                           >
+                             <HelpCircle className="w-3.5 h-3.5" />
+                             {t('serviceDetail.helpButton', 'Help')}
+                           </Button>
                         </div>
                       </div>
                     </div>
@@ -485,5 +508,16 @@ export function ServiceDetail({ onNavigate, serviceId = 'passport_seva' }: Servi
         </div>
       </div>
     </div>
+
+    {/* FormHelpModal — rendered outside the main layout so it overlays everything cleanly */}
+    <FormHelpModal
+      isOpen={helpDoc !== null}
+      onClose={() => setHelpDoc(null)}
+      serviceId={serviceId}
+      serviceName={service.name}
+      documentName={helpDoc?.name ?? ''}
+      initialLanguage={i18n.language?.split('-')[0] || 'en'}
+    />
+    </>
   );
 }

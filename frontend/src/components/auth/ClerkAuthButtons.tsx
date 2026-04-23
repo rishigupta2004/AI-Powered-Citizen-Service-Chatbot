@@ -44,13 +44,31 @@ export function ClerkAuthButtons() {
   )
 }
 
+/**
+ * ClerkSessionBridge does two things:
+ * 1. Immediately signals setClerkSignedIn(true) to AuthContext so the
+ *    Dashboard is accessible at once — no waiting for backend sync.
+ * 2. Calls /api/auth/clerk/sync in the background to create a backend
+ *    session (for API calls that need a backend token). Failures are
+ *    soft-warned, never blocking.
+ */
 function ClerkSessionBridge() {
   const { getToken, userId, isLoaded, isSignedIn } = useAuth()
-  const { setBackendSession } = useAuthContext()
+  const { setBackendSession, setClerkSignedIn } = useAuthContext()
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn || !userId) return
+    if (!isLoaded) return
 
+    if (!isSignedIn || !userId) {
+      // Clerk says the user is signed out — clear the flag
+      setClerkSignedIn(false)
+      return
+    }
+
+    // ── Step 1: immediately unblock the Dashboard ──────────────────────────
+    setClerkSignedIn(true)
+
+    // ── Step 2: sync with backend in the background ────────────────────────
     const sync = async () => {
       for (let attempt = 0; attempt < 3; attempt += 1) {
         try {
@@ -78,11 +96,11 @@ function ClerkSessionBridge() {
           await new Promise((resolve) => setTimeout(resolve, 350 * (attempt + 1)))
         }
       }
-      console.warn('Clerk sign-in succeeded, but backend session sync failed.')
+      console.warn('Clerk sign-in succeeded, but backend session sync failed. Protected pages still accessible via Clerk auth.')
     }
 
     void sync()
-  }, [getToken, isLoaded, isSignedIn, setBackendSession, userId])
+  }, [getToken, isLoaded, isSignedIn, setBackendSession, setClerkSignedIn, userId])
 
   return null
 }

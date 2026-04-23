@@ -6,6 +6,10 @@ from sarvamai import SarvamAI
 
 logger = logging.getLogger(__name__)
 
+# ── Model configuration (migrate from deprecated sarvam-m / mayura:v1) ───────
+DEFAULT_CHAT_MODEL = "sarvam-30b"          # was: sarvam-m (deprecated)
+DEFAULT_TRANSLATE_MODEL = "sarvam-translate:v1"  # was: mayura:v1
+
 LANG_CODES = {
     "hi": "hi-IN", "en": "en-IN", "ta": "ta-IN",
     "te": "te-IN", "bn": "bn-IN", "mr": "mr-IN",
@@ -17,11 +21,15 @@ LANG_CODES = {
 class SarvamClient:
     def __init__(self):
         self.api_key = os.getenv("SARVAM_API_KEY", "")
+        self.chat_model = os.getenv("SARVAM_CHAT_MODEL", DEFAULT_CHAT_MODEL)
+        self.translate_model = os.getenv("SARVAM_TRANSLATE_MODEL", DEFAULT_TRANSLATE_MODEL)
         if not self.api_key:
             logger.warning("SARVAM_API_KEY not set.")
             self.client = None
         else:
             self.client = SarvamAI(api_subscription_key=self.api_key)
+            logger.info("SarvamClient initialised  chat_model=%s  translate_model=%s",
+                        self.chat_model, self.translate_model)
 
     def is_available(self) -> bool:
         return bool(self.api_key and self.client)
@@ -39,9 +47,11 @@ class SarvamClient:
             # SDK is synchronous — run in thread to not block async
             import asyncio
             loop = asyncio.get_event_loop()
+            _model = self.chat_model
             response = await loop.run_in_executor(
                 None,
                 lambda: self.client.chat.completions(
+                    model=_model,
                     messages=all_messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
@@ -125,12 +135,14 @@ class SarvamClient:
         try:
             import asyncio
             loop = asyncio.get_event_loop()
+            _translate_model = self.translate_model
             response = await loop.run_in_executor(
                 None,
                 lambda: self.client.text.translate(
                     input=text,
                     source_language_code=LANG_CODES.get(source_language, "en-IN"),
                     target_language_code=LANG_CODES.get(target_language, "hi-IN"),
+                    model=_translate_model,
                     speaker_gender="Female",
                 )
             )

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-10T19:21:07.912440",
+  "timestamp": "2026-03-12T16:57:12.643828",
   "api": "https://gov-chatbot.fly.dev",
   "mode": "remote_advisory",
   "budget": {
@@ -12,114 +12,100 @@
     "sarvam_p95_remote_ms": 3000
   },
   "hard_failures": [],
-  "p95_ms": 2442,
-  "sarvam_p95_ms": 5901,
-  "score": "10/15",
+  "p95_ms": 445,
+  "sarvam_p95_ms": 167,
+  "score": "13/13",
   "results": [
     {
       "status": "✅",
       "category": "Health",
       "test": "Backend reachable",
       "detail": "",
-      "latency_ms": 263
+      "latency_ms": 210
     },
     {
       "status": "✅",
       "category": "Security",
       "test": "Blocked: prompt injection",
       "detail": "",
-      "latency_ms": 2442
-    },
-    {
-      "status": "⚠️",
-      "category": "Security",
-      "test": "Latency advisory: prompt injection",
-      "detail": "Security guard latency 2442ms > 200ms",
-      "latency_ms": 2442
+      "latency_ms": 118
     },
     {
       "status": "✅",
       "category": "Security",
       "test": "Blocked: SQL injection",
       "detail": "",
-      "latency_ms": 143
+      "latency_ms": 103
     },
     {
       "status": "✅",
       "category": "Security",
       "test": "Blocked: XSS attempt",
       "detail": "",
-      "latency_ms": 745
-    },
-    {
-      "status": "⚠️",
-      "category": "Security",
-      "test": "Latency advisory: XSS attempt",
-      "detail": "Security guard latency 745ms > 200ms",
-      "latency_ms": 745
+      "latency_ms": 114
     },
     {
       "status": "✅",
       "category": "Cache",
       "test": "Repeated query hit",
       "detail": "",
-      "latency_ms": 116
+      "latency_ms": 114
     },
     {
       "status": "✅",
       "category": "RAG",
       "test": "passport application form",
       "detail": "",
-      "latency_ms": 119
+      "latency_ms": 445
     },
     {
       "status": "✅",
       "category": "RAG",
       "test": "documents required for passport",
       "detail": "",
-      "latency_ms": 123
+      "latency_ms": 106
     },
     {
       "status": "✅",
       "category": "RAG",
       "test": "aadhaar update address online",
       "detail": "",
-      "latency_ms": 111
+      "latency_ms": 117
     },
     {
       "status": "✅",
       "category": "RAG",
       "test": "epfo provident fund withdrawal",
       "detail": "",
-      "latency_ms": 126
+      "latency_ms": 118
     },
     {
-      "status": "⚠️",
+      "status": "✅",
       "category": "Sarvam",
       "test": "What documents are needed for passport?",
-      "detail": "Sarvam latency 5901ms > 2000ms",
-      "latency_ms": 5901
+      "detail": "",
+      "latency_ms": 167
     },
     {
-      "status": "⚠️",
+      "status": "✅",
       "category": "Sarvam",
       "test": "पासपोर्ट के लिए कौन से दस्तावेज़ चाहिए?",
-      "detail": "Sarvam latency 2800ms > 2000ms",
-      "latency_ms": 2800
+      "detail": "",
+      "latency_ms": 147
     },
     {
       "status": "✅",
       "category": "Latency",
       "test": "Overall p95 (auto/rag)",
-      "detail": "p95=2442ms <= 2500ms",
+      "detail": "p95=445ms <= 2500ms",
       "latency_ms": 0
     },
     {
-      "status": "⚠️",
+      "status": "✅",
       "category": "Latency",
       "test": "Sarvam p95",
-      "detail": "p95=5901ms > 3000ms",
-      "latency_ms": 5901
+      "detail": "p95=167ms <= 3000ms",
+      "latency_ms": 0
     }
   ]
 }
