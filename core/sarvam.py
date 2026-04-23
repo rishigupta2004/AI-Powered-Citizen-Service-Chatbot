@@ -23,13 +23,15 @@ class SarvamClient:
         self.api_key = os.getenv("SARVAM_API_KEY", "")
         self.chat_model = os.getenv("SARVAM_CHAT_MODEL", DEFAULT_CHAT_MODEL)
         self.translate_model = os.getenv("SARVAM_TRANSLATE_MODEL", DEFAULT_TRANSLATE_MODEL)
+        self.tts_model = os.getenv("SARVAM_TTS_MODEL", "bulbul:v2")
+        self.tts_speaker = os.getenv("SARVAM_TTS_SPEAKER", "")
         if not self.api_key:
             logger.warning("SARVAM_API_KEY not set.")
             self.client = None
         else:
             self.client = SarvamAI(api_subscription_key=self.api_key)
-            logger.info("SarvamClient initialised  chat_model=%s  translate_model=%s",
-                        self.chat_model, self.translate_model)
+            logger.info("SarvamClient initialised  chat_model=%s  tts_model=%s  translate_model=%s",
+                        self.chat_model, self.tts_model, self.translate_model)
 
     def is_available(self) -> bool:
         return bool(self.api_key and self.client)
@@ -99,26 +101,45 @@ class SarvamClient:
             return {"error": "Sarvam API not configured"}
         
         lang_code = LANG_CODES.get(language, "hi-IN")
-        default_speakers = {
-            "hi-IN": "anushka", "ta-IN": "kavitha", "te-IN": "ratan",
-            "bn-IN": "ishita", "en-IN": "aditya", "mr-IN": "manisha",
-            "gu-IN": "priya", "kn-IN": "shreya", "ml-IN": "vidya",
-            "pa-IN": "neha",
-        }
-        voice = speaker or default_speakers.get(lang_code, "anushka")
+        is_v3 = "v3" in self.tts_model
+
+        # Speaker lists differ between bulbul:v2 and v3
+        if is_v3:
+            default_speakers = {
+                "hi-IN": "shubh", "ta-IN": "kavitha", "te-IN": "ratan",
+                "bn-IN": "ishita", "en-IN": "aditya", "mr-IN": "manisha",
+                "gu-IN": "priya", "kn-IN": "shreya", "ml-IN": "vidya",
+                "pa-IN": "neha",
+            }
+            fallback = "shubh"
+        else:
+            default_speakers = {
+                "hi-IN": "anushka", "ta-IN": "anushka", "te-IN": "anushka",
+                "bn-IN": "anushka", "en-IN": "anushka", "mr-IN": "manisha",
+            }
+            fallback = "anushka"
+
+        voice = speaker or self.tts_speaker or default_speakers.get(lang_code, fallback)
+        max_chars = 2500 if is_v3 else 1500
 
         try:
             import asyncio
             loop = asyncio.get_event_loop()
+
+            tts_kwargs = {
+                "text": text[:max_chars],
+                "target_language_code": lang_code,
+                "model": self.tts_model,
+                "speaker": voice,
+                "pace": speed,
+            }
+            # enable_preprocessing is only supported on bulbul:v2
+            if not is_v3:
+                tts_kwargs["enable_preprocessing"] = True
+
             response = await loop.run_in_executor(
                 None,
-                lambda: self.client.text_to_speech.convert(
-                    text=text[:500],
-                    target_language_code=lang_code,
-                    speaker=voice,
-                    pace=speed,
-                    enable_preprocessing=True,
-                )
+                lambda: self.client.text_to_speech.convert(**tts_kwargs)
             )
             audio_b64 = response.audios[0]
             return {
