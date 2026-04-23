@@ -146,7 +146,7 @@ secrets.json
 # Docker
 docker-compose.override.yml
 docker-compose.local.yml
-**/Dockerfile
+
 
 # Migrations artifact (keep migration scripts, but ignore compiled caches etc.)
 */migrations/__pycache__/

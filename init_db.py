@@ -3,7 +3,7 @@ Streamlined Database Initialization
 """
 
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from core.database import Base, DATABASE_URL
 
 # Import auth models to ensure they're included in Base.metadata
@@ -24,6 +24,11 @@ def init_database():
 
         # Create engine
         engine = create_engine(DATABASE_URL)
+
+        # Create vector extension if not exists
+        with engine.connect() as conn:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+            conn.commit()
 
         # Create tables
         Base.metadata.create_all(bind=engine)
