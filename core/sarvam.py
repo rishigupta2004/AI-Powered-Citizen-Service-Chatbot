@@ -100,10 +100,12 @@ class SarvamClient:
         
         lang_code = LANG_CODES.get(language, "hi-IN")
         default_speakers = {
-            "hi-IN": "meera", "ta-IN": "pavithra", "te-IN": "arvind",
-            "bn-IN": "isha", "en-IN": "arjun", "mr-IN": "maitreyi",
+            "hi-IN": "anushka", "ta-IN": "kavitha", "te-IN": "ratan",
+            "bn-IN": "ishita", "en-IN": "aditya", "mr-IN": "manisha",
+            "gu-IN": "priya", "kn-IN": "shreya", "ml-IN": "vidya",
+            "pa-IN": "neha",
         }
-        voice = speaker or default_speakers.get(lang_code, "meera")
+        voice = speaker or default_speakers.get(lang_code, "anushka")
 
         try:
             import asyncio
