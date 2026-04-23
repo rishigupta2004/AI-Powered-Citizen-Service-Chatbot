@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 
-RUN python -m venv .venv
+RUN python -m venv --copies .venv
 
 COPY requirements.txt ./
 RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
@@ -18,9 +18,10 @@ ENV HOME=/home/user \
 
 WORKDIR $HOME/app
 
+# Copy the virtual environment with --copies to avoid absolute path issues
 COPY --from=builder --chown=user /app/.venv .venv/
 COPY --chown=user . .
 
 # HF Spaces uses port 7860
-# Use `python -m uvicorn` to avoid broken shebang paths in copied virtualenv scripts.
-CMD ["./.venv/bin/python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+# Use explicit python -m uvicorn to avoid shebang path issues
+CMD [".venv/bin/python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
