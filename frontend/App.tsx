@@ -34,6 +34,7 @@ function AppContent() {
   const [currentServiceId, setCurrentServiceId] =
     useState<string>("passport_seva");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [wasAuthenticated, setWasAuthenticated] = useState(isAuthenticated);
 
   useEffect(() => {
     // Set page title
@@ -49,17 +50,16 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
+    if (isAuthenticated && !wasAuthenticated) {
+      const redirect = sessionStorage.getItem("redirectAfterLogin");
+      sessionStorage.removeItem("redirectAfterLogin");
+      
+      const target = redirect === "apply" ? "dashboard" : (redirect || "dashboard");
+      setCurrentPage(target);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    const redirect = sessionStorage.getItem("redirectAfterLogin");
-    if (!redirect) {
-      return;
-    }
-    sessionStorage.removeItem("redirectAfterLogin");
-    const target = redirect === "apply" ? "dashboard" : redirect;
-    setCurrentPage(target);
-  }, [isAuthenticated]);
+    setWasAuthenticated(isAuthenticated);
+  }, [isAuthenticated, wasAuthenticated]);
 
   const openAuthModal = (targetPage: string) => {
     sessionStorage.setItem("redirectAfterLogin", targetPage);

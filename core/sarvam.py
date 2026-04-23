@@ -80,8 +80,8 @@ class SarvamClient:
                 None,
                 lambda: self.client.speech_to_text.transcribe(
                     file=open(tmp_path, "rb"),
-                    model="saaras:v3",
-                    mode="transcribe",
+                    model="saarika:v1",
+                    language_code=LANG_CODES.get(language, "hi-IN"),
                 )
             )
             return {
@@ -111,7 +111,7 @@ class SarvamClient:
             response = await loop.run_in_executor(
                 None,
                 lambda: self.client.text_to_speech.convert(
-                    inputs=[text[:500]],
+                    text=text[:500],
                     target_language_code=lang_code,
                     speaker=voice,
                     pace=speed,
