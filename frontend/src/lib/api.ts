@@ -7,7 +7,8 @@ function resolveApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname
     if (host.includes('vercel.app') || host.includes('seva-sindu-portal')) {
-      return 'https://gov-chatbot.fly.dev'
+      // Use Hugging Face Space for production
+      return 'https://thinkingeverytime-seva-sindhu.hf.space'
     }
   }
 

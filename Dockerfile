@@ -10,7 +10,16 @@ COPY requirements.txt ./
 RUN .venv/bin/pip install --no-cache-dir -r requirements.txt
 
 FROM python:3.12.2-slim
-WORKDIR /app
-COPY --from=builder /app/.venv .venv/
-COPY . .
-CMD ["/app/.venv/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Create a non-root user for Hugging Face compatibility
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
+
+WORKDIR $HOME/app
+
+COPY --from=builder --chown=user /app/.venv .venv/
+COPY --chown=user . .
+
+# HF Spaces uses port 7860
+CMD ["./.venv/bin/uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
