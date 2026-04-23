@@ -144,8 +144,10 @@ export function FormHelpModal({
       });
       setHelpText(result.help_text);
       setSources(result.sources ?? []);
-    } catch (err) {
-      setError('Could not load help content. Please check your connection and retry.');
+    } catch (err: any) {
+      console.error("Form help error:", err);
+      const errorMsg = err?.message || 'Could not load help content. Please check your connection and retry.';
+      setError(String(errorMsg));
     } finally {
       setIsLoading(false);
     }

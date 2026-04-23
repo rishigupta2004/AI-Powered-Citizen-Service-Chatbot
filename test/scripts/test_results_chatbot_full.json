@@ -1,24 +1,40 @@
 {
   "suite": "chatbot_full",
   "api_base_url": "https://gov-chatbot.fly.dev",
-  "timestamp": "2026-03-11T03:25:18.679626",
+  "timestamp": "2026-04-23T22:35:43.219004",
   "summary": {
-    "total": 90,
-    "passed": 75,
+    "total": 60,
+    "passed": 45,
     "failed": 15,
-    "overall_p95_ms": 3521,
+    "overall_p95_ms": 13106,
     "category_p95_ms": {
-      "c1_multilingual_services": 4304,
-      "c2_messy_real_user": 3297,
-      "ttt": 4201,
-      "tts": 2272,
-      "stt": 2275,
-      "sts": 1111
+      "c1_multilingual_services": 17323,
+      "c2_messy_real_user": 13618,
+      "ttt": 10367,
+      "tts": 128,
+      "stt": 0,
+      "sts": 0
     },
-    "stt_pass_rate": "15/15",
+    "stt_pass_rate": "0/15",
     "sts_pass_rate": "0/15",
     "hard_failures": [
-      "STS:low_pass_rate"
+      "TTS:1",
+      "TTS:2",
+      "TTS:3",
+      "TTS:4",
+      "TTS:5",
+      "TTS:6",
+      "TTS:7",
+      "TTS:8",
+      "TTS:9",
+      "TTS:10",
+      "TTS:11",
+      "TTS:12",
+      "TTS:13",
+      "TTS:14",
+      "TTS:15",
+      "STT:insufficient_audio",
+      "STS:insufficient_audio"
     ]
   },
   "results": [
@@ -28,7 +44,7 @@
       "language": "en",
       "prompt": "How to apply for a passport renewal in India with timeline and fees?",
       "status": 200,
-      "latency_ms": 2270,
+      "latency_ms": 17323,
       "ok": true,
       "detail": "ok"
     },
@@ -38,7 +54,7 @@
       "language": "hi",
       "prompt": "आधार कार्ड में पता अपडेट करने के लिए कौन-कौन से दस्तावेज़ चाहिए?",
       "status": 200,
-      "latency_ms": 4304,
+      "latency_ms": 9372,
       "ok": true,
       "detail": "ok"
     },
@@ -48,7 +64,7 @@
       "language": "ta",
       "prompt": "பாஸ்போர்ட் விண்ணப்பத்திற்கு தேவையான ஆவணங்கள் என்ன?",
       "status": 200,
-      "latency_ms": 3231,
+      "latency_ms": 6492,
       "ok": true,
       "detail": "ok"
     },
@@ -58,7 +74,7 @@
       "language": "te",
       "prompt": "డ్రైవింగ్ లైసెన్స్ రీన్యువల్ ప్రక్రియ ఏమిటి?",
       "status": 200,
-      "latency_ms": 3100,
+      "latency_ms": 3196,
       "ok": true,
       "detail": "ok"
     },
@@ -68,7 +84,7 @@
       "language": "bn",
       "prompt": "প্যান কার্ড সংশোধনের জন্য কী কী ডকুমেন্ট লাগে?",
       "status": 200,
-      "latency_ms": 3171,
+      "latency_ms": 4584,
       "ok": true,
       "detail": "ok"
     },
@@ -78,7 +94,7 @@
       "language": "mr",
       "prompt": "ईपीएफओ मधून पैसे काढण्यासाठी प्रक्रिया काय आहे?",
       "status": 200,
-      "latency_ms": 3367,
+      "latency_ms": 5209,
       "ok": true,
       "detail": "ok"
     },
@@ -88,7 +104,7 @@
       "language": "gu",
       "prompt": "દિગિલોકરમાં દસ્તાવેજ કેવી રીતે ડાઉનલોડ કરું?",
       "status": 200,
-      "latency_ms": 4094,
+      "latency_ms": 4519,
       "ok": true,
       "detail": "ok"
     },
@@ -98,7 +114,7 @@
       "language": "kn",
       "prompt": "ವೋಟರ್ ಐಡಿ ತಿದ್ದುಪಡಿ ಮಾಡಲು ಏನು ಕ್ರಮ?",
       "status": 200,
-      "latency_ms": 3521,
+      "latency_ms": 2814,
       "ok": true,
       "detail": "ok"
     },
@@ -108,7 +124,7 @@
       "language": "ml",
       "prompt": "റേഷൻ കാർഡ് പുതുക്കാൻ എന്തെല്ലാം വേണം?",
       "status": 200,
-      "latency_ms": 3126,
+      "latency_ms": 3031,
       "ok": true,
       "detail": "ok"
     },
@@ -118,7 +134,7 @@
       "language": "pa",
       "prompt": "ਜਨਮ ਪ੍ਰਮਾਣ ਪੱਤਰ ਲਈ ਅਰਜ਼ੀ ਕਿਵੇਂ ਦੇਈਏ?",
       "status": 200,
-      "latency_ms": 3442,
+      "latency_ms": 4593,
       "ok": true,
       "detail": "ok"
     },
@@ -128,7 +144,7 @@
       "language": "en",
       "prompt": "What are eligibility rules for PM Kisan registration?",
       "status": 200,
-      "latency_ms": 2242,
+      "latency_ms": 4707,
       "ok": true,
       "detail": "ok"
     },
@@ -138,7 +154,7 @@
       "language": "hi",
       "prompt": "ड्राइविंग लाइसेंस टेस्ट स्लॉट बुक कैसे करें?",
       "status": 200,
-      "latency_ms": 3459,
+      "latency_ms": 4635,
       "ok": true,
       "detail": "ok"
     },
@@ -148,7 +164,7 @@
       "language": "en",
       "prompt": "How to check status of an application using ARN?",
       "status": 200,
-      "latency_ms": 3000,
+      "latency_ms": 1725,
       "ok": true,
       "detail": "ok"
     },
@@ -158,7 +174,7 @@
       "language": "hi",
       "prompt": "पासपोर्ट सेवा केंद्र में अपॉइंटमेंट रीशेड्यूल कैसे करें?",
       "status": 200,
-      "latency_ms": 4064,
+      "latency_ms": 2207,
       "ok": true,
       "detail": "ok"
     },
@@ -168,7 +184,7 @@
       "language": "auto",
       "prompt": "Need steps for caste certificate application in Karnataka.",
       "status": 200,
-      "latency_ms": 3265,
+      "latency_ms": 3098,
       "ok": true,
       "detail": "ok"
     },
@@ -178,7 +194,7 @@
       "language": "auto",
       "prompt": "uhh passport... passport renew karna hai, matlab old one expire ho gaya, what now?",
       "status": 200,
-      "latency_ms": 3217,
+      "latency_ms": 6764,
       "ok": true,
       "detail": "ok"
     },
@@ -188,7 +204,7 @@
       "language": "auto",
       "prompt": "aadhaar address change... same city but new flat no... how to do, online maybe?",
       "status": 200,
-      "latency_ms": 2566,
+      "latency_ms": 7427,
       "ok": true,
       "detail": "ok"
     },
@@ -198,7 +214,7 @@
       "language": "auto",
       "prompt": "i i i forgot ARN, can i still track application somehow?",
       "status": 200,
-      "latency_ms": 2461,
+      "latency_ms": 8583,
       "ok": true,
       "detail": "ok"
     },
@@ -208,7 +224,7 @@
       "language": "auto",
       "prompt": "driving licence ka slot slot slot kaise book hota, site pe confuse ho gaya",
       "status": 200,
-      "latency_ms": 2878,
+      "latency_ms": 9984,
       "ok": true,
       "detail": "ok"
     },
@@ -218,7 +234,7 @@
       "language": "auto",
       "prompt": "PAN correction name spelling wrong... do i need gazette or just proof?",
       "status": 200,
-      "latency_ms": 2519,
+      "latency_ms": 10242,
       "ok": true,
       "detail": "ok"
     },
@@ -228,7 +244,7 @@
       "language": "auto",
       "prompt": "epfo withdrawal, like partial only, not full, any conditions?",
       "status": 200,
-      "latency_ms": 2114,
+      "latency_ms": 9628,
       "ok": true,
       "detail": "ok"
     },
@@ -238,7 +254,7 @@
       "language": "auto",
       "prompt": "voter id transfer city changed, same state maybe, steps plz short",
       "status": 200,
-      "latency_ms": 2443,
+      "latency_ms": 11665,
       "ok": true,
       "detail": "ok"
     },
@@ -248,7 +264,7 @@
       "language": "auto",
       "prompt": "birth certificate old record not found then what what should i do",
       "status": 200,
-      "latency_ms": 2923,
+      "latency_ms": 12901,
       "ok": true,
       "detail": "ok"
     },
@@ -258,7 +274,7 @@
       "language": "auto",
       "prompt": "digilocker login OTP not coming again and again, workaround?",
       "status": 200,
-      "latency_ms": 2196,
+      "latency_ms": 11779,
       "ok": true,
       "detail": "ok"
     },
@@ -268,7 +284,7 @@
       "language": "auto",
       "prompt": "income certificate urgently चाहिए, tatkal type kuch hai kya?",
       "status": 200,
-      "latency_ms": 2255,
+      "latency_ms": 12484,
       "ok": true,
       "detail": "ok"
     },
@@ -278,7 +294,7 @@
       "language": "auto",
       "prompt": "r- ration card add newborn baby ka process?",
       "status": 200,
-      "latency_ms": 2473,
+      "latency_ms": 13514,
       "ok": true,
       "detail": "ok"
     },
@@ -288,7 +304,7 @@
       "language": "auto",
       "prompt": "scholarship form filled but pending pending at institute level means?",
       "status": 200,
-      "latency_ms": 2591,
+      "latency_ms": 13106,
       "ok": true,
       "detail": "ok"
     },
@@ -298,7 +314,7 @@
       "language": "auto",
       "prompt": "can you tell checklist only no long para for caste cert",
       "status": 200,
-      "latency_ms": 2456,
+      "latency_ms": 13618,
       "ok": true,
       "detail": "ok"
     },
@@ -308,7 +324,7 @@
       "language": "auto",
       "prompt": "sir DL lost ho gaya duplicate chahiye what docs and fee",
       "status": 200,
-      "latency_ms": 2343,
+      "latency_ms": 8293,
       "ok": true,
       "detail": "ok"
     },
@@ -318,7 +334,7 @@
       "language": "auto",
       "prompt": "hello... confused... passport police verification kab hota exactly",
       "status": 200,
-      "latency_ms": 3297,
+      "latency_ms": 10956,
       "ok": true,
       "detail": "ok"
     },
@@ -327,7 +343,7 @@
       "index": 1,
       "prompt": "Passport renewal steps in short.",
       "status": 200,
-      "latency_ms": 2447,
+      "latency_ms": 9376,
       "ok": true,
       "detail": "ok"
     },
@@ -336,7 +352,7 @@
       "index": 2,
       "prompt": "Aadhaar address update documents list.",
       "status": 200,
-      "latency_ms": 3330,
+      "latency_ms": 7924,
       "ok": true,
       "detail": "ok"
     },
@@ -345,7 +361,7 @@
       "index": 3,
       "prompt": "How to track application by ARN?",
       "status": 200,
-      "latency_ms": 2248,
+      "latency_ms": 7239,
       "ok": true,
       "detail": "ok"
     },
@@ -354,7 +370,7 @@
       "index": 4,
       "prompt": "Driving license duplicate process.",
       "status": 200,
-      "latency_ms": 3196,
+      "latency_ms": 8633,
       "ok": true,
       "detail": "ok"
     },
@@ -363,7 +379,7 @@
       "index": 5,
       "prompt": "PAN card correction fees and steps.",
       "status": 200,
-      "latency_ms": 2218,
+      "latency_ms": 10367,
       "ok": true,
       "detail": "ok"
     },
@@ -372,7 +388,7 @@
       "index": 6,
       "prompt": "EPFO partial withdrawal conditions.",
       "status": 200,
-      "latency_ms": 2246,
+      "latency_ms": 8875,
       "ok": true,
       "detail": "ok"
     },
@@ -381,7 +397,7 @@
       "index": 7,
       "prompt": "Voter ID correction online flow.",
       "status": 200,
-      "latency_ms": 2363,
+      "latency_ms": 9323,
       "ok": true,
       "detail": "ok"
     },
@@ -390,7 +406,7 @@
       "index": 8,
       "prompt": "Birth certificate re-issue procedure.",
       "status": 200,
-      "latency_ms": 2698,
+      "latency_ms": 7555,
       "ok": true,
       "detail": "ok"
     },
@@ -399,7 +415,7 @@
       "index": 9,
       "prompt": "DigiLocker document download steps.",
       "status": 200,
-      "latency_ms": 2547,
+      "latency_ms": 6928,
       "ok": true,
       "detail": "ok"
     },
@@ -408,7 +424,7 @@
       "index": 10,
       "prompt": "Income certificate application timeline.",
       "status": 200,
-      "latency_ms": 4201,
+      "latency_ms": 2408,
       "ok": true,
       "detail": "ok"
     },
@@ -417,7 +433,7 @@
       "index": 11,
       "prompt": "Ration card member addition process.",
       "status": 200,
-      "latency_ms": 1722,
+      "latency_ms": 1225,
       "ok": true,
       "detail": "ok"
     },
@@ -426,7 +442,7 @@
       "index": 12,
       "prompt": "Scholarship status meaning at institute level.",
       "status": 200,
-      "latency_ms": 2206,
+      "latency_ms": 1198,
       "ok": true,
       "detail": "ok"
     },
@@ -435,7 +451,7 @@
       "index": 13,
       "prompt": "Caste certificate required documents.",
       "status": 200,
-      "latency_ms": 3117,
+      "latency_ms": 1334,
       "ok": true,
       "detail": "ok"
     },
@@ -444,7 +460,7 @@
       "index": 14,
       "prompt": "Police verification for passport timeline.",
       "status": 200,
-      "latency_ms": 3499,
+      "latency_ms": 1259,
       "ok": true,
       "detail": "ok"
     },
@@ -453,7 +469,7 @@
       "index": 15,
       "prompt": "How to reschedule service appointment?",
       "status": 200,
-      "latency_ms": 2664,
+      "latency_ms": 1121,
       "ok": true,
       "detail": "ok"
     },
@@ -461,421 +477,151 @@
       "category": "tts",
       "index": 1,
       "text": "Passport renewal steps in short.",
-      "status": 200,
-      "latency_ms": 1369,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 75308
+      "status": 502,
+      "latency_ms": 125,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 2,
       "text": "Aadhaar address update documents list.",
-      "status": 200,
-      "latency_ms": 1466,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 101650
+      "status": 502,
+      "latency_ms": 107,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 3,
       "text": "How to track application by ARN?",
-      "status": 200,
-      "latency_ms": 1469,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 97888
+      "status": 502,
+      "latency_ms": 128,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 4,
       "text": "Driving license duplicate process.",
-      "status": 200,
-      "latency_ms": 1773,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 101650
+      "status": 502,
+      "latency_ms": 112,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 5,
       "text": "PAN card correction fees and steps.",
-      "status": 200,
-      "latency_ms": 1590,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 86598
+      "status": 502,
+      "latency_ms": 120,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 6,
       "text": "EPFO partial withdrawal conditions.",
-      "status": 200,
-      "latency_ms": 1482,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 94124
+      "status": 502,
+      "latency_ms": 118,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 7,
       "text": "Voter ID correction online flow.",
-      "status": 200,
-      "latency_ms": 1408,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 90360
+      "status": 502,
+      "latency_ms": 107,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 8,
       "text": "Birth certificate re-issue procedure.",
-      "status": 200,
-      "latency_ms": 1405,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 90360
+      "status": 502,
+      "latency_ms": 114,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 9,
       "text": "DigiLocker document download steps.",
-      "status": 200,
-      "latency_ms": 1448,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 94124
+      "status": 502,
+      "latency_ms": 111,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 10,
       "text": "Income certificate application timeline.",
-      "status": 200,
-      "latency_ms": 1478,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 101650
+      "status": 502,
+      "latency_ms": 115,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 11,
       "text": "Ration card member addition process.",
-      "status": 200,
-      "latency_ms": 1693,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 94124
+      "status": 502,
+      "latency_ms": 112,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 12,
       "text": "Scholarship status meaning at institute level.",
-      "status": 200,
-      "latency_ms": 2250,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 116704
+      "status": 502,
+      "latency_ms": 112,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 13,
       "text": "Caste certificate required documents.",
-      "status": 200,
-      "latency_ms": 1871,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 97888
+      "status": 502,
+      "latency_ms": 110,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 14,
       "text": "Police verification for passport timeline.",
-      "status": 200,
-      "latency_ms": 2272,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 131756
+      "status": 502,
+      "latency_ms": 122,
+      "ok": false,
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     },
     {
       "category": "tts",
       "index": 15,
       "text": "How to reschedule service appointment?",
-      "status": 200,
-      "latency_ms": 1711,
-      "ok": true,
-      "detail": "ok",
-      "audio_bytes": 90360
-    },
-    {
-      "category": "stt",
-      "index": 1,
-      "status": 200,
-      "latency_ms": 1473,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Passport renewal steps in short."
-    },
-    {
-      "category": "stt",
-      "index": 2,
-      "status": 200,
-      "latency_ms": 2275,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Aadhaar address of the documents list."
-    },
-    {
-      "category": "stt",
-      "index": 3,
-      "status": 200,
-      "latency_ms": 932,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "How to track application by ARN?"
-    },
-    {
-      "category": "stt",
-      "index": 4,
-      "status": 200,
-      "latency_ms": 595,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Driving license duplicate process."
-    },
-    {
-      "category": "stt",
-      "index": 5,
-      "status": 200,
-      "latency_ms": 543,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "PAN card correction fees and steps."
-    },
-    {
-      "category": "stt",
-      "index": 6,
-      "status": 200,
-      "latency_ms": 709,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "EPFO partial withdrawal conditions."
-    },
-    {
-      "category": "stt",
-      "index": 7,
-      "status": 200,
-      "latency_ms": 576,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Voter ID correction online flow."
-    },
-    {
-      "category": "stt",
-      "index": 8,
-      "status": 200,
-      "latency_ms": 925,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Birth certificate reissue procedure."
-    },
-    {
-      "category": "stt",
-      "index": 9,
-      "status": 200,
-      "latency_ms": 1175,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "DigiLocker document download states."
-    },
-    {
-      "category": "stt",
-      "index": 10,
-      "status": 200,
-      "latency_ms": 737,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Income Certificate Application Timeline."
-    },
-    {
-      "category": "stt",
-      "index": 11,
-      "status": 200,
-      "latency_ms": 552,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Ration card member addition process."
-    },
-    {
-      "category": "stt",
-      "index": 12,
-      "status": 200,
-      "latency_ms": 624,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Scholarship status meaning at institute level."
-    },
-    {
-      "category": "stt",
-      "index": 13,
-      "status": 200,
-      "latency_ms": 607,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Cast certificate required documents."
-    },
-    {
-      "category": "stt",
-      "index": 14,
-      "status": 200,
-      "latency_ms": 557,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "Police verification for passport timeline."
-    },
-    {
-      "category": "stt",
-      "index": 15,
-      "status": 200,
-      "latency_ms": 553,
-      "ok": true,
-      "detail": "ok",
-      "transcript": "How to reschedule service appointment?"
-    },
-    {
-      "category": "sts",
-      "index": 1,
-      "status": 500,
-      "latency_ms": 565,
+      "status": 502,
+      "latency_ms": 116,
       "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 2,
-      "status": 500,
-      "latency_ms": 665,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 3,
-      "status": 500,
-      "latency_ms": 599,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 4,
-      "status": 500,
-      "latency_ms": 601,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 5,
-      "status": 500,
-      "latency_ms": 682,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 6,
-      "status": 500,
-      "latency_ms": 726,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 7,
-      "status": 500,
-      "latency_ms": 843,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 8,
-      "status": 500,
-      "latency_ms": 924,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 9,
-      "status": 500,
-      "latency_ms": 851,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 10,
-      "status": 500,
-      "latency_ms": 1088,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 11,
-      "status": 500,
-      "latency_ms": 1111,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 12,
-      "status": 500,
-      "latency_ms": 756,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 13,
-      "status": 500,
-      "latency_ms": 606,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 14,
-      "status": 500,
-      "latency_ms": 550,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
-    },
-    {
-      "category": "sts",
-      "index": 15,
-      "status": 500,
-      "latency_ms": 563,
-      "ok": false,
-      "detail": "HTTP 500, transcript_len=0, response_len=0, audio_b64_len=0",
-      "transcript": ""
+      "detail": "HTTP 502, content-type=application/json, bytes=150",
+      "audio_bytes": 150
     }
   ]
 }

@@ -1100,7 +1100,6 @@ async def voice_chat(
             audio_bytes,
             language=language or "auto",
             audio_format=audio_format,
-            mode="transcribe",
         )
         transcript = stt.get("transcript", "")
         if not transcript:

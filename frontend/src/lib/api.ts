@@ -20,13 +20,21 @@ const DEFAULT_TIMEOUT_MS = 30000
 
 export class ApiError extends Error {
   status?: number
-  payload?: unknown
+  payload?: any
 
-  constructor(message: string, status?: number, payload?: unknown) {
+  constructor(message: string, status?: number, payload?: any) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.payload = payload
+    
+    // Set prototype explicitly for built-in class extension
+    Object.setPrototypeOf(this, ApiError.prototype)
+  }
+
+  // Helper to get a human-friendly string even if the message is weird
+  toString(): string {
+    return this.message || `Error ${this.status || 'unknown'}`
   }
 }
 
@@ -50,7 +58,7 @@ async function fetchWithTimeout(
 }
 
 async function readJsonResponse<T>(response: Response): Promise<T> {
-  let body: unknown = null
+  let body: any = null
   try {
     body = await response.json()
   } catch {
@@ -58,10 +66,27 @@ async function readJsonResponse<T>(response: Response): Promise<T> {
   }
 
   if (!response.ok) {
-    const message =
-      (typeof body === 'object' && body && 'detail' in body && String((body as { detail: unknown }).detail)) ||
-      (typeof body === 'object' && body && 'error' in body && String((body as { error: unknown }).error)) ||
-      `HTTP ${response.status}`
+    let message = `HTTP ${response.status}`
+    
+    if (typeof body === 'object' && body !== null) {
+      // Handle standard FastAPI error detail
+      if (body.detail && typeof body.detail === 'string') {
+        message = body.detail
+      } 
+      // Handle nested error object (e.g. {"error": {"detail": "..."}})
+      else if (body.error && typeof body.error === 'object' && body.error.detail) {
+        message = String(body.error.detail)
+      }
+      // Handle other common error fields
+      else if (body.error && typeof body.error === 'string') {
+        message = body.error
+      }
+      else if (body.message && typeof body.message === 'string') {
+        message = body.message
+      }
+    }
+    
+    console.error(`[API Error] ${response.status} ${response.url}:`, body || message);
     throw new ApiError(message, response.status, body)
   }
   return body as T

@@ -259,17 +259,15 @@ export function AdvancedChatbot({
         const responseLang = response.language || language || "en";
         await speakText(response.speak_text || response.response, responseLang);
       }
-    } catch (error) {
-      if (error instanceof ApiError && error.message.includes("timed out")) {
+    } catch (error: any) {
+      console.error("Chat error:", error);
+      if (error?.message?.includes("timed out")) {
         toast.error(
           t("chatbot.errors.slowTimeout", "This is taking longer than expected. Please try again.")
         );
       } else {
-        toast.error(
-          error instanceof ApiError
-            ? error.message
-            : t("chatbot.errors.responseFailed", "Failed to get response. Please try again.")
-        );
+        const errorMsg = error?.message || t("chatbot.errors.responseFailed", "Failed to get response. Please try again.");
+        toast.error(String(errorMsg));
       }
     } finally {
       setIsTyping(false);
@@ -380,12 +378,10 @@ export function AdvancedChatbot({
               }
               setVoiceStatus("idle");
             }
-          } catch (err) {
-            if (err instanceof ApiError) {
-              toast.error(err.message);
-            } else {
-              toast.error(t("chatbot.errors.speechWorkflowFailed", "Speech workflow failed"));
-            }
+          } catch (err: any) {
+            console.error("Speech error:", err);
+            const errorMsg = err?.message || t("chatbot.errors.speechWorkflowFailed", "Speech workflow failed");
+            toast.error(String(errorMsg));
             setVoiceStatus("idle");
           } finally {
             setIsTyping(false);
@@ -444,12 +440,10 @@ export function AdvancedChatbot({
           setVoiceStatus("idle");
           currentAudioRef.current = null;
         };
-      } catch (err) {
-        toast.error(
-          err instanceof ApiError
-            ? err.message
-            : t("chatbot.errors.ttsFailed", "Text-to-speech failed")
-        );
+      } catch (err: any) {
+        console.error("TTS error:", err);
+        const errorMsg = err?.message || t("chatbot.errors.ttsFailed", "Text-to-speech failed");
+        toast.error(String(errorMsg));
         setIsSpeaking(false);
         setVoiceStatus("idle");
       }
