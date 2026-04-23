@@ -14,7 +14,7 @@ LANG_CODES = {
     "hi": "hi-IN", "en": "en-IN", "ta": "ta-IN",
     "te": "te-IN", "bn": "bn-IN", "mr": "mr-IN",
     "gu": "gu-IN", "kn": "kn-IN", "ml": "ml-IN",
-    "pa": "pa-IN", "or": "or-IN", "ur": "ur-IN",
+    "pa": "pa-IN", "or": "od-IN", "od": "od-IN",
     "auto": "hi-IN",
 }
 
@@ -105,11 +105,23 @@ class SarvamClient:
 
         # Speaker lists differ between bulbul:v2 and v3
         if is_v3:
+            # Official Bulbul v3 speakers (docs.sarvam.ai/api-reference-docs/getting-started/models/bulbul)
+            # All 37 speakers: shubh (default), aditya, ritu, priya, neha, rahul, pooja,
+            # rohan, simran, kavya, amit, dev, ishita, shreya, ratan, varun, manan,
+            # sumit, roopa, kabir, aayan, ashutosh, advait, anand, tanya, tarun,
+            # sunny, mani, gokul, vijay, shruti, suhani, mohit, kavitha, rehan, soham, rupali
             default_speakers = {
-                "hi-IN": "shubh", "ta-IN": "kavitha", "te-IN": "ratan",
-                "bn-IN": "ishita", "en-IN": "aditya", "mr-IN": "manisha",
-                "gu-IN": "priya", "kn-IN": "shreya", "ml-IN": "vidya",
+                "hi-IN": "shubh",    # default v3 speaker
+                "en-IN": "aditya",
+                "ta-IN": "kavitha",
+                "te-IN": "ratan",
+                "bn-IN": "ishita",
+                "mr-IN": "manisha",
+                "gu-IN": "priya",
+                "kn-IN": "shreya",
+                "ml-IN": "vidya",
                 "pa-IN": "neha",
+                "od-IN": "rupali",
             }
             fallback = "shubh"
         else:
