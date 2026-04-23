@@ -1,0 +1,13 @@
+service_id,uuid,name,category,description,ministry,is_active,languages_supported,created_at
+1,c944a682-ad38-4889-b6a2-be6b2e9a5284,Passport Services,passport,"Passport application, renewal, and correction services",Ministry of External Affairs,True,"['en', 'hi']",2025-09-28 12:49:54.490838+00:00
+2,d608b00b-b177-4f19-a618-912b44f8d2c5,Aadhaar Services,aadhaar,"Aadhaar enrollment, updates, and verification",Ministry of Electronics and IT,True,"['en', 'hi']",2025-09-28 12:49:54.499563+00:00
+3,360c5b94-9fcb-4963-aa5b-4ded7a7c0cda,PAN Card Services,pan,PAN card application and correction services,Ministry of Finance,True,"['en', 'hi']",2025-09-28 12:49:54.501316+00:00
+4,5d4a0581-2a1f-4719-a343-235e57a5c2f2,EPFO Services,epfo,EPF passbook and balance inquiry services,Ministry of Labour,True,"['en', 'hi']",2025-09-28 12:49:54.502362+00:00
+5,4d5879dc-f24d-4ed1-ad6c-f48fa38c935e,Driving License Services,driving,Driving license application and renewal services,Ministry of Road Transport,True,"['en', 'hi']",2025-09-28 12:49:54.503407+00:00
+24,b1e3b8df-ed64-4b4a-be73-68151152a0e3,Passport Application/Renewal (MEA),passport,Auto-created for Passport Application/Renewal (MEA),,True,"['en', 'hi']",2025-10-10 13:34:10.789599+00:00
+25,54d85e37-2c33-4266-9d34-273457b26805,Driving License Services,parivahan,"Driving license application, renewal, and verification",Ministry of Road Transport and Highways,True,"['en', 'hi']",2025-10-10 18:22:39.159691+00:00
+26,3906b2c4-2c78-41c1-9b91-ddfcb311b999,Education Services,education,"Scholarships, educational certificates, and related services",Ministry of Education,True,"['en', 'hi']",2025-10-10 18:22:39.159691+00:00
+27,d96034c8-fe7d-4735-bfca-10d37d5ffb9f,Railway Services,railways,"Railway tickets, reservations, and travel information",Ministry of Railways,True,"['en', 'hi']",2025-10-10 18:22:39.159691+00:00
+28,89035131-bb32-44fa-ba83-4aadcd3bac13,RBI Services,rbi,"Banking, forex, and financial services",Reserve Bank of India,True,"['en', 'hi']",2025-10-10 18:22:39.159691+00:00
+44,89c259e7-7f17-4475-bf3b-b22d0f3fa2aa,General,general,Catch-all for unclassified content,,True,"['en', 'hi']",2025-10-12 19:10:45.877109+00:00
+45,a831e3e2-1921-497a-a6c4-1211b29a923e,Test Passport Service,passport,Test passport service for ingestion,Ministry of External Affairs,True,"['en', 'hi']",2025-10-12 22:02:30.307935+00:00

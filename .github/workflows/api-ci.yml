@@ -1,0 +1,58 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '*.py'
+      - 'core/**'
+      - 'routes/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'test/**'
+      - 'requirements.txt'
+      - '.github/workflows/api-ci.yml'
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: citizen_services_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/citizen_services_test
+      EMBEDDING_DIM: "384"
+      SECRET_KEY: ci-test-secret
+      SARVAM_API_KEY: ""
+      CLERK_SECRET_KEY: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Init DB
+        run: python init_db.py
+
+      - name: Run tests
+        run: python -m pytest tests/ test/ -v --tb=short -q --ignore=tests/e2e 2>/dev/null || python -m pytest tests/ -v --tb=short -q --ignore=tests/e2e

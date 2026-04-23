@@ -1,0 +1,10 @@
+procedure_id,uuid,service_id,title,description,procedure_type,steps,estimated_time,is_free,processing_time,language,created_at
+1,28978d43-7c1c-4f7d-bbe8-beb95b3d9c50,1,Passport Application,Steps for passport application,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+2,585096a9-ecb3-4580-b689-8c5fa5c6f1fa,1,Passport Renewal,Steps for passport renewal,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+3,95bcce5c-d1bb-47b9-92d0-4151b9974a03,1,Passport Update,Steps for passport update,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+4,da3ae47a-68c6-4534-ae14-0ee5d24d1487,2,Aadhaar Application,Steps for aadhaar application,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+5,d5f769b7-7987-4f43-afeb-24436eadbbff,2,Aadhaar Renewal,Steps for aadhaar renewal,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+6,59388d8b-88d1-4c3e-a6db-d0c37482e57d,2,Aadhaar Update,Steps for aadhaar update,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+7,6cb2d6df-dd45-463f-a7c7-51edb9f2759f,3,Pan Application,Steps for pan application,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+8,8d7a6d66-92c2-48a5-9f48-390b08d4478a,3,Pan Renewal,Steps for pan renewal,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30
+9,445a5f55-e762-4abf-a5ff-b797443f7fcc,3,Pan Update,Steps for pan update,standard,"{""steps"": [""Fill form"", ""Upload documents"", ""Submit""]}",15 min,f,3-5 days,en,2025-10-08 14:44:00.628368+05:30

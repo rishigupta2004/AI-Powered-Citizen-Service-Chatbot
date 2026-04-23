@@ -1,0 +1,156 @@
+[
+  {
+    "service_id": 1,
+    "uuid": "c944a682-ad38-4889-b6a2-be6b2e9a5284",
+    "name": "Passport Services",
+    "category": "passport",
+    "description": "Passport application, renewal, and correction services",
+    "ministry": "Ministry of External Affairs",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.490838+05:30"
+  },
+  {
+    "service_id": 2,
+    "uuid": "d608b00b-b177-4f19-a618-912b44f8d2c5",
+    "name": "Aadhaar Services",
+    "category": "aadhaar",
+    "description": "Aadhaar enrollment, updates, and verification",
+    "ministry": "Ministry of Electronics and IT",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.499563+05:30"
+  },
+  {
+    "service_id": 3,
+    "uuid": "360c5b94-9fcb-4963-aa5b-4ded7a7c0cda",
+    "name": "PAN Card Services",
+    "category": "pan",
+    "description": "PAN card application and correction services",
+    "ministry": "Ministry of Finance",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.501316+05:30"
+  },
+  {
+    "service_id": 4,
+    "uuid": "5d4a0581-2a1f-4719-a343-235e57a5c2f2",
+    "name": "EPFO Services",
+    "category": "epfo",
+    "description": "EPF passbook and balance inquiry services",
+    "ministry": "Ministry of Labour",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.502362+05:30"
+  },
+  {
+    "service_id": 5,
+    "uuid": "4d5879dc-f24d-4ed1-ad6c-f48fa38c935e",
+    "name": "Driving License Services",
+    "category": "driving",
+    "description": "Driving license application and renewal services",
+    "ministry": "Ministry of Road Transport",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-09-28T18:19:54.503407+05:30"
+  },
+  {
+    "service_id": 24,
+    "uuid": "b1e3b8df-ed64-4b4a-be73-68151152a0e3",
+    "name": "Passport Application/Renewal (MEA)",
+    "category": "passport",
+    "description": "Auto-created for Passport Application/Renewal (MEA)",
+    "ministry": null,
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T19:04:10.789599+05:30"
+  },
+  {
+    "service_id": 25,
+    "uuid": "54d85e37-2c33-4266-9d34-273457b26805",
+    "name": "Driving License Services",
+    "category": "parivahan",
+    "description": "Driving license application, renewal, and verification",
+    "ministry": "Ministry of Road Transport and Highways",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  },
+  {
+    "service_id": 26,
+    "uuid": "3906b2c4-2c78-41c1-9b91-ddfcb311b999",
+    "name": "Education Services",
+    "category": "education",
+    "description": "Scholarships, educational certificates, and related services",
+    "ministry": "Ministry of Education",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  },
+  {
+    "service_id": 27,
+    "uuid": "d96034c8-fe7d-4735-bfca-10d37d5ffb9f",
+    "name": "Railway Services",
+    "category": "railways",
+    "description": "Railway tickets, reservations, and travel information",
+    "ministry": "Ministry of Railways",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  },
+  {
+    "service_id": 28,
+    "uuid": "89035131-bb32-44fa-ba83-4aadcd3bac13",
+    "name": "RBI Services",
+    "category": "rbi",
+    "description": "Banking, forex, and financial services",
+    "ministry": "Reserve Bank of India",
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-10T23:52:39.159691+05:30"
+  },
+  {
+    "service_id": 44,
+    "uuid": "89c259e7-7f17-4475-bf3b-b22d0f3fa2aa",
+    "name": "General",
+    "category": "general",
+    "description": "Catch-all for unclassified content",
+    "ministry": null,
+    "is_active": true,
+    "languages_supported": [
+      "en",
+      "hi"
+    ],
+    "created_at": "2025-10-13T00:40:45.877109+05:30"
+  }
+]

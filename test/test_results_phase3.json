@@ -1,0 +1,356 @@
+{
+  "phase": 3,
+  "label": "22 Languages",
+  "score_pct": 100,
+  "passed": 48,
+  "total": 48,
+  "live_lm_score": "15/15",
+  "avg_chat_latency_ms": 2289,
+  "status": "PASS",
+  "live_results": [
+    {
+      "code": "en",
+      "name": "English",
+      "script": "Latin",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 1509,
+      "response_len": 467,
+      "detected_lang": "en"
+    },
+    {
+      "code": "hi",
+      "name": "Hindi",
+      "script": "Devanagari",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2346,
+      "response_len": 492,
+      "detected_lang": "hi"
+    },
+    {
+      "code": "bn",
+      "name": "Bengali",
+      "script": "Bengali",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2417,
+      "response_len": 516,
+      "detected_lang": "bn"
+    },
+    {
+      "code": "te",
+      "name": "Telugu",
+      "script": "Telugu",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2264,
+      "response_len": 392,
+      "detected_lang": "te"
+    },
+    {
+      "code": "mr",
+      "name": "Marathi",
+      "script": "Devanagari",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2426,
+      "response_len": 486,
+      "detected_lang": "mr"
+    },
+    {
+      "code": "ta",
+      "name": "Tamil",
+      "script": "Tamil",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2280,
+      "response_len": 616,
+      "detected_lang": "ta"
+    },
+    {
+      "code": "gu",
+      "name": "Gujarati",
+      "script": "Gujarati",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2374,
+      "response_len": 473,
+      "detected_lang": "gu"
+    },
+    {
+      "code": "kn",
+      "name": "Kannada",
+      "script": "Kannada",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2431,
+      "response_len": 582,
+      "detected_lang": "kn"
+    },
+    {
+      "code": "ml",
+      "name": "Malayalam",
+      "script": "Malayalam",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2510,
+      "response_len": 549,
+      "detected_lang": "ml"
+    },
+    {
+      "code": "pa",
+      "name": "Punjabi",
+      "script": "Gurmukhi",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2190,
+      "response_len": 443,
+      "detected_lang": "pa"
+    },
+    {
+      "code": "or",
+      "name": "Odia",
+      "script": "Odia",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2053,
+      "response_len": 537,
+      "detected_lang": "or"
+    },
+    {
+      "code": "as",
+      "name": "Assamese",
+      "script": "Bengali",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 2420,
+      "response_len": 398,
+      "detected_lang": "as"
+    },
+    {
+      "code": "ur",
+      "name": "Urdu",
+      "script": "Arabic",
+      "rtl": true,
+      "pass": true,
+      "latency_ms": 1765,
+      "response_len": 537,
+      "detected_lang": "ur"
+    },
+    {
+      "code": "ks",
+      "name": "Kashmiri",
+      "script": "Arabic",
+      "rtl": true,
+      "pass": true,
+      "latency_ms": 2316,
+      "response_len": 512,
+      "detected_lang": "ks"
+    },
+    {
+      "code": "ne",
+      "name": "Nepali",
+      "script": "Devanagari",
+      "rtl": false,
+      "pass": true,
+      "latency_ms": 3027,
+      "response_len": 507,
+      "detected_lang": "ne"
+    }
+  ],
+  "details": [
+    {
+      "label": "All language files present",
+      "pass": true
+    },
+    {
+      "label": "en.json key: common.loading",
+      "pass": true
+    },
+    {
+      "label": "en.json key: common.error",
+      "pass": true
+    },
+    {
+      "label": "en.json key: chatbot.placeholder",
+      "pass": true
+    },
+    {
+      "label": "en.json key: chatbot.listening",
+      "pass": true
+    },
+    {
+      "label": "en.json key: chatbot.thinking",
+      "pass": true
+    },
+    {
+      "label": "en.json key: navigation.home",
+      "pass": true
+    },
+    {
+      "label": "en.json key: navigation.services",
+      "pass": true
+    },
+    {
+      "label": "en.json key: navigation.login",
+      "pass": true
+    },
+    {
+      "label": "en.json key: login.title",
+      "pass": true
+    },
+    {
+      "label": "en.json key: services.title",
+      "pass": true
+    },
+    {
+      "label": "en.json key: app.title",
+      "pass": true
+    },
+    {
+      "label": "en.json key: chatbot.welcome",
+      "pass": true
+    },
+    {
+      "label": "en.json key: chatbot.title",
+      "pass": true
+    },
+    {
+      "label": "en.json key: footer.rights",
+      "pass": true
+    },
+    {
+      "label": "en.json key: common.submit",
+      "pass": true
+    },
+    {
+      "label": "hi.json completeness",
+      "pass": true
+    },
+    {
+      "label": "ta.json completeness",
+      "pass": true
+    },
+    {
+      "label": "ur.json completeness",
+      "pass": true
+    },
+    {
+      "label": "bn.json completeness",
+      "pass": true
+    },
+    {
+      "label": "RTL direction switching in main.tsx",
+      "pass": true
+    },
+    {
+      "label": "Urdu (ur) in RTL list",
+      "pass": true
+    },
+    {
+      "label": "Kashmiri (ks) in RTL list",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Devanagari",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Bengali",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Telugu",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Tamil",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Gujarati",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Kannada",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Malayalam",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Gurmukhi",
+      "pass": true
+    },
+    {
+      "label": "Font: Noto Sans Arabic",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: English (en)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Hindi (hi)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Bengali (bn)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Telugu (te)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Marathi (mr)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Tamil (ta)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Gujarati (gu)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Kannada (kn)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Malayalam (ml)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Punjabi (pa)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Odia (or)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Assamese (as)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Urdu (ur)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Kashmiri (ks)",
+      "pass": true
+    },
+    {
+      "label": "Live LLM: Nepali (ne)",
+      "pass": true
+    }
+  ]
+}

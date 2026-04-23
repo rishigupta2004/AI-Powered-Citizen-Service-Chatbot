@@ -1,0 +1,111 @@
+{
+  "timestamp": "2026-03-12T16:57:12.643828",
+  "api": "https://gov-chatbot.fly.dev",
+  "mode": "remote_advisory",
+  "budget": {
+    "security_ms": 200,
+    "cache_hit_ms": 300,
+    "rag_fast_ms": 800,
+    "sarvam_warn_ms": 1000,
+    "sarvam_fail_ms": 2000,
+    "p95_ms": 2500,
+    "sarvam_p95_remote_ms": 3000
+  },
+  "hard_failures": [],
+  "p95_ms": 445,
+  "sarvam_p95_ms": 167,
+  "score": "13/13",
+  "results": [
+    {
+      "status": "✅",
+      "category": "Health",
+      "test": "Backend reachable",
+      "detail": "",
+      "latency_ms": 210
+    },
+    {
+      "status": "✅",
+      "category": "Security",
+      "test": "Blocked: prompt injection",
+      "detail": "",
+      "latency_ms": 118
+    },
+    {
+      "status": "✅",
+      "category": "Security",
+      "test": "Blocked: SQL injection",
+      "detail": "",
+      "latency_ms": 103
+    },
+    {
+      "status": "✅",
+      "category": "Security",
+      "test": "Blocked: XSS attempt",
+      "detail": "",
+      "latency_ms": 114
+    },
+    {
+      "status": "✅",
+      "category": "Cache",
+      "test": "Repeated query hit",
+      "detail": "",
+      "latency_ms": 114
+    },
+    {
+      "status": "✅",
+      "category": "RAG",
+      "test": "passport application form",
+      "detail": "",
+      "latency_ms": 445
+    },
+    {
+      "status": "✅",
+      "category": "RAG",
+      "test": "documents required for passport",
+      "detail": "",
+      "latency_ms": 106
+    },
+    {
+      "status": "✅",
+      "category": "RAG",
+      "test": "aadhaar update address online",
+      "detail": "",
+      "latency_ms": 117
+    },
+    {
+      "status": "✅",
+      "category": "RAG",
+      "test": "epfo provident fund withdrawal",
+      "detail": "",
+      "latency_ms": 118
+    },
+    {
+      "status": "✅",
+      "category": "Sarvam",
+      "test": "What documents are needed for passport?",
+      "detail": "",
+      "latency_ms": 167
+    },
+    {
+      "status": "✅",
+      "category": "Sarvam",
+      "test": "पासपोर्ट के लिए कौन से दस्तावेज़ चाहिए?",
+      "detail": "",
+      "latency_ms": 147
+    },
+    {
+      "status": "✅",
+      "category": "Latency",
+      "test": "Overall p95 (auto/rag)",
+      "detail": "p95=445ms <= 2500ms",
+      "latency_ms": 0
+    },
+    {
+      "status": "✅",
+      "category": "Latency",
+      "test": "Sarvam p95",
+      "detail": "p95=167ms <= 3000ms",
+      "latency_ms": 0
+    }
+  ]
+}

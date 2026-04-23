@@ -1,0 +1,451 @@
+{
+  "app": {
+    "title": "സേവാ സിന്ധു - ഗവൺമെൻ്റ് സർവീസസ് പോർട്ടൽ",
+    "subtitle": "ഗവൺമെൻ്റ് സേവനങ്ങളിലേക്കുള്ള നിങ്ങളുടെ കവാടം",
+    "navigatedTo": "Navigated to {{page}} page",
+    "scrollTop": "Scroll to top"
+  },
+  "navigation": {
+    "home": "ഹോം",
+    "services": "സേവനങ്ങള്‍",
+    "dashboard": "ഡാഷ്‌ബോർഡ്",
+    "tracker": "അപേക്ഷ ട്രാക്കർ",
+    "faq": "FAQ",
+    "about": "അതിനെക്കുറിച്ച്",
+    "admin": "അഡ്മിൻ",
+    "login": "ലോഗിൻ ചെയ്യുക",
+    "signup": "സൈൻ അപ്പ് ചെയ്യുക",
+    "logout": "ലോഗ്ഔട്ട്",
+    "language": "ഭാഷ",
+    "signIn": "Sign In",
+    "ariaMain": "Main navigation",
+    "govStrip": "Government of India | Bharat Sarkar",
+    "skipMain": "Skip to main content",
+    "goHome": "Go to homepage",
+    "searchAria": "Search services",
+    "searchPlaceholder": "Search services",
+    "switchTheme": "Switch theme",
+    "accessibility": "Accessibility settings",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "home": {
+    "hero": {
+      "title": "ഗവൺമെൻ്റ് സേവനങ്ങൾ എളുപ്പത്തിൽ ലഭ്യമാക്കുക",
+      "subtitle": "നിങ്ങളുടെ എല്ലാ സർക്കാർ സേവന ആവശ്യങ്ങൾക്കുമുള്ള ഒരൊറ്റ പോർട്ടൽ. ലളിതവും വേഗതയേറിയതും സുരക്ഷിതവുമാണ്.",
+      "ctaPrimary": "സേവനങ്ങള്‍ പര്യവേക്ഷണം ചെയ്യുക",
+      "ctaSecondary": "ട്രാക്ക് അപേക്ഷ"
+    },
+    "features": {
+      "title": "എന്തുകൊണ്ട് സേവാ സിന്ധു തിരഞ്ഞെടുക്കണം?",
+      "services": {
+        "title": "100-ൽ അധികം സേവനങ്ങൾ",
+        "description": "ഒരിടത്ത് നിന്ന് തന്നെ നിരവധി സർക്കാർ സേവനങ്ങൾ ലഭ്യമാക്കുക."
+      },
+      "languages": {
+        "title": "ബഹുഭാഷാ പിന്തുണ",
+        "description": "ഇംഗ്ലീഷ്, ഹിന്ദി, മറ്റ് പ്രാദേശിക ഭാഷകൾ എന്നിവയിൽ ലഭ്യമാണ്."
+      },
+      "tracking": {
+        "title": "ട്രാക്ക് ആപ്ലിക്കേഷനുകൾ",
+        "description": "നിങ്ങളുടെ എല്ലാ ആപ്ലിക്കേഷനുകളുടെയും തത്സമയ സ്റ്റാറ്റസ് അപ്‌ഡേറ്റുകൾ"
+      },
+      "support": {
+        "title": "24/7 പിന്തുണ",
+        "description": "കൃത്രിമ ബുദ്ധി ഉപയോഗിച്ച് പ്രവർത്തിക്കുന്ന ചാറ്റ്ബോട്ട് 24 മണിക്കൂറും ലഭ്യമാണ്."
+      }
+    }
+  },
+  "chatbot": {
+    "title": "സേവാ സിന്ധു AI",
+    "placeholder": "ഗവൺമെൻ്റ് സേവനങ്ങളെക്കുറിച്ച് എന്തും ചോദിക്കാം...",
+    "welcome": "നമസ്തേ! സേവാ സിന്ധു AI അസിസ്റ്റന്റിലേക്ക് സ്വാഗതം 🇮🇳",
+    "poweredBy": "സർവം AI-യുടെ കരുത്തിൽ",
+    "online": "ഓൺലൈൻ",
+    "listening": "കേൾക്കുന്നു...",
+    "thinking": "ചിന്തിക്കുന്നു...",
+    "listen": "Listen",
+    "inputAria": "Chat message input",
+    "send": "Send message",
+    "attach": "Attach file",
+    "voiceInput": "Voice input",
+    "fileSoon": "File upload coming soon",
+    "sttTts": "STT/TTS enabled",
+    "stsOn": "STS on",
+    "stsOff": "STS off",
+    "openChat": "Open chat",
+    "closeChat": "Close chat",
+    "selectLanguage": "Select language",
+    "enableAutoSpeak": "Enable auto-speak",
+    "disableAutoSpeak": "Disable auto-speak",
+    "voiceModeOn": "Voice conversation ON",
+    "voiceModeOff": "Voice conversation OFF",
+    "slowResponse": "Still working... fetching verified service details.",
+    "quick": {
+      "checkStatus": "Check Application Status",
+      "checkStatusDesc": "Track your application progress",
+      "bookAppointment": "Book Appointment",
+      "bookAppointmentDesc": "Schedule a visit to service center",
+      "payFees": "Pay Fees",
+      "payFeesDesc": "Make online payments",
+      "exploreServices": "Explore Services",
+      "exploreServicesDesc": "Browse available government services"
+    },
+    "context": {
+      "dashboard": "I can see you're on your dashboard. I can help you track applications, check status, or start a new service.",
+      "services": "Looking for a specific service? I can help you find and apply for the right government service.",
+      "serviceDetail": "I can help you with {{service}}. Would you like to know about requirements, process, or start the application?",
+      "tracker": "I can help you track your applications. Just provide your Application Reference Number (ARN).",
+      "default": "I'm here to help you with government services. How can I assist you today?"
+    },
+    "errors": {
+      "slowTimeout": "This is taking longer than expected. Please try again.",
+      "responseFailed": "Failed to get response. Please try again.",
+      "connectionTrouble": "I apologize, but I'm having trouble connecting to the service. Please try again later.",
+      "transcriptionFailed": "Could not transcribe audio. Please try again.",
+      "audioBlockedRetry": "Audio playback blocked by browser. Tap speaker again.",
+      "audioBlockedTapAgain": "Audio playback blocked by browser. Please tap again.",
+      "speechWorkflowFailed": "Speech workflow failed",
+      "ttsFailed": "Text-to-speech failed"
+    },
+    "voice": {
+      "recording": "Recording... tap mic again to stop",
+      "micDenied": "Microphone access denied. Please allow mic permissions.",
+      "detectedLanguage": "Detected: {{language}}"
+    }
+  },
+  "common": {
+    "govtPortal": "സേവാ സിന്ധു",
+    "loading": "ലോഡ് ചെയ്യുന്നു...",
+    "submit": "സമർപ്പിക്കുക",
+    "cancel": "റദ്ദാക്കുക",
+    "save": "സേവ് ചെയ്യുക",
+    "close": "അടയ്ക്കുക",
+    "next": "അടുത്തത്",
+    "previous": "മുമ്പത്തെ",
+    "back": "തിരികെ",
+    "continue": "തുടരുക",
+    "search": "തിരയുക",
+    "filter": "ഫിൽട്ടർ ചെയ്യുക",
+    "sort": "ക്രമീകരിക്കുക",
+    "view": "കാണുക",
+    "edit": "എഡിറ്റ്",
+    "delete": "നീക്കം ചെയ്യുക",
+    "success": "വിജയം",
+    "error": "Error",
+    "warning": "ശ്രദ്ധിക്കുക",
+    "info": "വിവരം",
+    "required": "ആവശ്യമായത്",
+    "optional": "ഓപ്ഷണൽ"
+  },
+  "login": {
+    "title": "വീണ്ടും സ്വാഗതം",
+    "subtitle": "നിങ്ങളുടെ സർക്കാർ സേവനങ്ങൾ ഉപയോഗിക്കുന്നതിന് സൈൻ ഇൻ ചെയ്യുക",
+    "description": "നിങ്ങളുടെ അക്കൗണ്ടിലേക്ക് സുരക്ഷിതമായി ലോഗിൻ ചെയ്യുക",
+    "digilocker": {
+      "button": "ഡിജിലോക്കർ ഉപയോഗിച്ച് ലോഗിൻ ചെയ്യുക",
+      "description": "സ്ഥിരീകരിച്ച തിരിച്ചറിയലിനും ആധാർ, പാൻ, ഡ്രൈവിംഗ് ലൈസൻസ് എന്നിവയിലേക്കും കൂടുതൽ എളുപ്പത്തിൽ പ്രവേശിക്കുന്നതിനും DigiLocker ഉപയോഗിച്ച് ലോഗിൻ ചെയ്യുക."
+    },
+    "google": {
+      "button": "Google-ൽ തുടരുക"
+    },
+    "orContinueWith": "അല്ലെങ്കിൽ തുടരുക",
+    "tabs": {
+      "email": "ഇമെയിൽ",
+      "phone": "ഫോൺ"
+    },
+    "email": {
+      "label": "ഇമെയിൽ വിലാസം",
+      "placeholder": "നിങ്ങളുടെ ഇമെയിൽ നൽകുക",
+      "submit": "ഇമെയിൽ ഉപയോഗിച്ച് ലോഗിൻ ചെയ്യുക"
+    },
+    "password": {
+      "label": "രഹസ്യവാക്ക്",
+      "placeholder": "നിങ്ങളുടെ രഹസ്യവാക്ക് നൽകുക",
+      "show": "രഹസ്യവാക്ക് കാണിക്കുക",
+      "hide": "രഹസ്യവാക്ക് മറയ്ക്കുക"
+    },
+    "phone": {
+      "label": "ഫോൺ നമ്പർ",
+      "placeholder": "10 അക്ക മൊബൈൽ നമ്പർ നൽകുക",
+      "sendOtp": "ഒടിപി അയക്കുക",
+      "verify": "പരിശോധിക്കുകയും ലോഗിൻ ചെയ്യുകയും ചെയ്യുക"
+    },
+    "otp": {
+      "label": "ഒടിപി നൽകുക",
+      "placeholder": "6 അക്ക OTP നൽകുക",
+      "changePhone": "നമ്പർ മാറ്റുക",
+      "resend": "ഒ‌ടി‌പി വീണ്ടും അയക്കുക"
+    },
+    "forgotPassword": "രഹസ്യവാക്ക് മറന്നോ?",
+    "signUp": {
+      "prompt": "അക്കൗണ്ടില്ലേ?",
+      "link": "സൈൻ അപ്പ് ചെയ്യുക"
+    },
+    "terms": {
+      "text": "തുടരുന്നതിലൂടെ, നിങ്ങൾ ഞങ്ങളുടെ സ്വകാര്യ വിവരങ്ങൾ ഉപയോഗിക്കാൻ സമ്മതിക്കുന്നു.",
+      "privacy": "സ്വകാര്യതാ നയം",
+      "and": "കൂടാതെ",
+      "terms": "സേവന നിബന്ധനകൾ"
+    },
+    "errors": {
+      "loginFailed": "അസാധുവായ ഇമെയിലോ രഹസ്യവാക്കോ",
+      "otpSendFailed": "OTP അയയ്ക്കാൻ കഴിഞ്ഞില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക.",
+      "otpVerifyFailed": "ഒ.ടി.പി. ശരിയല്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+    }
+  },
+  "services": {
+    "title": "ഗവൺമെൻ്റ് സേവനങ്ങൾ",
+    "subtitle": "ഗവൺമെൻ്റ് സേവനങ്ങൾ ബ്രൗസ് ചെയ്ത് അപേക്ഷിക്കുക.",
+    "categories": {
+      "identity": "സ്വത്വം",
+      "finance": "ധനകാര്യം",
+      "health": "ആരോഗ്യം",
+      "education": "വിദ്യാഭ്യാസം",
+      "travel": "യാത്ര",
+      "housing": "താമസസ്ഥലം",
+      "employment": "തൊഴിൽ"
+    },
+    "popular": "പ്രധാന സേവനങ്ങള്‍",
+    "viewAll": "എല്ലാ സേവനങ്ങളും കാണുക",
+    "applyNow": "ഇപ്പോൾ അപേക്ഷിക്കുക",
+    "checkStatus": "സ്ഥിതി പരിശോധിക്കുക",
+    "documents": "ആവശ്യമായ രേഖകൾ",
+    "fees": "ഫീസ്",
+    "timeline": "പ്രോസസ്സിംഗ് സമയം",
+    "categoryLabel": "Categories"
+  },
+  "footer": {
+    "about": "സേവാ സിന്ധുവിനെക്കുറിച്ച്",
+    "aboutText": "ഗവൺമെൻ്റ് സേവനങ്ങൾ എളുപ്പത്തിലും കാര്യക്ഷമമായും ഉപയോഗിക്കുന്നതിന് നിങ്ങളുടെ വിശ്വസ്ത പങ്കാളി.",
+    "quickLinks": "ദ്രുത ലിങ്കുകൾ",
+    "services": "സേവനങ്ങള്‍",
+    "help": "സഹായവും പിന്തുണയും",
+    "contact": "ഞങ്ങളെ ബന്ധപ്പെടുക",
+    "rights": "എല്ലാ അവകാശങ്ങളും നിക്ഷിപ്തമാണ്.",
+    "government": "ഇന്ത്യാ ഗവൺമെൻ്റ് സംരംഭം"
+  },
+  "auth": {
+    "signInRequired": "Please sign in to continue."
+  },
+  "serviceDetail": {
+    "backToServices": "Back to Services",
+    "validityDuration": "{{value}} validity",
+    "officialSource": "Official Source",
+    "applicationProcess": "Application Process",
+    "step": "Step {{number}}",
+    "continueStep": "Continue to Next Step",
+    "startApplication": "Start Application",
+    "requiredDocuments": "Required Documents",
+    "downloadableResources": "Downloadable Resources",
+    "download": "Download",
+    "faq": "Frequently Asked Questions",
+    "questionLabel": "Q{{number}}:",
+    "answerLabel": "A:",
+    "relatedServices": "Related Services",
+    "serviceDetails": "Service Details",
+    "processingTime": "Processing Time",
+    "applicationFee": "Application Fee",
+    "validity": "Validity",
+    "status": "Status",
+    "needHelp": "Need Help?",
+    "tollFree": "Toll-Free",
+    "emailSupport": "Email Support",
+    "liveChatSupport": "Live Chat Support",
+    "instantHelp": "Get instant help from our support team",
+    "startChat": "Start Chat",
+    "noOfficialPdf": "No official PDF is available yet for this service. Please use the official portal."
+  },
+  "dashboard": {
+    "citizenUser": "Citizen User",
+    "notProvided": "Not provided",
+    "maskedPrivacy": "Masked for privacy",
+    "updateProfileSettings": "Update in profile settings",
+    "recentlyJoined": "Recently joined",
+    "verified": "Verified",
+    "notVerified": "Not Verified",
+    "welcomeBack": "Welcome back, {{name}}! 👋",
+    "subtitle": "Track and manage all your government service applications in one place",
+    "email": "Email",
+    "phone": "Phone",
+    "aadhaar": "Aadhaar",
+    "overview": "Overview",
+    "applications": "Applications",
+    "documents": "Documents",
+    "activity": "Activity",
+    "activeApplications": "Active Applications",
+    "liveRecords": "Live records",
+    "noLiveApplications": "No live applications",
+    "completed": "Completed",
+    "completedRecords": "Completed records",
+    "noCompletedRecords": "No completed records",
+    "pendingReview": "Pending Review",
+    "requiresAction": "Requires action",
+    "noPendingItems": "No pending items",
+    "uploadWhenPrompted": "Upload when prompted",
+    "viewAll": "View All",
+    "recentActivity": "Recent Activity",
+    "latestUpdates": "Your latest updates",
+    "quickActions": "Quick Actions",
+    "commonServices": "Commonly used services",
+    "newApplication": "New Application",
+    "trackStatus": "Track Status",
+    "uploadDocument": "Upload Document",
+    "makePayment": "Make Payment"
+  },
+  "tracker": {
+    "backToDashboard": "Back to Dashboard",
+    "title": "Application Tracker",
+    "emptyDescription": "No live application selected yet. Enter an ARN/application reference from your dashboard to track real status.",
+    "exploreServices": "Explore Services",
+    "trackServiceStatus": "Track your {{service}} application status",
+    "overallProgress": "Overall Progress",
+    "applicant": "Applicant",
+    "applicationId": "Application ID",
+    "submitted": "Submitted",
+    "expected": "Expected",
+    "referenceNumber": "Reference Number",
+    "timelineTitle": "Application Timeline",
+    "timelineDescription": "Detailed status of each step in your application",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "needHelp": "Need Help?",
+    "supportDescription": "Our support team is here to assist you",
+    "scheduleCall": "Schedule Call",
+    "reportIssue": "Report Issue"
+  },
+  "faq": {
+    "allQuestions": "All Questions",
+    "verifiedDirectory": "Verified FAQ Directory",
+    "serviceFaqs": "Service FAQs",
+    "heroDescription": "Answers are generated from our verified national services catalog and mapped to official authorities.",
+    "totalFaqs": "{{count}} total FAQs",
+    "categoryCount": "{{count}} categories",
+    "sourcesLinked": "Sources linked per item",
+    "searchPlaceholder": "Search question, answer, or service",
+    "showingCount": "Showing {{shown}} of {{total}}",
+    "verifiedAnswers": "Verified FAQ Answers",
+    "officialSource": "Official source",
+    "exploreServices": "Explore services"
+  },
+  "about": {
+    "govInitiative": "Government of India Initiative",
+    "title": "Seva Sindhu Portal",
+    "heroSubtitle": "An integrated digital platform empowering citizens with seamless access to government services across India",
+    "heroAttribution": "Developed under the Digital India programme in collaboration with Ministry of Electronics & Information Technology",
+    "aboutTitle": "About Seva Sindhu",
+    "aboutSubtitle": "Unified National Portal for Citizen Services",
+    "aboutDescription": "Seva Sindhu (meaning \"Ocean of Services\") is a flagship digital initiative of the Government of India, designed to provide citizens with a unified platform for accessing various government services across central and state departments. Launched under the Digital India programme, the portal aims to transform governance through technology-enabled service delivery.",
+    "visionTitle": "Vision",
+    "visionDescription": "To create a citizen-centric digital ecosystem that ensures transparent, efficient, and accessible government services for every Indian, regardless of geographical or socio-economic barriers.",
+    "missionTitle": "Mission",
+    "missionDescription": "To digitize and integrate government services across departments, eliminate paperwork, reduce processing times, and enhance transparency in public service delivery mechanisms.",
+    "strategicObjectives": "Strategic Objectives",
+    "strategicObjectivesSubtitle": "Core goals driving our digital transformation initiative",
+    "platformFeatures": "Platform Features",
+    "platformFeaturesSubtitle": "Built with cutting-edge technology and citizen-first design principles",
+    "implementationPartners": "Implementation Partners",
+    "implementationPartnersSubtitle": "Collaborative ecosystem powering digital governance",
+    "complianceStandards": "Compliance & Standards",
+    "complianceStandardsSubtitle": "Meeting international security and accessibility standards",
+    "contactInformation": "Contact Information",
+    "contactInformationSubtitle": "Reach out to us for support, feedback, or inquiries",
+    "helpline": "Helpline",
+    "helplineHours": "Mon-Sat: 8 AM - 8 PM",
+    "emailSupport": "Email Support",
+    "emailResponseTime": "24-hour response time",
+    "officeAddress": "Office Address",
+    "officeAddressLine1": "Electronics Niketan",
+    "officeAddressLine2": "New Delhi - 110003",
+    "exploreServices": "Explore Our Services",
+    "exploreSubtitle": "Access 50+ government services from the comfort of your home",
+    "browseServices": "Browse Services",
+    "viewFaq": "View FAQ",
+    "objectives": {
+      "digitalTransformation": {
+        "title": "Digital Transformation",
+        "description": "Transform government service delivery through innovative digital solutions and seamless citizen experience."
+      },
+      "inclusiveAccess": {
+        "title": "Inclusive Access",
+        "description": "Ensure every citizen, regardless of location or ability, can access government services with ease."
+      },
+      "securityPrivacy": {
+        "title": "Security & Privacy",
+        "description": "Maintain the highest standards of data security and privacy protection for all citizen information."
+      },
+      "efficiencySpeed": {
+        "title": "Efficiency & Speed",
+        "description": "Reduce processing times and eliminate bureaucratic delays through automated workflows."
+      }
+    },
+    "features": {
+      "multiLanguage": {
+        "title": "Multi-Language Support",
+        "description": "Available in 22+ official Indian languages for nationwide accessibility"
+      },
+      "bankGradeSecurity": {
+        "title": "Bank-Grade Security",
+        "description": "256-bit encryption and ISO 27001 certified infrastructure"
+      },
+      "accessibilityFirst": {
+        "title": "Accessibility First",
+        "description": "WCAG 2.1 AA compliant for citizens with disabilities"
+      },
+      "realTimeTracking": {
+        "title": "Real-Time Tracking",
+        "description": "Monitor your application status 24/7 with instant updates"
+      },
+      "userFriendlyInterface": {
+        "title": "User-Friendly Interface",
+        "description": "Intuitive design tested with 10,000+ real users"
+      },
+      "integratedServices": {
+        "title": "Integrated Services",
+        "description": "One-stop portal for all central and state services"
+      }
+    },
+    "partners": {
+      "ministryElectronics": {
+        "name": "Ministry of Electronics & IT",
+        "type": "Parent Ministry"
+      },
+      "nic": {
+        "name": "National Informatics Centre",
+        "type": "Technology Partner"
+      },
+      "uidai": {
+        "name": "UIDAI (Aadhaar)",
+        "type": "Integration Partner"
+      },
+      "dic": {
+        "name": "Digital India Corporation",
+        "type": "Implementation Partner"
+      },
+      "stateGov": {
+        "name": "State Governments",
+        "type": "Service Providers"
+      },
+      "csc": {
+        "name": "Common Service Centers",
+        "type": "Last Mile Delivery"
+      }
+    },
+    "certifications": {
+      "iso27001": "ISO 27001:2013 Information Security",
+      "wcag": "WCAG 2.1 Level AA Accessibility",
+      "gigw": "GIGW (Government of India Guidelines)",
+      "itAct": "IT Act 2000 Compliance",
+      "sslTls": "SSL/TLS Encrypted Communication",
+      "securityAudits": "Regular Security Audits (CERT-In)",
+      "dataPrivacy": "Data Privacy & Protection Compliant",
+      "mfa": "Multi-Factor Authentication (MFA)"
+    },
+    "stats": {
+      "activeCitizens": "Active Citizens",
+      "governmentServices": "Government Services",
+      "systemUptime": "System Uptime",
+      "citizenSupport": "Citizen Support"
+    }
+  }
+}

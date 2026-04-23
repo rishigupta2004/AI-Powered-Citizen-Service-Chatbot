@@ -1,0 +1,816 @@
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Loader2,
+  CheckCircle2,
+  Paperclip,
+  Mic,
+  MicOff,
+  Sparkles,
+  FileText,
+  Calendar,
+  CreditCard,
+  ArrowRight,
+  Bot,
+  User as UserIcon,
+  Home,
+  AlertCircle,
+  Phone,
+  Mail,
+  ChevronRight,
+  ExternalLink,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { ScrollArea } from "./ui/scroll-area";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "./ui/utils";
+import { toast } from "sonner";
+import { Badge } from "./ui/badge";
+import { Card, CardContent } from "./ui/card";
+import { getAllServices } from "../data/servicesData";
+import {
+  sendChatMessage,
+  speechToText,
+  textToSpeech,
+  playAudioBlob,
+  ChatMessage as APIChatMessage,
+} from "../lib/api";
+
+interface Message {
+  id: string;
+  text: string;
+  sender: "user" | "bot";
+  timestamp: Date;
+  type?: "text" | "service-card" | "quick-actions" | "form";
+  data?: any;
+  isTyping?: boolean;
+  language?: string;
+}
+
+interface QuickAction {
+  id: string;
+  icon: any;
+  label: string;
+  description: string;
+  action: string;
+}
+
+interface AdvancedChatbotProps {
+  onNavigate?: (page: string, serviceId?: string) => void;
+  currentPage?: string;
+  currentService?: string;
+}
+
+// Language options
+const LANGUAGES = [
+  { code: "auto", label: "Auto Detect" },
+  { code: "en", label: "English" },
+  { code: "hi", label: "हिन्दी" },
+  { code: "ta", label: "தமிழ்" },
+  { code: "te", label: "తెలుగు" },
+  { code: "bn", label: "বাংলা" },
+  { code: "mr", label: "मराठी" },
+  { code: "gu", label: "ગુજરાતી" },
+  { code: "kn", label: "ಕನ್ನಡ" },
+  { code: "ml", label: "മലയാളം" },
+  { code: "pa", label: "ਪੰਜਾਬੀ" },
+];
+
+export function AdvancedChatbot({
+  onNavigate,
+  currentPage = "home",
+  currentService,
+}: AdvancedChatbotProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [currentStep, setCurrentStep] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [inputElement, setInputElement] = useState<HTMLInputElement | null>(null);
+
+  // New state for Sarvam integration
+  const [language, setLanguage] = useState("auto");
+  const [isRecording, setIsRecording] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const allServices = getAllServices();
+
+  // Build message history for API
+  const getHistory = useCallback((): APIChatMessage[] => {
+    return messages
+      .filter((m) => m.status !== "error")
+      .slice(-12)
+      .map((m) => ({
+        role: m.sender === "user" ? "user" : "assistant",
+        content: m.text,
+      }));
+  }, [messages]);
+
+  // Welcome message with quick actions - context aware
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setTimeout(() => {
+        let welcomeMessage =
+          "नमस्ते! Welcome to Seva Sindhu AI Assistant 🇮🇳\n\n";
+
+        if (currentPage === "dashboard") {
+          welcomeMessage +=
+            "I can see you're on your dashboard. I can help you track applications, check status, or start a new service.";
+        } else if (currentPage === "services") {
+          welcomeMessage +=
+            "Looking for a specific service? I can help you find and apply for the right government service.";
+        } else if (currentPage === "service-detail" && currentService) {
+          welcomeMessage += `I can help you with ${currentService}. Would you like to know about requirements, process, or start the application?`;
+        } else if (currentPage === "tracker") {
+          welcomeMessage +=
+            "I can help you track your applications. Just provide your Application Reference Number (ARN).";
+        } else {
+          welcomeMessage +=
+            "I'm here to help you with government services. How can I assist you today?";
+        }
+
+        addBotMessage(welcomeMessage, "text");
+
+        setTimeout(() => {
+          addBotMessage("", "quick-actions", {
+            actions: quickActions,
+          });
+        }, 800);
+      }, 300);
+    }
+  }, [isOpen, currentPage, currentService, messages.length]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isTyping]);
+
+  // Focus input when chat opens
+  useEffect(() => {
+    if (isOpen && inputElement) {
+      inputElement.focus();
+    }
+  }, [isOpen, inputElement]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  const addBotMessage = (
+    text: string,
+    type: Message["type"] = "text",
+    data?: any,
+    language?: string
+  ) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text,
+      sender: "bot",
+      timestamp: new Date(),
+      type,
+      data,
+      language,
+    };
+    setMessages((prev) => [...prev, newMessage]);
+    return newMessage.id;
+  };
+
+  const addUserMessage = (text: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text,
+      sender: "user",
+      timestamp: new Date(),
+      type: "text",
+    };
+    setMessages((prev) => [...prev, newMessage]);
+    return newMessage.id;
+  };
+
+  // TEXT CHAT - Updated to use real API
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isTyping) return;
+
+    const userText = inputValue.trim();
+    addUserMessage(userText);
+    setInputValue("");
+    setIsTyping(true);
+
+    try {
+      const response = await sendChatMessage(
+        userText,
+        getHistory(),
+        language,
+        currentService
+      );
+
+      addBotMessage(response.response, "text", undefined, response.language);
+
+      // Auto-speak if TTS enabled
+      if (ttsEnabled && response.response) {
+        const responseLang = response.language || language || "en";
+        speakText(response.response, responseLang);
+      }
+    } catch (error) {
+      toast.error("Failed to get response. Please try again.");
+      addBotMessage(
+        "I apologize, but I'm having trouble connecting to the service. Please try again later.",
+        "text"
+      );
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  // SPEECH TO TEXT
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+        stream.getTracks().forEach((t) => t.stop()); // Release mic
+
+        setIsTyping(true);
+        try {
+          const result = await speechToText(audioBlob, language);
+          if (result.transcript) {
+            setInputValue(result.transcript);
+            toast.success(`Detected: ${result.language_code || language}`);
+          } else {
+            toast.error("Could not transcribe audio. Please try again.");
+          }
+        } catch (err) {
+          toast.error("Speech recognition failed");
+        } finally {
+          setIsTyping(false);
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      toast.info("Recording... tap mic again to stop");
+    } catch (err) {
+      toast.error(
+        "Microphone access denied. Please allow mic permissions."
+      );
+    }
+  }, [language]);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  }, [isRecording]);
+
+  const toggleRecording = () => {
+    if (isRecording) stopRecording();
+    else startRecording();
+  };
+
+  // TEXT TO SPEECH
+  const speakText = useCallback(
+    async (text: string, lang: string = "hi") => {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+        setIsSpeaking(false);
+      }
+
+      setIsSpeaking(true);
+      try {
+        const audioBlob = await textToSpeech(text, lang);
+        const audio = playAudioBlob(audioBlob);
+        currentAudioRef.current = audio;
+        audio.onended = () => {
+          setIsSpeaking(false);
+          currentAudioRef.current = null;
+        };
+      } catch (err) {
+        toast.error("Text-to-speech failed");
+        setIsSpeaking(false);
+      }
+    },
+    []
+  );
+
+  const stopSpeaking = () => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+      setIsSpeaking(false);
+    }
+  };
+
+  const quickActions: QuickAction[] = [
+    {
+      id: "1",
+      icon: FileText,
+      label: "Check Application Status",
+      description: "Track your application progress",
+      action: "check_status",
+    },
+    {
+      id: "2",
+      icon: Calendar,
+      label: "Book Appointment",
+      description: "Schedule a visit to service center",
+      action: "book_appointment",
+    },
+    {
+      id: "3",
+      icon: CreditCard,
+      label: "Pay Fees",
+      description: "Make online payments",
+      action: "pay_fees",
+    },
+    {
+      id: "4",
+      icon: Home,
+      label: "Explore Services",
+      description: "Browse available government services",
+      action: "explore_services",
+    },
+  ];
+
+  const handleQuickAction = (action: QuickAction) => {
+    addUserMessage(action.label);
+
+    setTimeout(() => {
+      setIsTyping(true);
+
+      setTimeout(() => {
+        setIsTyping(false);
+
+        switch (action.action) {
+          case "check_status":
+            addBotMessage(
+              "I can help you check your application status. Please provide your Application Reference Number (ARN).\n\nFor example: ARN1234567890",
+              "form"
+            );
+            setCurrentStep("check_status");
+            break;
+
+          case "book_appointment":
+            if (onNavigate) {
+              onNavigate("services");
+            }
+            addBotMessage(
+              "I'll help you book an appointment. First, let me show you the available services.",
+              "text"
+            );
+            setTimeout(() => {
+              addBotMessage("", "quick-actions", {
+                actions: allServices.slice(0, 6).map((service: any) => ({
+                  id: service.id,
+                  icon: FileText,
+                  label: service.name,
+                  description: service.description,
+                  action: `service_${service.id}`,
+                })),
+              });
+            }, 500);
+            break;
+
+          case "pay_fees":
+            addBotMessage(
+              "I can guide you through the fee payment process. Which service do you need to pay fees for?",
+              "quick-actions",
+              {
+                actions: allServices.slice(0, 6).map((service: any) => ({
+                  id: service.id,
+                  icon: CreditCard,
+                  label: service.name,
+                  description: `Fee: ₹${service.fee || "Varies"}`,
+                  action: `fee_${service.id}`,
+                })),
+              }
+            );
+            break;
+
+          case "explore_services":
+            if (onNavigate) {
+              onNavigate("services");
+            }
+            addBotMessage(
+              "Here are the government services available:",
+              "quick-actions",
+              {
+                actions: allServices.slice(0, 8).map((service: any) => ({
+                  id: service.id,
+                  icon: FileText,
+                  label: service.name,
+                  description: service.description,
+                  action: `service_${service.id}`,
+                })),
+              }
+            );
+            break;
+
+          default:
+            if (action.action.startsWith("service_")) {
+              const serviceId = action.action.replace("service_", "");
+              const service = allServices.find((s: any) => s.id === serviceId);
+              if (service) {
+                addBotMessage(
+                  `Great choice! Here's what I can help you with for ${service.name}:\n\n` +
+                    `1. View requirements and documents needed\n` +
+                    `2. Check eligibility criteria\n` +
+                    `3. Start the application process\n` +
+                    `4. Track existing application\n\n` +
+                    `What would you like to do?`,
+                  "quick-actions",
+                  {
+                    actions: [
+                      {
+                        id: "view_req",
+                        icon: FileText,
+                        label: "View Requirements",
+                        description: "See documents and eligibility",
+                        action: `requirements_${serviceId}`,
+                      },
+                      {
+                        id: "start_app",
+                        icon: ArrowRight,
+                        label: "Start Application",
+                        description: "Begin the process",
+                        action: `apply_${serviceId}`,
+                      },
+                      {
+                        id: "track",
+                        icon: CheckCircle2,
+                        label: "Track Status",
+                        description: "Check your application",
+                        action: `track_${serviceId}`,
+                      },
+                    ],
+                  }
+                );
+              }
+            } else if (action.action.startsWith("apply_")) {
+              const serviceId = action.action.replace("apply_", "");
+              if (onNavigate) {
+                onNavigate("service-detail", serviceId);
+              }
+              addBotMessage(
+                "Perfect! I'm taking you to the application page. You can also ask me any questions about the process.",
+                "text"
+              );
+            } else if (action.action.startsWith("requirements_")) {
+              const serviceId = action.action.replace("requirements_", "");
+              const service = allServices.find((s: any) => s.id === serviceId);
+              if (service) {
+                addBotMessage(
+                  `**${service.name} - Requirements**\n\n` +
+                    `**Documents Required:**\n` +
+                    service.documents
+                      ?.map((doc: string, i: number) => `${i + 1}. ${doc}`)
+                      .join("\n") ||
+                    "• Identity Proof (Aadhaar/PAN)\n" +
+                      "• Address Proof\n" +
+                      "• Passport Size Photos\n" +
+                      "• Supporting documents as per service",
+                  "text"
+                );
+              }
+            }
+        }
+      }, 1000);
+    }, 100);
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  return (
+    <>
+      {/* Chat Bubble */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button
+              onClick={() => setIsOpen(true)}
+              size="icon"
+              className="w-14 h-14 rounded-full bg-gradient-to-br from-[#000080] to-[#000066] hover:from-[#000066] hover:to-[#000050] shadow-lg shadow-blue-900/20"
+              aria-label="Open chat"
+            >
+              <MessageCircle className="w-6 h-6 text-white" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chat Window */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed bottom-6 right-6 w-full max-w-md z-50"
+          >
+            <div className="bg-[var(--card)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-24)] overflow-hidden border-2 border-[var(--card-border)] max-h-[80vh] flex flex-col">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#000080] to-[#000066] px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">
+                      Seva Sindhu AI
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-green-400" />
+                      <span className="text-white/70 text-xs">Online</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Language Selector */}
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="text-xs bg-white/20 text-white border-0 rounded px-2 py-1 cursor-pointer"
+                    aria-label="Select language"
+                  >
+                    {LANGUAGES.map((l) => (
+                      <option key={l.code} value={l.code} className="text-black">
+                        {l.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* TTS Toggle */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/20 w-8 h-8"
+                    onClick={() => setTtsEnabled((v) => !v)}
+                    title={
+                      ttsEnabled ? "Disable auto-speak" : "Enable auto-speak"
+                    }
+                  >
+                    {ttsEnabled ? (
+                      <Volume2 className="w-4 h-4" />
+                    ) : (
+                      <VolumeX className="w-4 h-4 opacity-50" />
+                    )}
+                  </Button>
+
+                  {/* Close */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/20 w-8 h-8"
+                    onClick={() => setIsOpen(false)}
+                    aria-label="Close chat"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4 bg-[var(--background)] max-h-[50vh]">
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={cn(
+                        "flex gap-2",
+                        message.sender === "user"
+                          ? "justify-end"
+                          : "justify-start"
+                      )}
+                    >
+                      {message.sender === "bot" && (
+                        <div className="w-7 h-7 rounded-full bg-[#000080] flex items-center justify-center flex-shrink-0 mt-1">
+                          <Bot className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      )}
+                      <div
+                        className={cn(
+                          "max-w-[78%] rounded-2xl px-4 py-2.5 text-sm",
+                          message.sender === "user"
+                            ? "bg-[#000080] text-white rounded-br-sm"
+                            : "bg-[var(--card)] text-[var(--foreground)] rounded-bl-sm border border-[var(--border)]"
+                        )}
+                      >
+                        {message.type === "quick-actions" && message.data ? (
+                          <div className="space-y-2">
+                            <p className="font-medium mb-2">{message.text}</p>
+                            <div className="grid grid-cols-1 gap-2">
+                              {message.data.actions.map((action: QuickAction) => (
+                                <button
+                                  key={action.id}
+                                  onClick={() => handleQuickAction(action)}
+                                  className="flex items-start gap-3 p-2.5 rounded-lg bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-left"
+                                >
+                                  <div className="w-8 h-8 rounded-lg bg-[#000080]/10 flex items-center justify-center flex-shrink-0">
+                                    <action.icon className="w-4 h-4 text-[#000080]" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm">
+                                      {action.label}
+                                    </div>
+                                    <div className="text-xs text-[var(--muted-foreground)] truncate">
+                                      {action.description}
+                                    </div>
+                                  </div>
+                                  <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="leading-relaxed whitespace-pre-wrap">
+                              {message.text}
+                            </p>
+                            <div className="flex items-center justify-between mt-1 gap-2">
+                              <time
+                                className={cn(
+                                  "text-xs",
+                                  message.sender === "user"
+                                    ? "text-white/60"
+                                    : "text-[var(--muted-foreground)]"
+                                )}
+                              >
+                                {formatTime(message.timestamp)}
+                              </time>
+
+                              {/* Speak button for bot messages */}
+                              {message.sender === "bot" && (
+                                <button
+                                  onClick={() =>
+                                    speakText(
+                                      message.text,
+                                      message.language || language || "en"
+                                    )
+                                  }
+                                  className="p-1 rounded hover:bg-white/10"
+                                  title="Listen"
+                                >
+                                  <Volume2 className="w-3 h-3 text-[var(--muted-foreground)]" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Typing Indicator */}
+                  {isTyping && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex gap-2 justify-start"
+                    >
+                      <div className="w-7 h-7 rounded-full bg-[#000080] flex items-center justify-center flex-shrink-0">
+                        <Bot className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <div className="bg-[var(--card)] rounded-2xl rounded-bl-sm px-4 py-3 border border-[var(--border)]">
+                        <div className="flex gap-1">
+                          {[0, 1, 2].map((i) => (
+                            <motion.div
+                              key={i}
+                              animate={{
+                                y: [0, -6, 0],
+                                opacity: [0.4, 1, 0.4],
+                              }}
+                              transition={{
+                                duration: 0.6,
+                                repeat: Infinity,
+                                delay: i * 0.15,
+                              }}
+                              className="w-2 h-2 bg-[#000080] rounded-full"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+
+              {/* Input Area */}
+              <div className="p-4 bg-[var(--card)] border-t-2 border-[var(--border)]">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="flex gap-2"
+                >
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="flex-shrink-0 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    aria-label="Attach file"
+                    onClick={() => toast.info("File upload coming soon")}
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </Button>
+                  <Input
+                    type="text"
+                    placeholder="Ask anything about government services..."
+                    value={inputValue}
+                    onChange={(e) => {
+                      setInputValue(e.target.value);
+                      if (
+                        !inputElement &&
+                        e.target instanceof HTMLInputElement
+                      ) {
+                        setInputElement(e.target);
+                      }
+                    }}
+                    className="flex-1 h-12 bg-[var(--input-background)] border-[var(--border)] text-[var(--foreground)]"
+                    aria-label="Chat message input"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "flex-shrink-0",
+                      isRecording
+                        ? "text-red-500 animate-pulse"
+                        : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    )}
+                    aria-label="Voice input"
+                    onClick={toggleRecording}
+                  >
+                    {isRecording ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5" />
+                    )}
+                  </Button>
+                  <Button
+                    type="submit"
+                    size="icon"
+                    className="bg-gradient-to-br from-[#000080] to-[#000066] hover:from-[#000066] hover:to-[#000050] flex-shrink-0 h-12 w-12"
+                    disabled={!inputValue.trim() || isTyping}
+                    aria-label="Send message"
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
+                </form>
+                <div className="text-xs text-[var(--muted-foreground)] mt-3 text-center flex items-center justify-center gap-2">
+                  <Sparkles className="w-3 h-3" />
+                  <span>Powered by Sarvam AI • Speech enabled • 24/7</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

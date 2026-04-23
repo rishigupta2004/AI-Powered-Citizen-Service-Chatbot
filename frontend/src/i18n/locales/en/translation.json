@@ -1,0 +1,451 @@
+{
+  "app": {
+    "title": "Seva Sindhu - Government Services Portal",
+    "subtitle": "Your gateway to government services",
+    "navigatedTo": "Navigated to {{page}} page",
+    "scrollTop": "Scroll to top"
+  },
+  "navigation": {
+    "home": "Home",
+    "services": "Services",
+    "dashboard": "Dashboard",
+    "tracker": "Application Tracker",
+    "faq": "FAQ",
+    "about": "About",
+    "admin": "Admin",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "language": "Language",
+    "signIn": "Sign In",
+    "ariaMain": "Main navigation",
+    "govStrip": "Government of India | Bharat Sarkar",
+    "skipMain": "Skip to main content",
+    "goHome": "Go to homepage",
+    "searchAria": "Search services",
+    "searchPlaceholder": "Search services",
+    "switchTheme": "Switch theme",
+    "accessibility": "Accessibility settings",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "home": {
+    "hero": {
+      "title": "Access Government Services Made Easy",
+      "subtitle": "One portal for all your government service needs. Simple, fast, and secure.",
+      "ctaPrimary": "Explore Services",
+      "ctaSecondary": "Track Application"
+    },
+    "features": {
+      "title": "Why Choose Seva Sindhu",
+      "services": {
+        "title": "100+ Services",
+        "description": "Access a wide range of government services from one place"
+      },
+      "languages": {
+        "title": "Multi-language Support",
+        "description": "Available in English, Hindi, and other regional languages"
+      },
+      "tracking": {
+        "title": "Track Applications",
+        "description": "Real-time status updates for all your applications"
+      },
+      "support": {
+        "title": "24/7 Support",
+        "description": "AI-powered chatbot available round the clock"
+      }
+    }
+  },
+  "chatbot": {
+    "title": "Seva Sindhu AI",
+    "placeholder": "Ask anything about government services...",
+    "welcome": "नमस्ते! Welcome to Seva Sindhu AI Assistant 🇮🇳",
+    "poweredBy": "Powered by Sarvam AI",
+    "online": "Online",
+    "listening": "Listening...",
+    "thinking": "Thinking...",
+    "listen": "Listen",
+    "inputAria": "Chat message input",
+    "send": "Send message",
+    "attach": "Attach file",
+    "voiceInput": "Voice input",
+    "fileSoon": "File upload coming soon",
+    "sttTts": "STT/TTS enabled",
+    "stsOn": "STS on",
+    "stsOff": "STS off",
+    "openChat": "Open chat",
+    "closeChat": "Close chat",
+    "selectLanguage": "Select language",
+    "enableAutoSpeak": "Enable auto-speak",
+    "disableAutoSpeak": "Disable auto-speak",
+    "voiceModeOn": "Voice conversation ON",
+    "voiceModeOff": "Voice conversation OFF",
+    "slowResponse": "Still working... fetching verified service details.",
+    "quick": {
+      "checkStatus": "Check Application Status",
+      "checkStatusDesc": "Track your application progress",
+      "bookAppointment": "Book Appointment",
+      "bookAppointmentDesc": "Schedule a visit to service center",
+      "payFees": "Pay Fees",
+      "payFeesDesc": "Make online payments",
+      "exploreServices": "Explore Services",
+      "exploreServicesDesc": "Browse available government services"
+    },
+    "context": {
+      "dashboard": "I can see you're on your dashboard. I can help you track applications, check status, or start a new service.",
+      "services": "Looking for a specific service? I can help you find and apply for the right government service.",
+      "serviceDetail": "I can help you with {{service}}. Would you like to know about requirements, process, or start the application?",
+      "tracker": "I can help you track your applications. Just provide your Application Reference Number (ARN).",
+      "default": "I'm here to help you with government services. How can I assist you today?"
+    },
+    "errors": {
+      "slowTimeout": "This is taking longer than expected. Please try again.",
+      "responseFailed": "Failed to get response. Please try again.",
+      "connectionTrouble": "I apologize, but I'm having trouble connecting to the service. Please try again later.",
+      "transcriptionFailed": "Could not transcribe audio. Please try again.",
+      "audioBlockedRetry": "Audio playback blocked by browser. Tap speaker again.",
+      "audioBlockedTapAgain": "Audio playback blocked by browser. Please tap again.",
+      "speechWorkflowFailed": "Speech workflow failed",
+      "ttsFailed": "Text-to-speech failed"
+    },
+    "voice": {
+      "recording": "Recording... tap mic again to stop",
+      "micDenied": "Microphone access denied. Please allow mic permissions.",
+      "detectedLanguage": "Detected: {{language}}"
+    }
+  },
+  "auth": {
+    "signInRequired": "Please sign in to continue."
+  },
+  "common": {
+    "govtPortal": "Seva Sindhu",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "back": "Back",
+    "continue": "Continue",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to access your government services",
+    "description": "Secure login to your account",
+    "digilocker": {
+      "button": "Login with DigiLocker",
+      "description": "Login with DigiLocker for verified identity and easy access to Aadhaar, PAN, Driving License and more"
+    },
+    "google": {
+      "button": "Continue with Google"
+    },
+    "orContinueWith": "Or continue with",
+    "tabs": {
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "email": {
+      "label": "Email Address",
+      "placeholder": "Enter your email",
+      "submit": "Login with Email"
+    },
+    "password": {
+      "label": "Password",
+      "placeholder": "Enter your password",
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "phone": {
+      "label": "Phone Number",
+      "placeholder": "Enter 10-digit mobile number",
+      "sendOtp": "Send OTP",
+      "verify": "Verify & Login"
+    },
+    "otp": {
+      "label": "Enter OTP",
+      "placeholder": "Enter 6-digit OTP",
+      "changePhone": "Change number",
+      "resend": "Resend OTP"
+    },
+    "forgotPassword": "Forgot Password?",
+    "signUp": {
+      "prompt": "Don't have an account?",
+      "link": "Sign Up"
+    },
+    "terms": {
+      "text": "By continuing, you agree to our",
+      "privacy": "Privacy Policy",
+      "and": "and",
+      "terms": "Terms of Service"
+    },
+    "errors": {
+      "loginFailed": "Invalid email or password",
+      "otpSendFailed": "Failed to send OTP. Please try again.",
+      "otpVerifyFailed": "Invalid OTP. Please try again."
+    }
+  },
+  "services": {
+    "title": "Government Services",
+    "subtitle": "Browse and apply for government services",
+    "categories": {
+      "identity": "Identity",
+      "finance": "Finance",
+      "health": "Health",
+      "education": "Education",
+      "travel": "Travel",
+      "housing": "Housing",
+      "employment": "Employment"
+    },
+    "popular": "Popular Services",
+    "viewAll": "View All Services",
+    "applyNow": "Apply Now",
+    "checkStatus": "Check Status",
+    "documents": "Required Documents",
+    "fees": "Fees",
+    "timeline": "Processing Time"
+    ,"categoryLabel": "Categories"
+  },
+  "serviceDetail": {
+    "backToServices": "Back to Services",
+    "validityDuration": "{{value}} validity",
+    "officialSource": "Official Source",
+    "applicationProcess": "Application Process",
+    "step": "Step {{number}}",
+    "continueStep": "Continue to Next Step",
+    "startApplication": "Start Application",
+    "requiredDocuments": "Required Documents",
+    "downloadableResources": "Downloadable Resources",
+    "download": "Download",
+    "faq": "Frequently Asked Questions",
+    "questionLabel": "Q{{number}}:",
+    "answerLabel": "A:",
+    "relatedServices": "Related Services",
+    "serviceDetails": "Service Details",
+    "processingTime": "Processing Time",
+    "applicationFee": "Application Fee",
+    "validity": "Validity",
+    "status": "Status",
+    "needHelp": "Need Help?",
+    "tollFree": "Toll-Free",
+    "emailSupport": "Email Support",
+    "liveChatSupport": "Live Chat Support",
+    "instantHelp": "Get instant help from our support team",
+    "startChat": "Start Chat",
+    "noOfficialPdf": "No official PDF is available yet for this service. Please use the official portal."
+  },
+  "dashboard": {
+    "citizenUser": "Citizen User",
+    "notProvided": "Not provided",
+    "maskedPrivacy": "Masked for privacy",
+    "updateProfileSettings": "Update in profile settings",
+    "recentlyJoined": "Recently joined",
+    "verified": "Verified",
+    "notVerified": "Not Verified",
+    "welcomeBack": "Welcome back, {{name}}! 👋",
+    "subtitle": "Track and manage all your government service applications in one place",
+    "email": "Email",
+    "phone": "Phone",
+    "aadhaar": "Aadhaar",
+    "overview": "Overview",
+    "applications": "Applications",
+    "documents": "Documents",
+    "activity": "Activity",
+    "activeApplications": "Active Applications",
+    "liveRecords": "Live records",
+    "noLiveApplications": "No live applications",
+    "completed": "Completed",
+    "completedRecords": "Completed records",
+    "noCompletedRecords": "No completed records",
+    "pendingReview": "Pending Review",
+    "requiresAction": "Requires action",
+    "noPendingItems": "No pending items",
+    "uploadWhenPrompted": "Upload when prompted",
+    "viewAll": "View All",
+    "recentActivity": "Recent Activity",
+    "latestUpdates": "Your latest updates",
+    "quickActions": "Quick Actions",
+    "commonServices": "Commonly used services",
+    "newApplication": "New Application",
+    "trackStatus": "Track Status",
+    "uploadDocument": "Upload Document",
+    "makePayment": "Make Payment"
+  },
+  "tracker": {
+    "backToDashboard": "Back to Dashboard",
+    "title": "Application Tracker",
+    "emptyDescription": "No live application selected yet. Enter an ARN/application reference from your dashboard to track real status.",
+    "exploreServices": "Explore Services",
+    "trackServiceStatus": "Track your {{service}} application status",
+    "overallProgress": "Overall Progress",
+    "applicant": "Applicant",
+    "applicationId": "Application ID",
+    "submitted": "Submitted",
+    "expected": "Expected",
+    "referenceNumber": "Reference Number",
+    "timelineTitle": "Application Timeline",
+    "timelineDescription": "Detailed status of each step in your application",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "needHelp": "Need Help?",
+    "supportDescription": "Our support team is here to assist you",
+    "scheduleCall": "Schedule Call",
+    "reportIssue": "Report Issue"
+  },
+  "faq": {
+    "allQuestions": "All Questions",
+    "verifiedDirectory": "Verified FAQ Directory",
+    "serviceFaqs": "Service FAQs",
+    "heroDescription": "Answers are generated from our verified national services catalog and mapped to official authorities.",
+    "totalFaqs": "{{count}} total FAQs",
+    "categoryCount": "{{count}} categories",
+    "sourcesLinked": "Sources linked per item",
+    "searchPlaceholder": "Search question, answer, or service",
+    "showingCount": "Showing {{shown}} of {{total}}",
+    "verifiedAnswers": "Verified FAQ Answers",
+    "officialSource": "Official source",
+    "exploreServices": "Explore services"
+  },
+  "about": {
+    "govInitiative": "Government of India Initiative",
+    "title": "Seva Sindhu Portal",
+    "heroSubtitle": "An integrated digital platform empowering citizens with seamless access to government services across India",
+    "heroAttribution": "Developed under the Digital India programme in collaboration with Ministry of Electronics & Information Technology",
+    "aboutTitle": "About Seva Sindhu",
+    "aboutSubtitle": "Unified National Portal for Citizen Services",
+    "aboutDescription": "Seva Sindhu (meaning \"Ocean of Services\") is a flagship digital initiative of the Government of India, designed to provide citizens with a unified platform for accessing various government services across central and state departments. Launched under the Digital India programme, the portal aims to transform governance through technology-enabled service delivery.",
+    "visionTitle": "Vision",
+    "visionDescription": "To create a citizen-centric digital ecosystem that ensures transparent, efficient, and accessible government services for every Indian, regardless of geographical or socio-economic barriers.",
+    "missionTitle": "Mission",
+    "missionDescription": "To digitize and integrate government services across departments, eliminate paperwork, reduce processing times, and enhance transparency in public service delivery mechanisms.",
+    "strategicObjectives": "Strategic Objectives",
+    "strategicObjectivesSubtitle": "Core goals driving our digital transformation initiative",
+    "platformFeatures": "Platform Features",
+    "platformFeaturesSubtitle": "Built with cutting-edge technology and citizen-first design principles",
+    "implementationPartners": "Implementation Partners",
+    "implementationPartnersSubtitle": "Collaborative ecosystem powering digital governance",
+    "complianceStandards": "Compliance & Standards",
+    "complianceStandardsSubtitle": "Meeting international security and accessibility standards",
+    "contactInformation": "Contact Information",
+    "contactInformationSubtitle": "Reach out to us for support, feedback, or inquiries",
+    "helpline": "Helpline",
+    "helplineHours": "Mon-Sat: 8 AM - 8 PM",
+    "emailSupport": "Email Support",
+    "emailResponseTime": "24-hour response time",
+    "officeAddress": "Office Address",
+    "officeAddressLine1": "Electronics Niketan",
+    "officeAddressLine2": "New Delhi - 110003",
+    "exploreServices": "Explore Our Services",
+    "exploreSubtitle": "Access 50+ government services from the comfort of your home",
+    "browseServices": "Browse Services",
+    "viewFaq": "View FAQ",
+    "objectives": {
+      "digitalTransformation": {
+        "title": "Digital Transformation",
+        "description": "Transform government service delivery through innovative digital solutions and seamless citizen experience."
+      },
+      "inclusiveAccess": {
+        "title": "Inclusive Access",
+        "description": "Ensure every citizen, regardless of location or ability, can access government services with ease."
+      },
+      "securityPrivacy": {
+        "title": "Security & Privacy",
+        "description": "Maintain the highest standards of data security and privacy protection for all citizen information."
+      },
+      "efficiencySpeed": {
+        "title": "Efficiency & Speed",
+        "description": "Reduce processing times and eliminate bureaucratic delays through automated workflows."
+      }
+    },
+    "features": {
+      "multiLanguage": {
+        "title": "Multi-Language Support",
+        "description": "Available in 22+ official Indian languages for nationwide accessibility"
+      },
+      "bankGradeSecurity": {
+        "title": "Bank-Grade Security",
+        "description": "256-bit encryption and ISO 27001 certified infrastructure"
+      },
+      "accessibilityFirst": {
+        "title": "Accessibility First",
+        "description": "WCAG 2.1 AA compliant for citizens with disabilities"
+      },
+      "realTimeTracking": {
+        "title": "Real-Time Tracking",
+        "description": "Monitor your application status 24/7 with instant updates"
+      },
+      "userFriendlyInterface": {
+        "title": "User-Friendly Interface",
+        "description": "Intuitive design tested with 10,000+ real users"
+      },
+      "integratedServices": {
+        "title": "Integrated Services",
+        "description": "One-stop portal for all central and state services"
+      }
+    },
+    "partners": {
+      "ministryElectronics": {
+        "name": "Ministry of Electronics & IT",
+        "type": "Parent Ministry"
+      },
+      "nic": {
+        "name": "National Informatics Centre",
+        "type": "Technology Partner"
+      },
+      "uidai": {
+        "name": "UIDAI (Aadhaar)",
+        "type": "Integration Partner"
+      },
+      "dic": {
+        "name": "Digital India Corporation",
+        "type": "Implementation Partner"
+      },
+      "stateGov": {
+        "name": "State Governments",
+        "type": "Service Providers"
+      },
+      "csc": {
+        "name": "Common Service Centers",
+        "type": "Last Mile Delivery"
+      }
+    },
+    "certifications": {
+      "iso27001": "ISO 27001:2013 Information Security",
+      "wcag": "WCAG 2.1 Level AA Accessibility",
+      "gigw": "GIGW (Government of India Guidelines)",
+      "itAct": "IT Act 2000 Compliance",
+      "sslTls": "SSL/TLS Encrypted Communication",
+      "securityAudits": "Regular Security Audits (CERT-In)",
+      "dataPrivacy": "Data Privacy & Protection Compliant",
+      "mfa": "Multi-Factor Authentication (MFA)"
+    },
+    "stats": {
+      "activeCitizens": "Active Citizens",
+      "governmentServices": "Government Services",
+      "systemUptime": "System Uptime",
+      "citizenSupport": "Citizen Support"
+    }
+  },
+  "footer": {
+    "about": "About Seva Sindhu",
+    "aboutText": "Your trusted partner for accessing government services easily and efficiently.",
+    "quickLinks": "Quick Links",
+    "services": "Services",
+    "help": "Help & Support",
+    "contact": "Contact Us",
+    "rights": "All rights reserved.",
+    "government": "Government of India initiative"
+  }
+}
